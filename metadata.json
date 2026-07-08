@@ -1,0 +1,6 @@
+{
+  "name": "Gig Culture India",
+  "description": "A modern, high-contrast live music marketplace connecting event hosts with independent artists via AI matchmaking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
