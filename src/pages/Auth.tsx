@@ -44,23 +44,7 @@ export default function Auth() {
         if (signUpError) throw signUpError;
 
         if (data.user) {
-          // Insert profile row
-          const { error: profileError } = await supabase.from("profiles").insert({
-            id: data.user.id,
-            role,
-            full_name: fullName,
-          });
-
-          if (profileError) throw profileError;
-
-          // Insert into role-specific table
-          if (role === "host") {
-            await supabase.from("hosts").insert({ id: data.user.id });
-          } else {
-            await supabase.from("artists").insert({ id: data.user.id });
-          }
-
-          setSuccess("Account created! Check your email to confirm, then sign in.");
+          setSuccess("Account created! Check your email for a confirmation link, then sign in.");
         }
       } else {
         const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
