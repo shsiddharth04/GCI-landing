@@ -1,7 +1,10 @@
 import { motion } from "motion/react";
 import { Sparkles, Music } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function Header() {
+  const navigate = useNavigate();
+
   return (
     <motion.header
       initial={{ opacity: 0, y: -10 }}
@@ -22,17 +25,24 @@ export default function Header() {
         </div>
       </div>
 
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-4">
         <nav className="hidden md:flex items-center gap-6 text-sm text-zinc-400 font-medium">
           <a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a>
           <a href="#roster" className="hover:text-white transition-colors">Discover Roster</a>
           <a href="#visualizer" className="hover:text-white transition-colors">AI Matcher</a>
         </nav>
-        
-        <div className="flex items-center gap-2 px-3 py-1 bg-zinc-900/50 border border-zinc-800 rounded-full">
+
+        <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-zinc-900/50 border border-zinc-800 rounded-full">
           <Sparkles className="h-3 w-3 text-[#CBA6F7] animate-pulse" />
           <span className="text-[11px] text-zinc-300 font-semibold tracking-wider uppercase">AI MATCHMAKER ACTIVE</span>
         </div>
+
+        <button
+          onClick={() => navigate("/auth")}
+          className="px-4 py-2 text-sm font-semibold text-[#CBA6F7] border border-[#CBA6F7]/40 hover:bg-[#CBA6F7]/10 rounded-full transition-all duration-200 cursor-pointer"
+        >
+          Sign In
+        </button>
       </div>
     </motion.header>
   );

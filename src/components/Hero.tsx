@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
 import { ArrowRight, AudioLines } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface HeroProps {
   onConnectClick: () => void;
@@ -8,6 +9,7 @@ interface HeroProps {
 }
 
 export default function Hero({ onConnectClick, onArtistConnectClick, scanStatus }: HeroProps) {
+  const navigate = useNavigate();
   return (
     <section className="w-full max-w-5xl mx-auto px-6 py-16 md:py-24 text-center relative overflow-hidden">
       {/* Dynamic ambient lavender glow in background */}
@@ -38,24 +40,22 @@ export default function Hero({ onConnectClick, onArtistConnectClick, scanStatus 
         {/* CTA Buttons */}
         <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
           <motion.button
-            onClick={onConnectClick}
+            onClick={() => navigate("/auth?role=host")}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.98 }}
             className="px-8 py-4 bg-[#CBA6F7] text-black font-semibold text-base rounded-full shadow-[0_4px_20px_rgba(203,166,247,0.4)] hover:shadow-[0_4px_30px_rgba(203,166,247,0.6)] hover:bg-[#b58ce6] transition-all duration-300 flex items-center gap-2 cursor-pointer group"
           >
-            <span>
-              {scanStatus === "completed" ? "Connect Spotify to Book" : "Connect Spotify to Book"}
-            </span>
+            <span>Get Started as a Host</span>
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </motion.button>
-          
+
           <motion.button
-            onClick={onArtistConnectClick}
+            onClick={() => navigate("/auth?role=artist")}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.98 }}
             className="px-8 py-4 bg-transparent text-[#CBA6F7] border-2 border-[#CBA6F7] hover:bg-[#CBA6F7]/10 font-semibold text-base rounded-full transition-all duration-300 flex items-center gap-2 cursor-pointer group"
           >
-            <span>Connect SoundCloud to Play</span>
+            <span>Join as an Artist</span>
             <ArrowRight className="h-4 w-4 text-[#CBA6F7] transition-transform group-hover:translate-x-1" />
           </motion.button>
         </div>
