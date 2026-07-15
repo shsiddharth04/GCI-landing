@@ -28,6 +28,20 @@ export default function Auth() {
     if (paramRole === "host" || paramRole === "artist") setRole(paramRole);
   }, [searchParams]);
 
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "SIGNED_IN" && session?.user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .single();
+        navigate(profile?.role === "artist" ? "/dashboard/artist" : "/dashboard/host");
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -38,7 +52,10 @@ export default function Auth() {
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { full_name: fullName, role } },
+          options: {
+            data: { full_name: fullName, role },
+            emailRedirectTo: `${window.location.origin}/auth`,
+          },
         });
 
         if (signUpError) throw signUpError;
