@@ -1,4 +1,4 @@
-import { StrictMode, useEffect } from "react";
+import React, { StrictMode, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import App from "./App.tsx";
