@@ -53,6 +53,10 @@ export default function HostDashboard() {
   const [artists, setArtists] = useState<ArtistWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedArtist, setSelectedArtist] = useState<ArtistWithProfile | null>(null);
+  const handleViewProfile = (artist: ArtistWithProfile) => {
+    const matchParam = artist.match_score != null ? `?match=${Math.round(artist.match_score * 100)}` : "";
+    navigate(`/artist/${artist.id}${matchParam}`);
+  };
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
 
@@ -204,7 +208,7 @@ export default function HostDashboard() {
               >
                 <ArtistCard
                   artist={artist}
-                  onClick={() => setSelectedArtist(artist)}
+                  onClick={() => handleViewProfile(artist)}
                 />
               </motion.div>
             ))

@@ -4,6 +4,9 @@ import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import App from "./App.tsx";
 import Auth from "./pages/Auth.tsx";
 import HostDashboard from "./pages/HostDashboard.tsx";
+import ArtistDashboard from "./pages/ArtistDashboard.tsx";
+import ArtistOnboarding from "./pages/ArtistOnboarding.tsx";
+import ArtistProfile from "./pages/ArtistProfile.tsx";
 import { supabase } from "./lib/supabase.ts";
 import "./index.css";
 
@@ -18,7 +21,17 @@ function AuthRedirect({ children }: { children: React.ReactNode }) {
           .select("role")
           .eq("id", session.user.id)
           .single();
-        navigate(profile?.role === "artist" ? "/dashboard/artist" : "/dashboard/host");
+
+        if (profile?.role === "artist") {
+          const { data: artistData } = await supabase
+            .from("artists")
+            .select("onboarding_complete")
+            .eq("id", session.user.id)
+            .single();
+          navigate(artistData?.onboarding_complete ? "/dashboard/artist" : "/onboarding/artist");
+        } else {
+          navigate("/dashboard/host");
+        }
       }
     });
     return () => subscription.unsubscribe();
@@ -35,6 +48,9 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/" element={<App />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard/host" element={<HostDashboard />} />
+          <Route path="/dashboard/artist" element={<ArtistDashboard />} />
+          <Route path="/onboarding/artist" element={<ArtistOnboarding />} />
+          <Route path="/artist/:id" element={<ArtistProfile />} />
         </Routes>
       </AuthRedirect>
     </BrowserRouter>
