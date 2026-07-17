@@ -3,10 +3,10 @@ import { useParams, useSearchParams, useNavigate, Link } from "react-router-dom"
 import { motion } from "motion/react";
 import {
   ArrowLeft, MapPin, IndianRupee, ShieldCheck, Music,
-  Instagram, Youtube, Twitter, ExternalLink, Navigation, Clock, Mic2,
+  Instagram, Youtube, Twitter, ExternalLink, Navigation, Clock, Mic2, Play,
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
-import { ArtistWithProfile } from "../types/dashboard";
+import { ArtistWithProfile, ArtistMedia, getDisplayName } from "../types/dashboard";
 
 function MatchGauge({ score }: { score: number }) {
   const pct = Math.round(score * 100);
@@ -88,6 +88,7 @@ export default function ArtistProfile() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [artist, setArtist] = useState<ArtistWithProfile | null>(null);
+  const [media, setMedia] = useState<ArtistMedia[]>([]);
   const [loading, setLoading] = useState(true);
 
   const matchPct = searchParams.get("match") ? Number(searchParams.get("match")) / 100 : null;
@@ -103,6 +104,13 @@ export default function ArtistProfile() {
         setArtist(data as unknown as ArtistWithProfile);
         setLoading(false);
       });
+
+    supabase
+      .from("artist_media")
+      .select("*")
+      .eq("artist_id", id)
+      .order("display_order")
+      .then(({ data }) => setMedia((data as ArtistMedia[]) || []));
   }, [id]);
 
   if (loading) {
@@ -122,7 +130,7 @@ export default function ArtistProfile() {
     );
   }
 
-  const name = artist.profiles?.full_name || "Unknown Artist";
+  const name = getDisplayName(artist);
   const photo = artist.avatar_url || artist.profiles?.avatar_url;
   const social = (artist.social_links || {}) as Record<string, string>;
   const playlistUrl = artist.soundcloud_playlist_url;
@@ -423,6 +431,34 @@ export default function ArtistProfile() {
           </div>
         </div>
       </div>
+
+      {/* ── MEDIA GALLERY ────────────────────────────────── */}
+      {media.length > 0 && (
+        <div className="max-w-7xl mx-auto px-6 pb-20">
+          <p className="text-[11px] text-zinc-600 uppercase tracking-widest font-bold mb-6">From the stage</p>
+          <div className="columns-2 sm:columns-3 lg:columns-4 gap-3 space-y-3">
+            {media.map((item) =>
+              item.media_type === "photo" ? (
+                <div key={item.id} className="break-inside-avoid rounded-2xl overflow-hidden border border-zinc-800/60 bg-zinc-950">
+                  <img src={item.url} alt={item.caption || ""} className="w-full object-cover" loading="lazy" />
+                  {item.caption && <p className="px-3 py-2 text-xs text-zinc-500">{item.caption}</p>}
+                </div>
+              ) : (
+                <div key={item.id} className="break-inside-avoid rounded-2xl overflow-hidden border border-zinc-800/60 bg-zinc-950 relative group">
+                  <video src={item.url} className="w-full" preload="metadata" controls={false} />
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/20 transition-colors">
+                    <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                      <Play className="h-5 w-5 text-white fill-white" />
+                    </div>
+                  </div>
+                  <video src={item.url} className="w-full hidden" controls />
+                  {item.caption && <p className="px-3 py-2 text-xs text-zinc-500">{item.caption}</p>}
+                </div>
+              )
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

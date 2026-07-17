@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
 import { MapPin, IndianRupee, ShieldCheck } from "lucide-react";
-import { ArtistWithProfile } from "../../types/dashboard";
+import { ArtistWithProfile, getDisplayName } from "../../types/dashboard";
 
 interface ArtistCardProps {
   artist: ArtistWithProfile;
@@ -44,7 +44,7 @@ function AvatarPlaceholder({ name }: { name: string }) {
 }
 
 export default function ArtistCard({ artist, onClick }: ArtistCardProps) {
-  const name = artist.profiles?.full_name || "Unknown Artist";
+  const name = getDisplayName(artist);
   const photo = artist.avatar_url || artist.profiles?.avatar_url;
   const visibleGenres = (artist.genres || []).slice(0, 2);
 

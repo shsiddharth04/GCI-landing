@@ -1,9 +1,24 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "motion/react";
-import { Music, MapPin, IndianRupee, Edit2, ShieldCheck, ExternalLink, LogOut } from "lucide-react";
+import { Music, MapPin, IndianRupee, Edit2, ShieldCheck, ExternalLink, LogOut, Upload, Trash2, Image, Video, Plus } from "lucide-react";
 import { supabase } from "../lib/supabase";
-import { ArtistWithProfile } from "../types/dashboard";
+import { ArtistWithProfile, ArtistMedia, getDisplayName } from "../types/dashboard";
+
+async function normalizeImage(file: File): Promise<File> {
+  const name = file.name.toLowerCase();
+  const isHeic = file.type === "image/heic" || file.type === "image/heif" ||
+    name.endsWith(".heic") || name.endsWith(".heif");
+  if (!isHeic) return file;
+  try {
+    const heic2any = (await import("heic2any")).default;
+    const result = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.92 });
+    const blob = Array.isArray(result) ? result[0] : result;
+    return new File([blob], file.name.replace(/\.(heic|heif)$/i, ".jpg"), { type: "image/jpeg" });
+  } catch {
+    return file;
+  }
+}
 
 function AvatarPlaceholder({ name }: { name: string }) {
   const initial = name?.charAt(0)?.toUpperCase() || "A";
@@ -19,7 +34,11 @@ function AvatarPlaceholder({ name }: { name: string }) {
 export default function ArtistDashboard() {
   const navigate = useNavigate();
   const [artist, setArtist] = useState<ArtistWithProfile | null>(null);
+  const [media, setMedia] = useState<ArtistMedia[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -37,11 +56,44 @@ export default function ArtistDashboard() {
         navigate("/onboarding/artist"); return;
       }
 
-      setArtist(data as unknown as ArtistWithProfile);
+      const a = data as unknown as ArtistWithProfile;
+      setArtist(a);
       setLoading(false);
+      loadMedia(session.user.id);
     };
     init();
   }, [navigate]);
+
+  const loadMedia = async (artistId: string) => {
+    const { data } = await supabase.from("artist_media").select("*").eq("artist_id", artistId).order("display_order");
+    setMedia((data as ArtistMedia[]) || []);
+  };
+
+  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "photo" | "video") => {
+    const raw = e.target.files?.[0];
+    if (!raw || !artist) return;
+    setUploading(true);
+    try {
+      const file = type === "photo" ? await normalizeImage(raw) : raw;
+      const ext = file.name.split(".").pop() || (type === "photo" ? "jpg" : "mp4");
+      const path = `${artist.id}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("media").upload(path, file, { upsert: false });
+      if (upErr) throw upErr;
+      const url = supabase.storage.from("media").getPublicUrl(path).data.publicUrl;
+      await supabase.from("artist_media").insert({ artist_id: artist.id, url, media_type: type, display_order: media.length });
+      await loadMedia(artist.id);
+    } catch {
+      // silently fail — add error toast in future
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleDeleteMedia = async (item: ArtistMedia) => {
+    await supabase.from("artist_media").delete().eq("id", item.id);
+    setMedia((prev) => prev.filter((m) => m.id !== item.id));
+  };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -58,7 +110,7 @@ export default function ArtistDashboard() {
 
   if (!artist) return null;
 
-  const name = artist.profiles?.full_name || "Artist";
+  const name = getDisplayName(artist);
   const photo = artist.avatar_url || artist.profiles?.avatar_url;
 
   return (
@@ -203,6 +255,74 @@ export default function ArtistDashboard() {
                   Your profile is live. When a host matches with you and requests a booking, it'll show up here.
                 </p>
               </div>
+            </div>
+
+            {/* Media upload */}
+            <div className="bg-zinc-950 border border-zinc-800/80 rounded-3xl p-8">
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <h2 className="text-white font-extrabold text-xl">Media</h2>
+                  <p className="text-zinc-500 text-sm mt-0.5">Photos and videos from your sets, shown on your artist profile.</p>
+                </div>
+              </div>
+
+              {/* Upload buttons */}
+              <div className="flex gap-2 mt-5 mb-6">
+                <button
+                  onClick={() => photoInputRef.current?.click()}
+                  disabled={uploading}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white text-xs font-semibold rounded-full transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  <Image className="h-3.5 w-3.5" />
+                  {uploading ? "Uploading..." : "Add Photo"}
+                </button>
+                <button
+                  onClick={() => videoInputRef.current?.click()}
+                  disabled={uploading}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white text-xs font-semibold rounded-full transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  <Video className="h-3.5 w-3.5" />
+                  {uploading ? "Uploading..." : "Add Video"}
+                </button>
+                <input ref={photoInputRef} type="file" accept="image/*,.heic,.heif" className="hidden" onChange={(e) => handleMediaUpload(e, "photo")} />
+                <input ref={videoInputRef} type="file" accept="video/mp4,video/quicktime,video/webm,video/avi" className="hidden" onChange={(e) => handleMediaUpload(e, "video")} />
+              </div>
+
+              {media.length === 0 ? (
+                <div
+                  className="border-2 border-dashed border-zinc-800 rounded-2xl py-12 flex flex-col items-center gap-3 text-zinc-600 cursor-pointer hover:border-zinc-700 transition-colors"
+                  onClick={() => photoInputRef.current?.click()}
+                >
+                  <Plus className="h-8 w-8" />
+                  <p className="text-sm font-medium">Upload photos or videos from your sets</p>
+                  <p className="text-xs">JPG, PNG, HEIC · MP4, MOV, WEBM · up to 500MB per file</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 gap-2">
+                  {media.map((item) => (
+                    <div key={item.id} className="relative group aspect-square rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800">
+                      {item.media_type === "photo" ? (
+                        <img src={item.url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <video src={item.url} className="w-full h-full object-cover" preload="metadata" />
+                      )}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors flex items-center justify-center">
+                        <button
+                          onClick={() => handleDeleteMedia(item)}
+                          className="opacity-0 group-hover:opacity-100 p-2 bg-red-500/80 hover:bg-red-500 rounded-full transition-all cursor-pointer"
+                        >
+                          <Trash2 className="h-3.5 w-3.5 text-white" />
+                        </button>
+                      </div>
+                      {item.media_type === "video" && (
+                        <div className="absolute bottom-2 left-2 px-1.5 py-0.5 bg-black/70 rounded text-[10px] text-white font-medium">
+                          VIDEO
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Profile tips */}

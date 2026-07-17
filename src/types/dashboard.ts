@@ -1,5 +1,6 @@
 export interface ArtistWithProfile {
   id: string;
+  stage_name: string | null;
   soundcloud_url: string | null;
   soundcloud_user_id: string | null;
   soundcloud_playlist_url: string | null;
@@ -21,10 +22,24 @@ export interface ArtistWithProfile {
   match_score?: number | null;
 }
 
+export interface ArtistMedia {
+  id: string;
+  artist_id: string;
+  url: string;
+  media_type: "photo" | "video";
+  caption: string | null;
+  display_order: number;
+  created_at: string;
+}
+
 export interface HostProfile {
   id: string;
   spotify_id: string | null;
   profiles: {
     full_name: string | null;
   } | null;
+}
+
+export function getDisplayName(artist: ArtistWithProfile): string {
+  return artist.stage_name || artist.profiles?.full_name || "Unknown Artist";
 }
