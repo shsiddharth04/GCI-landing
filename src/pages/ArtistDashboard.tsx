@@ -71,8 +71,9 @@ export default function ArtistDashboard() {
   };
 
   const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "photo" | "video") => {
-    const files = Array.from(e.target.files || []);
-    if (!files.length || !artist) return;
+    const rawList = e.target.files;
+    if (!rawList?.length || !artist) return;
+    const files: File[] = Array.from(rawList);
     setUploading(true);
     setUploadError(null);
     const failed: string[] = [];

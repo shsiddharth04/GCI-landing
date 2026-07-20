@@ -43,3 +43,28 @@ export interface HostProfile {
 export function getDisplayName(artist: ArtistWithProfile): string {
   return artist.stage_name || artist.profiles?.full_name || "Unknown Artist";
 }
+
+// Genre → duotone accent color. Same genre always maps to the same color so the
+// marketplace grid has consistent visual taxonomy (electronic = lavender cluster, etc.)
+const GENRE_PALETTE: [string, string][] = [
+  ["electronic", "#CBA6F7"], ["house", "#CBA6F7"], ["techno", "#CBA6F7"],
+  ["ambient", "#CBA6F7"], ["edm", "#CBA6F7"], ["dnb", "#CBA6F7"],
+  ["drum", "#CBA6F7"], ["trance", "#CBA6F7"], ["synthwave", "#CBA6F7"],
+  ["hip", "#FBBF24"], ["rap", "#FBBF24"], ["trap", "#FBBF24"],
+  ["jazz", "#2DD4BF"], ["blues", "#2DD4BF"], ["soul", "#2DD4BF"],
+  ["r&b", "#2DD4BF"], ["rnb", "#2DD4BF"], ["funk", "#2DD4BF"],
+  ["rock", "#F87171"], ["indie", "#F87171"], ["metal", "#F87171"],
+  ["punk", "#F87171"], ["alternative", "#F87171"], ["grunge", "#F87171"],
+  ["pop", "#F472B6"], ["dance", "#F472B6"], ["club", "#F472B6"],
+  ["classical", "#86EFAC"], ["acoustic", "#86EFAC"], ["folk", "#86EFAC"],
+  ["world", "#86EFAC"], ["reggae", "#86EFAC"], ["afrobeat", "#86EFAC"],
+];
+
+export function getAccentColor(genres: string[]): string {
+  if (!genres?.length) return "#CBA6F7";
+  const primary = genres[0].toLowerCase();
+  for (const [key, color] of GENRE_PALETTE) {
+    if (primary.includes(key)) return color;
+  }
+  return "#CBA6F7";
+}

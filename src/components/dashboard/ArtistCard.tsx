@@ -1,129 +1,230 @@
-import { motion } from "motion/react";
-import { MapPin, IndianRupee, ShieldCheck } from "lucide-react";
-import { ArtistWithProfile, getDisplayName } from "../../types/dashboard";
+import { useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { ArtistWithProfile, getDisplayName, getAccentColor } from "../../types/dashboard";
 
-interface ArtistCardProps {
+interface Props {
   artist: ArtistWithProfile;
   onClick: () => void;
 }
 
-function MatchBadge({ score }: { score: number }) {
-  const pct = Math.round(score * 100);
-  const glow =
-    pct >= 85 ? "shadow-[0_0_18px_rgba(203,166,247,0.7)]" :
-    pct >= 65 ? "shadow-[0_0_18px_rgba(137,180,250,0.5)]" :
-    "shadow-none";
-  const gradient =
-    pct >= 85 ? "from-[#CBA6F7] to-purple-300" :
-    pct >= 65 ? "from-[#89b4fa] to-[#CBA6F7]" :
-    "from-zinc-500 to-zinc-400";
-
-  return (
-    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r ${gradient} ${glow}`}>
-      <span className="text-[12px] font-black text-black tracking-wide leading-none">{pct}%</span>
-      <span className="text-[10px] font-bold text-black/70 leading-none uppercase tracking-widest">Match</span>
-    </div>
-  );
-}
-
-function AvatarPlaceholder({ name }: { name: string }) {
+function AvatarFallback({ name, accent }: { name: string; accent: string }) {
   const initial = name?.charAt(0)?.toUpperCase() || "A";
-  const colors = [
-    "from-purple-600 to-[#CBA6F7]",
-    "from-blue-600 to-purple-500",
-    "from-pink-600 to-purple-500",
-    "from-indigo-600 to-blue-400",
-    "from-violet-600 to-pink-400",
-  ];
-  const color = colors[initial.charCodeAt(0) % colors.length];
   return (
-    <div className={`w-full h-full bg-gradient-to-br ${color} flex items-center justify-center`}>
-      <span className="text-6xl font-black text-white/90 select-none">{initial}</span>
+    <div
+      className="absolute inset-0 flex items-center justify-center overflow-hidden"
+      style={{ background: `${accent}12` }}
+    >
+      <span
+        className="font-bold select-none"
+        style={{
+          fontFamily: "'Space Grotesk', sans-serif",
+          fontSize: "13rem",
+          color: `${accent}18`,
+          lineHeight: 1,
+          marginTop: "3rem",
+        }}
+      >
+        {initial}
+      </span>
     </div>
   );
 }
 
-export default function ArtistCard({ artist, onClick }: ArtistCardProps) {
+export default function ArtistCard({ artist, onClick }: Props) {
+  const [hovered, setHovered] = useState(false);
+
   const name = getDisplayName(artist);
   const photo = artist.avatar_url || artist.profiles?.avatar_url;
-  const visibleGenres = (artist.genres || []).slice(0, 2);
+  const accent = getAccentColor(artist.genres);
+  const primaryGenre = (artist.genres || [])[0] ?? null;
+  const matchPct = artist.match_score != null ? Math.round(artist.match_score * 100) : null;
+  const vibes = (artist.vibe_tags || []).slice(0, 3);
 
   return (
     <motion.div
       onClick={onClick}
-      whileHover={{ y: -6, scale: 1.01 }}
+      onHoverStart={() => setHovered(true)}
+      onHoverEnd={() => setHovered(false)}
       whileTap={{ scale: 0.98 }}
-      transition={{ duration: 0.25, ease: "easeOut" }}
-      className="group relative cursor-pointer rounded-3xl overflow-hidden aspect-[3/4] bg-zinc-950"
-      style={{ boxShadow: "0 0 0 1px rgba(255,255,255,0.06)" }}
+      className="relative cursor-pointer rounded-2xl overflow-hidden aspect-[3/4] bg-zinc-950 select-none"
+      style={{
+        boxShadow: hovered
+          ? `0 20px 60px -8px ${accent}40, 0 0 0 1px ${accent}30`
+          : "0 0 0 1px rgba(255,255,255,0.07)",
+        transition: "box-shadow 0.4s ease",
+      }}
     >
-      {/* Full-bleed photo */}
-      <div className="absolute inset-0">
+      {/* ── Duotone photo — contained in isolation context ── */}
+      <div className="absolute inset-0" style={{ isolation: "isolate" }}>
         {photo ? (
-          <img
+          <motion.img
             src={photo}
             alt={name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+            className="absolute inset-0 w-full h-full object-cover object-top"
+            style={{ filter: "grayscale(1) brightness(1.07) contrast(1.08)" }}
+            animate={{ scale: hovered ? 1.05 : 1 }}
+            transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
           />
         ) : (
-          <AvatarPlaceholder name={name} />
+          <AvatarFallback name={name} accent={accent} />
         )}
+        {/* Color wash — mix-blend-mode: color over grayscale = duotone */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundColor: accent,
+            mixBlendMode: "color",
+            opacity: hovered ? 0.65 : 0.52,
+            transition: "opacity 0.5s ease",
+          }}
+        />
       </div>
 
-      {/* Gradient overlays */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent" />
+      {/* ── Gradient layers — outside isolation so they render pure ── */}
+      {/* Bottom fade: photo into near-black for text legibility */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "linear-gradient(to top, rgba(7,7,8,0.97) 0%, rgba(7,7,8,0.52) 36%, rgba(7,7,8,0.08) 62%, transparent 100%)",
+        }}
+      />
+      {/* Top vignette: for chip + score legibility */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "linear-gradient(to bottom, rgba(7,7,8,0.52) 0%, transparent 32%)",
+        }}
+      />
 
-      {/* Hover border glow */}
-      <div className="absolute inset-0 rounded-3xl ring-1 ring-[#CBA6F7]/0 group-hover:ring-[#CBA6F7]/50 transition-all duration-400 pointer-events-none" />
-
-      {/* Top row: match badge + verified */}
-      <div className="absolute top-4 left-4 right-4 flex items-start justify-between">
-        {artist.onboarding_complete && (
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-black/50 backdrop-blur-md border border-white/10">
-            <ShieldCheck className="h-3 w-3 text-[#CBA6F7]" />
-            <span className="text-[10px] font-bold text-white/80 uppercase tracking-widest">Verified</span>
-          </div>
-        )}
-        {artist.match_score != null && (
-          <div className="ml-auto">
-            <MatchBadge score={artist.match_score} />
-          </div>
-        )}
-      </div>
-
-      {/* Genre chips — slide up on hover */}
-      <div className="absolute bottom-28 left-4 right-4 flex flex-wrap gap-1.5 translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-        {visibleGenres.map((g) => (
+      {/* ── Top row: primary genre chip + match score ── */}
+      <div className="absolute top-4 left-4 right-4 z-10 flex items-start justify-between gap-2">
+        {primaryGenre && (
           <span
-            key={g}
-            className="px-2.5 py-1 bg-black/60 backdrop-blur-md border border-[#CBA6F7]/30 text-[#CBA6F7] text-[10px] font-semibold rounded-full"
+            className="px-2.5 rounded-full font-bold uppercase tracking-widest leading-none"
+            style={{
+              paddingTop: "5px",
+              paddingBottom: "5px",
+              fontSize: "0.6rem",
+              backgroundColor: `${accent}22`,
+              border: `1px solid ${accent}50`,
+              color: accent,
+            }}
           >
-            {g}
+            {primaryGenre}
           </span>
-        ))}
+        )}
+
+        {matchPct != null && (
+          <div className="ml-auto text-right" style={{ lineHeight: 1 }}>
+            <div
+              className="font-bold"
+              style={{
+                fontFamily: "'Space Grotesk', sans-serif",
+                fontSize: "1.75rem",
+                color: accent,
+                lineHeight: 1,
+              }}
+            >
+              {matchPct}
+            </div>
+            <div
+              className="font-semibold uppercase"
+              style={{
+                fontSize: "0.5rem",
+                letterSpacing: "0.15em",
+                color: "rgba(255,255,255,0.32)",
+                marginTop: "3px",
+              }}
+            >
+              % match
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Bottom glass info bar */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 backdrop-blur-md bg-black/50 border-t border-white/10">
-        <div className="flex items-end justify-between gap-2">
-          <div className="min-w-0">
-            <p className="text-white font-extrabold text-base leading-tight tracking-tight truncate">{name}</p>
-            {artist.location && (
-              <div className="flex items-center gap-1 text-zinc-400 text-xs mt-0.5">
-                <MapPin className="h-3 w-3 shrink-0" />
-                <span className="truncate">{artist.location}</span>
-              </div>
-            )}
-          </div>
+      {/* ── Vibe tags — animate in on hover above name row ── */}
+      <AnimatePresence>
+        {hovered && vibes.length > 0 && (
+          <motion.div
+            key="vibes"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 6 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="absolute left-4 right-4 z-10 flex flex-wrap gap-1.5"
+            style={{ bottom: "5.75rem" }}
+          >
+            {vibes.map((v) => (
+              <span
+                key={v}
+                className="rounded-full font-medium"
+                style={{
+                  padding: "5px 10px",
+                  fontSize: "0.62rem",
+                  background: "rgba(0,0,0,0.65)",
+                  backdropFilter: "blur(8px)",
+                  border: "1px solid rgba(255,255,255,0.13)",
+                  color: "rgba(255,255,255,0.65)",
+                }}
+              >
+                {v}
+              </span>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Bottom info ── */}
+      <div className="absolute bottom-0 left-0 right-0 pb-4 z-10">
+        {/*
+          Artist name: pl-4 only (no right padding) so long names bleed off the
+          card's right edge — the card's overflow:hidden clips them naturally.
+          whitespace-nowrap prevents line breaks; the "bleed" is the signature
+          element: the name is too large for the card; the profile lets it breathe.
+        */}
+        <h3
+          className="whitespace-nowrap font-bold text-white"
+          style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: "3rem",
+            lineHeight: 0.88,
+            letterSpacing: "-0.04em",
+            paddingLeft: "1rem",
+            marginBottom: "0.4rem",
+          }}
+        >
+          {name}
+        </h3>
+
+        {/* City + rate row — restored right padding */}
+        <div
+          className="flex items-center gap-3"
+          style={{ paddingLeft: "1rem", paddingRight: "1rem" }}
+        >
+          {artist.location && (
+            <span
+              style={{
+                fontSize: "0.72rem",
+                color: "rgba(161,161,170,0.75)",
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+              }}
+            >
+              {artist.location}
+            </span>
+          )}
           {artist.base_rate != null && (
-            <div className="shrink-0 text-right">
-              <div className="flex items-center gap-0.5 text-white font-black text-sm justify-end">
-                <IndianRupee className="h-3 w-3" />
-                <span>{Number(artist.base_rate).toLocaleString("en-IN")}</span>
-              </div>
-              <p className="text-zinc-500 text-[10px]">/ show</p>
-            </div>
+            <span
+              className="ml-auto"
+              style={{
+                fontSize: "0.72rem",
+                color: "rgba(161,161,170,0.6)",
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+              }}
+            >
+              ₹{Number(artist.base_rate).toLocaleString("en-IN")}
+            </span>
           )}
         </div>
       </div>
