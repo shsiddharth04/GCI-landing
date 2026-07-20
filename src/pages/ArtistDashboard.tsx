@@ -20,7 +20,7 @@ async function normalizeImage(file: File): Promise<File> {
   }
 }
 
-function VideoThumbnail({ item, onDelete }: { item: ArtistMedia; onDelete: () => void }) {
+function VideoThumbnail({ item, onDelete }: { item: ArtistMedia; onDelete: () => unknown }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
 
@@ -374,7 +374,9 @@ export default function ArtistDashboard() {
                 <div className="grid grid-cols-3 gap-2">
                   {media.map((item) =>
                     item.media_type === "video" ? (
-                      <VideoThumbnail key={item.id} item={item} onDelete={() => handleDeleteMedia(item)} />
+                      <React.Fragment key={item.id}>
+                        <VideoThumbnail item={item} onDelete={() => handleDeleteMedia(item)} />
+                      </React.Fragment>
                     ) : (
                       <div key={item.id} className="relative group aspect-square rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800">
                         <img src={item.url} alt="" className="w-full h-full object-cover" />
