@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "motion/react";
-import { Music, MapPin, IndianRupee, Edit2, ShieldCheck, ExternalLink, LogOut, Upload, Trash2, Image, Video, Plus } from "lucide-react";
+import { Music, MapPin, IndianRupee, Edit2, ShieldCheck, ExternalLink, LogOut, Trash2, Image, Video, Plus, Eye, AlertCircle } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { ArtistWithProfile, ArtistMedia, getDisplayName } from "../types/dashboard";
 
@@ -36,6 +36,7 @@ export default function ArtistDashboard() {
   const [artist, setArtist] = useState<ArtistWithProfile | null>(null);
   const [media, setMedia] = useState<ArtistMedia[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -70,24 +71,29 @@ export default function ArtistDashboard() {
   };
 
   const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "photo" | "video") => {
-    const raw = e.target.files?.[0];
-    if (!raw || !artist) return;
+    const files = Array.from(e.target.files || []);
+    if (!files.length || !artist) return;
     setUploading(true);
-    try {
-      const file = type === "photo" ? await normalizeImage(raw) : raw;
-      const ext = file.name.split(".").pop() || (type === "photo" ? "jpg" : "mp4");
-      const path = `${artist.id}/${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("media").upload(path, file, { upsert: false });
-      if (upErr) throw upErr;
-      const url = supabase.storage.from("media").getPublicUrl(path).data.publicUrl;
-      await supabase.from("artist_media").insert({ artist_id: artist.id, url, media_type: type, display_order: media.length });
-      await loadMedia(artist.id);
-    } catch {
-      // silently fail — add error toast in future
-    } finally {
-      setUploading(false);
-      e.target.value = "";
+    setUploadError(null);
+    const failed: string[] = [];
+    let currentOrder = media.length;
+    for (const raw of files) {
+      try {
+        const file = type === "photo" ? await normalizeImage(raw) : raw;
+        const ext = file.name.split(".").pop() || (type === "photo" ? "jpg" : "mp4");
+        const path = `${artist.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const { error: upErr } = await supabase.storage.from("media").upload(path, file, { upsert: false });
+        if (upErr) throw upErr;
+        const url = supabase.storage.from("media").getPublicUrl(path).data.publicUrl;
+        await supabase.from("artist_media").insert({ artist_id: artist.id, url, media_type: type, display_order: currentOrder++ });
+      } catch {
+        failed.push(raw.name);
+      }
     }
+    if (failed.length) setUploadError(`Failed to upload: ${failed.join(", ")}`);
+    await loadMedia(artist.id);
+    setUploading(false);
+    e.target.value = "";
   };
 
   const handleDeleteMedia = async (item: ArtistMedia) => {
@@ -131,6 +137,13 @@ export default function ArtistDashboard() {
             </span>
           </Link>
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => window.open(`/artist/${artist?.id}`, "_blank")}
+              className="flex items-center gap-1.5 px-4 py-2 bg-[#CBA6F7]/10 border border-[#CBA6F7]/30 hover:bg-[#CBA6F7]/20 text-[#CBA6F7] text-xs font-semibold rounded-full transition-colors cursor-pointer"
+            >
+              <Eye className="h-3.5 w-3.5" />
+              Preview Profile
+            </button>
             <button
               onClick={() => navigate("/onboarding/artist")}
               className="flex items-center gap-1.5 px-4 py-2 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-white text-xs font-semibold rounded-full transition-colors cursor-pointer"
@@ -274,7 +287,7 @@ export default function ArtistDashboard() {
                   className="flex items-center gap-2 px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white text-xs font-semibold rounded-full transition-colors cursor-pointer disabled:opacity-50"
                 >
                   <Image className="h-3.5 w-3.5" />
-                  {uploading ? "Uploading..." : "Add Photo"}
+                  {uploading ? "Uploading..." : "Add Photos"}
                 </button>
                 <button
                   onClick={() => videoInputRef.current?.click()}
@@ -282,11 +295,19 @@ export default function ArtistDashboard() {
                   className="flex items-center gap-2 px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white text-xs font-semibold rounded-full transition-colors cursor-pointer disabled:opacity-50"
                 >
                   <Video className="h-3.5 w-3.5" />
-                  {uploading ? "Uploading..." : "Add Video"}
+                  {uploading ? "Uploading..." : "Add Videos"}
                 </button>
-                <input ref={photoInputRef} type="file" accept="image/*,.heic,.heif" className="hidden" onChange={(e) => handleMediaUpload(e, "photo")} />
-                <input ref={videoInputRef} type="file" accept="video/mp4,video/quicktime,video/webm,video/avi" className="hidden" onChange={(e) => handleMediaUpload(e, "video")} />
+                <input ref={photoInputRef} type="file" accept="image/*,.heic,.heif" multiple className="hidden" onChange={(e) => handleMediaUpload(e, "photo")} />
+                <input ref={videoInputRef} type="file" accept="video/mp4,video/quicktime,video/webm,video/avi" multiple className="hidden" onChange={(e) => handleMediaUpload(e, "video")} />
               </div>
+
+              {uploadError && (
+                <div className="flex items-start gap-2 mb-4 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-xs">
+                  <AlertCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                  <span>{uploadError}</span>
+                  <button onClick={() => setUploadError(null)} className="ml-auto shrink-0 hover:text-red-300 cursor-pointer">✕</button>
+                </div>
+              )}
 
               {media.length === 0 ? (
                 <div
