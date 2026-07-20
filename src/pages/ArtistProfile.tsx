@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "motion/react";
 import {
   ArrowLeft, MapPin, ShieldCheck, Music,
   Instagram, Youtube, Twitter, ExternalLink, Navigation,
-  Play, CheckCircle,
+  Play, CheckCircle, Volume2, VolumeX,
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { ArtistWithProfile, ArtistMedia, getDisplayName, getAccentColor } from "../types/dashboard";
@@ -50,9 +50,18 @@ function SectionLabel({ children, accent }: { children: React.ReactNode; accent:
 
 function VideoPlayer({ item, accent }: { item: ArtistMedia; accent: string }) {
   const ref = useRef<HTMLVideoElement>(null);
+  const [muted, setMuted] = useState(true);
   const [playing, setPlaying] = useState(false);
 
-  const toggle = () => {
+  // Autoplay muted on mount
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.muted = true;
+    el.play().then(() => setPlaying(true)).catch(() => {});
+  }, []);
+
+  const togglePlay = () => {
     if (!ref.current) return;
     if (ref.current.paused) {
       ref.current.play().catch(() => {});
@@ -63,20 +72,33 @@ function VideoPlayer({ item, accent }: { item: ArtistMedia; accent: string }) {
     }
   };
 
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!ref.current) return;
+    const next = !muted;
+    ref.current.muted = next;
+    setMuted(next);
+  };
+
   return (
+    // height is fixed; width is auto so portrait/landscape both render correctly
     <div
-      className="relative rounded-2xl overflow-hidden cursor-pointer bg-zinc-950"
-      style={{ border: "1px solid rgba(39,39,42,0.8)" }}
-      onClick={toggle}
+      className="relative rounded-2xl overflow-hidden cursor-pointer bg-black flex-shrink-0"
+      style={{ height: 420, border: "1px solid rgba(39,39,42,0.8)" }}
+      onClick={togglePlay}
     >
       <video
         ref={ref}
         src={item.url}
-        className="w-full block"
+        style={{ height: "100%", width: "auto", display: "block" }}
         preload="metadata"
         onEnded={() => setPlaying(false)}
         playsInline
+        muted
+        loop
       />
+
+      {/* Pause overlay — only while paused */}
       <AnimatePresence>
         {!playing && (
           <motion.div
@@ -102,8 +124,31 @@ function VideoPlayer({ item, accent }: { item: ArtistMedia; accent: string }) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Mute / unmute — always visible */}
+      <button
+        onClick={toggleMute}
+        className="absolute bottom-3 right-3 flex items-center justify-center rounded-full transition-opacity hover:opacity-100 cursor-pointer"
+        style={{
+          width: 36,
+          height: 36,
+          background: "rgba(0,0,0,0.65)",
+          backdropFilter: "blur(8px)",
+          border: "1px solid rgba(255,255,255,0.12)",
+          opacity: 0.8,
+        }}
+        aria-label={muted ? "Unmute" : "Mute"}
+      >
+        {muted
+          ? <VolumeX className="h-4 w-4 text-white" />
+          : <Volume2 className="h-4 w-4 text-white" />}
+      </button>
+
       {item.caption && (
-        <p className="px-4 py-2.5 text-xs text-zinc-500 bg-zinc-950">{item.caption}</p>
+        <p className="absolute bottom-0 left-0 right-0 px-4 py-2 text-xs text-zinc-400"
+          style={{ background: "linear-gradient(to top, rgba(0,0,0,0.7), transparent)" }}>
+          {item.caption}
+        </p>
       )}
     </div>
   );
@@ -412,17 +457,15 @@ export default function ArtistProfile() {
         <section className="border-b" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
           <div className="max-w-7xl mx-auto px-5 sm:px-8 py-12">
             <SectionLabel accent={accent}>Showreel</SectionLabel>
+            {/* Horizontal scroll — each video keeps its natural aspect ratio at fixed 420px height */}
             <div
-              className="grid gap-4"
-              style={{
-                gridTemplateColumns:
-                  videos.length === 1
-                    ? "1fr"
-                    : "repeat(auto-fill, minmax(min(100%, 360px), 1fr))",
-              }}
+              className="flex gap-4 overflow-x-auto pb-2"
+              style={{ scrollSnapType: "x mandatory" }}
             >
               {videos.map((v) => (
-                <VideoPlayer key={v.id} item={v} accent={accent} />
+                <div key={v.id} style={{ scrollSnapAlign: "start" }}>
+                  <VideoPlayer item={v} accent={accent} />
+                </div>
               ))}
             </div>
           </div>
