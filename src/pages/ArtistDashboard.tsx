@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "motion/react";
-import { Music, MapPin, IndianRupee, Edit2, ShieldCheck, ExternalLink, LogOut, Trash2, Image, Video, Plus, Eye, AlertCircle } from "lucide-react";
+import { Music, MapPin, IndianRupee, Edit2, ShieldCheck, ExternalLink, LogOut, Trash2, Image, Video, Plus, Eye, AlertCircle, Play } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { ArtistWithProfile, ArtistMedia, getDisplayName } from "../types/dashboard";
 
@@ -18,6 +18,57 @@ async function normalizeImage(file: File): Promise<File> {
   } catch {
     return file;
   }
+}
+
+function VideoThumbnail({ item, onDelete }: { item: ArtistMedia; onDelete: () => void }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const [playing, setPlaying] = useState(false);
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!ref.current) return;
+    if (ref.current.paused) {
+      ref.current.play().catch(() => {});
+      setPlaying(true);
+    } else {
+      ref.current.pause();
+      setPlaying(false);
+    }
+  };
+
+  return (
+    <div className="relative group aspect-square rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800">
+      <video
+        ref={ref}
+        src={item.url}
+        className="w-full h-full object-cover"
+        preload="metadata"
+        playsInline
+        onEnded={() => setPlaying(false)}
+      />
+      {!playing && (
+        <div
+          className="absolute inset-0 bg-black/40 flex items-center justify-center cursor-pointer"
+          onClick={handleToggle}
+        >
+          <div className="w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+            <Play className="h-4 w-4 text-white fill-white ml-0.5" />
+          </div>
+        </div>
+      )}
+      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors flex items-center justify-center pointer-events-none">
+        <button
+          onClick={(e) => { e.stopPropagation(); onDelete(); }}
+          className="opacity-0 group-hover:opacity-100 p-2 bg-red-500/80 hover:bg-red-500 rounded-full transition-all cursor-pointer pointer-events-auto"
+        >
+          <Trash2 className="h-3.5 w-3.5 text-white" />
+        </button>
+      </div>
+      <div className="absolute bottom-2 left-2 px-1.5 py-0.5 bg-black/70 rounded text-[10px] text-white font-medium pointer-events-none">
+        VIDEO
+      </div>
+    </div>
+  );
 }
 
 function AvatarPlaceholder({ name }: { name: string }) {
@@ -299,7 +350,7 @@ export default function ArtistDashboard() {
                   {uploading ? "Uploading..." : "Add Videos"}
                 </button>
                 <input ref={photoInputRef} type="file" accept="image/*,.heic,.heif" multiple className="hidden" onChange={(e) => handleMediaUpload(e, "photo")} />
-                <input ref={videoInputRef} type="file" accept="video/mp4,video/quicktime,video/webm,video/avi" multiple className="hidden" onChange={(e) => handleMediaUpload(e, "video")} />
+                <input ref={videoInputRef} type="file" accept="video/mp4,video/webm" multiple className="hidden" onChange={(e) => handleMediaUpload(e, "video")} />
               </div>
 
               {uploadError && (
@@ -317,32 +368,27 @@ export default function ArtistDashboard() {
                 >
                   <Plus className="h-8 w-8" />
                   <p className="text-sm font-medium">Upload photos or videos from your sets</p>
-                  <p className="text-xs">JPG, PNG, HEIC · MP4, MOV, WEBM · up to 500MB per file</p>
+                  <p className="text-xs">JPG, PNG, HEIC · MP4, WEBM · up to 500MB per file</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-3 gap-2">
-                  {media.map((item) => (
-                    <div key={item.id} className="relative group aspect-square rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800">
-                      {item.media_type === "photo" ? (
+                  {media.map((item) =>
+                    item.media_type === "video" ? (
+                      <VideoThumbnail key={item.id} item={item} onDelete={() => handleDeleteMedia(item)} />
+                    ) : (
+                      <div key={item.id} className="relative group aspect-square rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800">
                         <img src={item.url} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <video src={item.url} className="w-full h-full object-cover" preload="metadata" />
-                      )}
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors flex items-center justify-center">
-                        <button
-                          onClick={() => handleDeleteMedia(item)}
-                          className="opacity-0 group-hover:opacity-100 p-2 bg-red-500/80 hover:bg-red-500 rounded-full transition-all cursor-pointer"
-                        >
-                          <Trash2 className="h-3.5 w-3.5 text-white" />
-                        </button>
-                      </div>
-                      {item.media_type === "video" && (
-                        <div className="absolute bottom-2 left-2 px-1.5 py-0.5 bg-black/70 rounded text-[10px] text-white font-medium">
-                          VIDEO
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors flex items-center justify-center">
+                          <button
+                            onClick={() => handleDeleteMedia(item)}
+                            className="opacity-0 group-hover:opacity-100 p-2 bg-red-500/80 hover:bg-red-500 rounded-full transition-all cursor-pointer"
+                          >
+                            <Trash2 className="h-3.5 w-3.5 text-white" />
+                          </button>
                         </div>
-                      )}
-                    </div>
-                  ))}
+                      </div>
+                    )
+                  )}
                 </div>
               )}
             </div>
