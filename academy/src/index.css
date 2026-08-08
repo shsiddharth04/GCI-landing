@@ -9,7 +9,7 @@ html {
 }
 
 body {
-  font-family: 'Space Mono', 'Courier New', monospace;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: #050505;
@@ -17,15 +17,11 @@ body {
   overflow-x: hidden;
 }
 
-.font-display {
-  font-family: 'Bebas Neue', 'Arial Narrow', sans-serif;
-}
-
 .font-mono {
   font-family: 'Space Mono', 'Courier New', monospace;
 }
 
-/* Film grain — subtle analog texture */
+/* Film grain */
 .grain::after {
   content: '';
   position: absolute;
@@ -34,7 +30,18 @@ body {
   height: 100%;
   pointer-events: none;
   z-index: 30;
-  opacity: 0.035;
+  opacity: 0.03;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
   background-size: 200px 200px;
+}
+
+/* Form inputs */
+input::placeholder {
+  color: rgba(255, 255, 255, 0.18);
+}
+
+input:focus-visible {
+  outline: none;
+  border-color: rgba(226, 169, 241, 0.5) !important;
+  box-shadow: 0 0 0 1px rgba(226, 169, 241, 0.12);
 }
