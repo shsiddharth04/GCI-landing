@@ -352,7 +352,7 @@ export default function Hero() {
           {...fadeUp(0.16)}
           style={{
             display: 'block',
-            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            fontFamily: "'Poppins', sans-serif",
             fontWeight: 800,
             fontSize: 'clamp(3.8rem, 11.5vw, 8.5rem)',
             lineHeight: 0.88,
@@ -370,7 +370,7 @@ export default function Hero() {
           {...fadeUp(0.2)}
           style={{
             display: 'block',
-            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            fontFamily: "'Poppins', sans-serif",
             fontWeight: 800,
             fontSize: 'clamp(3.8rem, 11.5vw, 8.5rem)',
             lineHeight: 0.88,
@@ -387,7 +387,7 @@ export default function Hero() {
           {...fadeUp(0.24)}
           style={{
             display: 'block',
-            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            fontFamily: "'Poppins', sans-serif",
             fontWeight: 800,
             fontSize: 'clamp(3.8rem, 11.5vw, 8.5rem)',
             lineHeight: 0.88,
