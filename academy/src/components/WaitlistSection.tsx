@@ -166,7 +166,7 @@ function Field({
 /* ─── Role selector ──────────────────────────────────────────── */
 function RoleSelector({ value, onChange }: { value: Role; onChange: (r: Role) => void }) {
   const options: { key: Role; label: string }[] = [
-    { key: 'artist', label: 'ARTIST' },
+    { key: 'artist', label: 'MUSIC ARTIST' },
     { key: 'enthusiast', label: 'MUSIC ENTHUSIAST' },
   ];
 
