@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 
+
 /* ─── Floating particles ─────────────────────────────────────── */
 function ParticleField() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
