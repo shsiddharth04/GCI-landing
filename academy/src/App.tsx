@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/react';
 import Hero from './components/Hero';
 import WaitlistSection from './components/WaitlistSection';
 
@@ -6,6 +7,7 @@ export default function App() {
     <main className="bg-[#070708] text-white overflow-x-hidden">
       <Hero />
       <WaitlistSection />
+      <Analytics />
     </main>
   );
 }
