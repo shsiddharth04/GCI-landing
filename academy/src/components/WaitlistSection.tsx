@@ -3,17 +3,15 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Instagram, MessageCircle } from 'lucide-react';
 
 /* ─── Validation ──────────────────────────────────────────────── */
-type FormData = { fullName: string; email: string; city: string; phone: string };
+type Role = 'artist' | 'enthusiast' | null;
+type FormData = { fullName: string; city: string; phone: string };
 type FormErrors = Partial<Record<keyof FormData, string>>;
 
-const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phoneRe = /^[6-9]\d{9}$/;
 
 function validate(d: FormData): FormErrors {
   const e: FormErrors = {};
   if (!d.fullName.trim()) e.fullName = 'Required';
-  if (!d.email.trim()) e.email = 'Required';
-  else if (!emailRe.test(d.email.trim())) e.email = 'Enter a valid email address';
   if (!d.city.trim()) e.city = 'Required';
   if (!d.phone.trim()) e.phone = 'Required';
   else if (!phoneRe.test(d.phone.trim())) e.phone = 'Valid 10-digit number required';
@@ -161,6 +159,76 @@ function Field({
           </motion.p>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+/* ─── Role selector ──────────────────────────────────────────── */
+function RoleSelector({ value, onChange }: { value: Role; onChange: (r: Role) => void }) {
+  const options: { key: Role; label: string }[] = [
+    { key: 'artist', label: 'ARTIST' },
+    { key: 'enthusiast', label: 'MUSIC ENTHUSIAST' },
+  ];
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+        <span style={{
+          fontFamily: "'Space Mono', monospace",
+          fontSize: '9px',
+          letterSpacing: '0.05em',
+          color: 'rgba(226,169,241,0.4)',
+          fontWeight: 400,
+        }}>00</span>
+        <div style={{ width: '1px', height: '11px', background: 'rgba(226,169,241,0.15)' }} />
+        <span style={{
+          fontFamily: "'Space Mono', monospace",
+          fontSize: '9px',
+          letterSpacing: '0.34em',
+          color: 'rgba(226,169,241,0.6)',
+          userSelect: 'none',
+        }}>I AM A</span>
+      </div>
+      <div style={{ display: 'flex', gap: '10px' }}>
+        {options.map(({ key, label }) => {
+          const active = value === key;
+          return (
+            <motion.button
+              key={key}
+              type="button"
+              onClick={() => onChange(key)}
+              whileTap={{ scale: 0.98 }}
+              style={{
+                flex: 1,
+                height: '52px',
+                background: active ? 'rgba(226,169,241,0.12)' : 'rgba(255,255,255,0.035)',
+                border: active ? '1px solid rgba(226,169,241,0.65)' : '1px solid rgba(255,255,255,0.1)',
+                boxShadow: active ? '0 0 0 3px rgba(226,169,241,0.12), inset 0 1px 0 rgba(226,169,241,0.04)' : 'inset 0 1px 0 rgba(255,255,255,0.03)',
+                cursor: 'pointer',
+                position: 'relative',
+                overflow: 'hidden',
+                transition: 'background 0.2s, border-color 0.2s, box-shadow 0.2s',
+                borderRadius: 0,
+              }}
+            >
+              {/* Left-edge accent when active */}
+              <div style={{
+                position: 'absolute', left: 0, top: 0, bottom: 0, width: '2px',
+                background: active ? 'linear-gradient(180deg, transparent, #e2a9f1, transparent)' : 'transparent',
+                transition: 'background 0.2s',
+                pointerEvents: 'none',
+              }} />
+              <span style={{
+                fontFamily: "'Space Mono', monospace",
+                fontSize: '9px',
+                letterSpacing: '0.3em',
+                color: active ? '#e2a9f1' : 'rgba(255,255,255,0.35)',
+                transition: 'color 0.2s',
+              }}>{label}</span>
+            </motion.button>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -344,7 +412,8 @@ function SuccessModal({ onClose }: { onClose: () => void }) {
 
 /* ─── Section ─────────────────────────────────────────────────── */
 export default function WaitlistSection() {
-  const [formData, setFormData] = useState<FormData>({ fullName: '', email: '', city: '', phone: '' });
+  const [formData, setFormData] = useState<FormData>({ fullName: '', city: '', phone: '' });
+  const [role, setRole] = useState<Role>(null);
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Partial<Record<keyof FormData, boolean>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -363,11 +432,11 @@ export default function WaitlistSection() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setTouched({ fullName: true, email: true, city: true, phone: true });
+    setTouched({ fullName: true, city: true, phone: true });
     const errs = validate(formData);
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     setIsSubmitting(true);
-    // TODO: Supabase insert — table: waitlist, columns: full_name, email, city, phone
+    // TODO: Supabase insert — table: waitlist, columns: full_name, city, phone, role
     await new Promise(r => setTimeout(r, 1100));
     setIsSubmitting(false);
     setSubmitted(true);
@@ -475,13 +544,14 @@ export default function WaitlistSection() {
             fontSize: '8px', letterSpacing: '0.3em',
             color: 'rgba(255,255,255,0.12)',
           }}>
-            4 FIELDS
+            3 FIELDS
           </span>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} noValidate>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+            <RoleSelector value={role} onChange={setRole} />
             <Field
               index={1} label="FULL NAME" placeholder="Your full name"
               type="text" value={formData.fullName}
@@ -490,21 +560,14 @@ export default function WaitlistSection() {
               autoComplete="name"
             />
             <Field
-              index={2} label="EMAIL ADDRESS" placeholder="you@example.com"
-              type="email" value={formData.email}
-              onChange={update('email')} onBlur={blur('email')}
-              error={errors.email} touched={touched.email}
-              autoComplete="email"
-            />
-            <Field
-              index={3} label="CITY" placeholder="Where are you based?"
+              index={2} label="CITY" placeholder="Where are you based?"
               type="text" value={formData.city}
               onChange={update('city')} onBlur={blur('city')}
               error={errors.city} touched={touched.city}
               autoComplete="address-level2"
             />
             <Field
-              index={4} label="PHONE NUMBER" placeholder="10-digit mobile number"
+              index={3} label="PHONE NUMBER" placeholder="10-digit mobile number"
               type="tel" value={formData.phone}
               onChange={update('phone')} onBlur={blur('phone')}
               error={errors.phone} touched={touched.phone}
