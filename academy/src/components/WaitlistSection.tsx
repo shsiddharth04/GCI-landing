@@ -394,7 +394,7 @@ function SuccessModal({ onClose }: { onClose: () => void }) {
         </p>
 
         {[
-          { href: 'https://chat.whatsapp.com/REPLACE_WITH_YOUR_LINK', icon: <MessageCircle size={14} color="#25D366" />, label: 'JOIN WHATSAPP COMMUNITY', hb: 'rgba(37,211,102,0.3)', bg: 'rgba(37,211,102,0.05)', mb: '10px' },
+          { href: 'https://chat.whatsapp.com/KGivcIoAUhb7KcgxXXKymE', icon: <MessageCircle size={14} color="#25D366" />, label: 'JOIN WHATSAPP COMMUNITY', hb: 'rgba(37,211,102,0.3)', bg: 'rgba(37,211,102,0.05)', mb: '10px' },
           { href: 'https://instagram.com/gigcultureindia', icon: <Instagram size={14} color="#e2a9f1" />, label: 'FOLLOW ON INSTAGRAM', hb: 'rgba(226,169,241,0.35)', bg: 'rgba(226,169,241,0.05)', mb: '0' },
         ].map(({ href, icon, label, hb, bg, mb }, i) => (
           <a key={i} href={href} target="_blank" rel="noopener noreferrer"
@@ -419,6 +419,7 @@ export default function WaitlistSection() {
   const [touched, setTouched] = useState<Partial<Record<keyof FormData, boolean>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const update = (k: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -433,17 +434,52 @@ export default function WaitlistSection() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
     setTouched({ fullName: true, city: true, phone: true });
     const errs = validate(formData);
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     setIsSubmitting(true);
-    await supabase.from('academy_waitlist').insert({
+
+    // Fetch IP (best-effort — null if blocked)
+    let ip: string | null = null;
+    try {
+      const res = await fetch('https://api.ipify.org?format=json');
+      const json = await res.json() as { ip: string };
+      ip = json.ip;
+    } catch { /* ignore */ }
+
+    // Check eligibility via RPC (runs only after valid form data)
+    const { data: allowed } = await supabase.rpc('check_waitlist_allowed', {
+      p_phone: formData.phone.trim(),
+      p_ip: ip ?? '',
+    });
+
+    if (!allowed) {
+      setIsSubmitting(false);
+      setSubmitError('This phone number or device has already been registered.');
+      return;
+    }
+
+    const { error } = await supabase.from('academy_waitlist').insert({
       full_name: formData.fullName.trim(),
       city: formData.city.trim(),
       phone: formData.phone.trim(),
       role: role === 'artist' ? 'music_artist' : role === 'enthusiast' ? 'music_enthusiast' : null,
+      ip_address: ip,
     });
+
     setIsSubmitting(false);
+
+    if (error?.code === '23505') {
+      setSubmitError('This phone number has already been registered.');
+      return;
+    }
+
+    // Reset form
+    setFormData({ fullName: '', city: '', phone: '' });
+    setRole(null);
+    setErrors({});
+    setTouched({});
     setSubmitted(true);
   };
 
@@ -582,6 +618,27 @@ export default function WaitlistSection() {
           </div>
 
           <div style={{ marginTop: '36px' }}>
+            <AnimatePresence>
+              {submitError && (
+                <motion.p
+                  key="submit-err"
+                  initial={{ opacity: 0, y: -4, height: 0 }}
+                  animate={{ opacity: 1, y: 0, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.18 }}
+                  style={{
+                    fontFamily: "'Space Mono', monospace",
+                    fontSize: '8px',
+                    color: 'rgba(239,68,68,0.75)',
+                    letterSpacing: '0.1em',
+                    marginBottom: '14px',
+                    overflow: 'hidden',
+                  }}
+                >
+                  ↳ {submitError}
+                </motion.p>
+              )}
+            </AnimatePresence>
             <SubmitButton isSubmitting={isSubmitting} />
           </div>
         </form>

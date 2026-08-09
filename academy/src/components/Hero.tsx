@@ -353,7 +353,7 @@ export default function Hero() {
           style={{
             display: 'block',
             fontFamily: "'Poppins', sans-serif",
-            fontWeight: 800,
+            fontWeight: 600,
             fontSize: 'clamp(3.8rem, 11.5vw, 8.5rem)',
             lineHeight: 0.88,
             letterSpacing: '-0.02em',
@@ -371,7 +371,7 @@ export default function Hero() {
           style={{
             display: 'block',
             fontFamily: "'Poppins', sans-serif",
-            fontWeight: 800,
+            fontWeight: 600,
             fontSize: 'clamp(3.8rem, 11.5vw, 8.5rem)',
             lineHeight: 0.88,
             letterSpacing: '-0.02em',
@@ -388,7 +388,7 @@ export default function Hero() {
           style={{
             display: 'block',
             fontFamily: "'Poppins', sans-serif",
-            fontWeight: 800,
+            fontWeight: 600,
             fontSize: 'clamp(3.8rem, 11.5vw, 8.5rem)',
             lineHeight: 0.88,
             letterSpacing: '-0.02em',
@@ -418,6 +418,26 @@ export default function Hero() {
         <div style={{ marginTop: '40px' }}>
           <JoinButton onClick={scrollToWaitlist} />
         </div>
+
+        {/* Tagline image */}
+        <motion.div
+          {...fadeUp(0.6)}
+          style={{ marginTop: '52px', width: '100%', maxWidth: '680px', padding: '0 20px' }}
+        >
+          <img
+            src="/tagline.png"
+            alt="#IAmGigCultureIndia"
+            draggable={false}
+            style={{
+              width: '100%',
+              height: 'auto',
+              display: 'block',
+              userSelect: 'none',
+              filter: 'invert(1) hue-rotate(180deg) brightness(2)',
+              opacity: 0.4,
+            }}
+          />
+        </motion.div>
       </div>
     </section>
   );
