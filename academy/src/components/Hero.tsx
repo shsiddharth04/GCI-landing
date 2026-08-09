@@ -249,27 +249,6 @@ export default function Hero() {
         }}
       />
 
-      {/* Decorative corner coordinates */}
-      <span
-        className="absolute font-mono pointer-events-none select-none"
-        style={{
-          top: '24px', left: '28px', zIndex: 10,
-          fontSize: '8px', letterSpacing: '0.18em',
-          color: 'rgba(226,169,241,0.18)',
-        }}
-      >
-        28.6139° N
-      </span>
-      <span
-        className="absolute font-mono pointer-events-none select-none"
-        style={{
-          top: '24px', right: '28px', zIndex: 10,
-          fontSize: '8px', letterSpacing: '0.18em',
-          color: 'rgba(226,169,241,0.18)',
-        }}
-      >
-        77.2090° E
-      </span>
       <span
         className="absolute font-mono pointer-events-none select-none"
         style={{
