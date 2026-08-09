@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Instagram, MessageCircle } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 /* ─── Validation ──────────────────────────────────────────────── */
 type Role = 'artist' | 'enthusiast' | null;
@@ -436,8 +437,12 @@ export default function WaitlistSection() {
     const errs = validate(formData);
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     setIsSubmitting(true);
-    // TODO: Supabase insert — table: waitlist, columns: full_name, city, phone, role
-    await new Promise(r => setTimeout(r, 1100));
+    await supabase.from('academy_waitlist').insert({
+      full_name: formData.fullName.trim(),
+      city: formData.city.trim(),
+      phone: formData.phone.trim(),
+      role: role === 'artist' ? 'music_artist' : role === 'enthusiast' ? 'music_enthusiast' : null,
+    });
     setIsSubmitting(false);
     setSubmitted(true);
   };
