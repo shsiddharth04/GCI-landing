@@ -1,13 +1,23 @@
-import { Analytics } from '@vercel/analytics/react';
-import Hero from './components/Hero';
-import WaitlistSection from './components/WaitlistSection';
+import Nav from './components/Nav'
+import Hero from './components/Hero'
+import Tracks from './components/Tracks'
+import Outcomes from './components/Outcomes'
+import Curriculum from './components/Curriculum'
+import Instructors from './components/Instructors'
+import FAQ from './components/FAQ'
+import Footer from './components/Footer'
 
 export default function App() {
   return (
-    <main className="bg-[#070708] text-white overflow-x-hidden">
+    <div className="min-h-screen bg-[#080808] text-white">
+      <Nav />
       <Hero />
-      <WaitlistSection />
-      <Analytics />
-    </main>
-  );
+      <Tracks />
+      <Outcomes />
+      <Curriculum />
+      <Instructors />
+      <FAQ />
+      <Footer />
+    </div>
+  )
 }
