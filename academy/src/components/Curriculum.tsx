@@ -1,64 +1,70 @@
 import { loadSettings } from '../admin/settings'
 
 const PLACEHOLDER_MODULES = [
-  { weekLabel: 'Session 1', title: 'Understanding sound & the room', description: '' },
-  { weekLabel: 'Session 2', title: 'Reading energy: crowd dynamics', description: '' },
-  { weekLabel: 'Session 3', title: 'Equipment deep-dive', description: '' },
-  { weekLabel: 'Session 4', title: 'Track selection & crate building', description: '' },
-  { weekLabel: 'Session 5', title: 'Mixing fundamentals', description: '' },
-  { weekLabel: 'Session 6', title: 'Live set construction', description: '' },
-  { weekLabel: 'Session 7', title: 'Business: pricing, contracts, bookings', description: '' },
-  { weekLabel: 'Session 8', title: 'Capstone: live session + feedback', description: '' },
-]
+  { weekLabel: 'Session 1', title: 'Understanding sound & the room' },
+  { weekLabel: 'Session 2', title: 'Reading energy: crowd dynamics' },
+  { weekLabel: 'Session 3', title: 'Equipment deep-dive' },
+  { weekLabel: 'Session 4', title: 'Track selection & crate building' },
+  { weekLabel: 'Session 5', title: 'Mixing fundamentals' },
+  { weekLabel: 'Session 6', title: 'Live set construction' },
+  { weekLabel: 'Session 7', title: 'Business: pricing, contracts, bookings' },
+  { weekLabel: 'Session 8', title: 'Capstone: live session + feedback' },
+].map((m, i) => ({ ...m, id: String(i), order: i, description: '' }))
 
 export default function Curriculum() {
   const settings = loadSettings()
   const modules = settings.curriculum.length > 0
     ? [...settings.curriculum].sort((a, b) => a.order - b.order)
-    : PLACEHOLDER_MODULES.map((m, i) => ({ ...m, id: String(i), order: i }))
-
-  const isPlaceholder = settings.curriculum.length === 0
+    : PLACEHOLDER_MODULES
 
   return (
-    <section id="curriculum" className="py-28 px-6 bg-[#141414]/50">
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
+    <section id="curriculum" style={{ padding: '112px 24px', background: '#0a0810' }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6" style={{ marginBottom: '56px' }}>
           <div>
-            <p className="font-mono text-[10px] text-[#E8DEFA]/40 tracking-widest uppercase mb-4">The curriculum</p>
-            <h2 className="text-4xl md:text-5xl font-bold leading-tight">
-              Every session.<br />
-              <span className="text-[#E8DEFA]">Inside the studio.</span>
+            <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(226,169,241,0.4)', letterSpacing: '0.3em', textTransform: 'uppercase', marginBottom: '16px' }}>
+              The curriculum
+            </p>
+            <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 800, lineHeight: 1.1, letterSpacing: '-0.025em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              Every session.<br /><span style={{ color: '#e2a9f1' }}>Inside the studio.</span>
             </h2>
           </div>
-          {isPlaceholder && (
-            <p className="text-xs text-white/25 font-mono max-w-xs">
-              Module details will be confirmed and updated before launch.
+          {settings.curriculum.length === 0 && (
+            <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(255,255,255,0.2)', maxWidth: '220px', lineHeight: 1.8 }}>
+              Module details confirmed before launch.
             </p>
           )}
         </div>
 
         {/* Module list */}
-        <div className="space-y-0 border border-white/6 rounded-2xl overflow-hidden">
+        <div style={{ border: '1px solid rgba(226,169,241,0.1)', overflow: 'hidden', position: 'relative' }}>
+          {/* Top accent */}
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(226,169,241,0.5), transparent)' }} />
+
           {modules.map((mod, i) => (
-            <div
-              key={mod.id}
-              className="flex gap-6 p-6 md:p-8 border-b border-white/5 last:border-0 bg-[#0a0a0a] hover:bg-[#141414] transition-colors group"
+            <div key={mod.id}
+              style={{
+                display: 'flex', gap: '24px', padding: '24px 32px',
+                borderBottom: i < modules.length - 1 ? '1px solid rgba(226,169,241,0.07)' : 'none',
+                background: '#0a0810', transition: 'background 0.2s', cursor: 'default',
+              }}
+              onMouseEnter={e => ((e.currentTarget as HTMLDivElement).style.background = '#0f0d18')}
+              onMouseLeave={e => ((e.currentTarget as HTMLDivElement).style.background = '#0a0810')}
             >
-              <div className="font-mono text-xs text-[#E8DEFA]/30 mt-0.5 w-8 shrink-0 group-hover:text-[#E8DEFA]/60 transition-colors">
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: 'rgba(226,169,241,0.35)', marginTop: '2px', width: '32px', flexShrink: 0, transition: 'color 0.2s' }}>
                 [{String(i + 1).padStart(2, '0')}]
               </div>
-              <div className="flex-1 min-w-0">
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4">
-                  <span className="font-mono text-[10px] text-[#E8DEFA]/40 tracking-widest uppercase shrink-0">
+                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(226,169,241,0.45)', letterSpacing: '0.24em', textTransform: 'uppercase', flexShrink: 0 }}>
                     {mod.weekLabel}
                   </span>
-                  <h3 className="text-sm md:text-base font-semibold text-white/90">
+                  <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'rgba(255,255,255,0.88)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                     {mod.title}
                   </h3>
                 </div>
                 {mod.description && (
-                  <p className="text-sm text-white/35 mt-2 leading-relaxed">{mod.description}</p>
+                  <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', marginTop: '6px', lineHeight: 1.6, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{mod.description}</p>
                 )}
               </div>
             </div>

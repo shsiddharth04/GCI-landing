@@ -5,70 +5,74 @@ export default function Nav() {
   const [open, setOpen] = useState(false)
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/8 bg-[#0a0a0a]/90 backdrop-blur-md">
+    <header className="fixed top-0 left-0 right-0 z-50" style={{
+      background: 'rgba(5,5,5,0.88)', backdropFilter: 'blur(16px)',
+      borderBottom: '1px solid rgba(226,169,241,0.1)',
+    }}>
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
         <a href="/" className="flex items-center gap-3 group">
-          <img src="/logo-mark.svg" alt="GCI" className="h-9 w-9 transition-opacity group-hover:opacity-80" />
-          <div className="leading-none">
-            <div className="font-mono text-[9px] text-[#E8DEFA]/55 tracking-[0.2em] uppercase mb-0.5">Gig Culture India</div>
-            <div className="text-[15px] font-bold tracking-tight">
-              Music <span className="text-[#E8DEFA]">Academy</span>
+          <img src="/logo-mark.svg" alt="GCI" style={{ width: '36px', height: '36px' }} />
+          <div style={{ lineHeight: 1 }}>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', letterSpacing: '0.2em', color: 'rgba(226,169,241,0.5)', textTransform: 'uppercase', marginBottom: '3px' }}>
+              Gig Culture India
+            </div>
+            <div style={{ fontSize: '15px', fontWeight: 700, letterSpacing: '-0.01em' }}>
+              Music <span style={{ color: '#e2a9f1' }}>Academy</span>
             </div>
           </div>
         </a>
 
         {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-8 text-sm text-white/50">
-          <a href="#masterclass" className="hover:text-white transition-colors">Masterclass</a>
-          <a href="#course" className="hover:text-white transition-colors">DJ Course</a>
-          <a href="#curriculum" className="hover:text-white transition-colors">Curriculum</a>
-          <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
+        <nav className="hidden md:flex items-center gap-8" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)' }}>
+          {[['#masterclass', 'Masterclass'], ['#course', 'DJ Course'], ['#curriculum', 'Curriculum'], ['#faq', 'FAQ']].map(([href, label]) => (
+            <a key={href} href={href}
+              style={{ transition: 'color 0.2s', textDecoration: 'none' }}
+              onMouseEnter={e => (e.currentTarget.style.color = 'white')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}
+            >{label}</a>
+          ))}
         </nav>
 
-        <div className="hidden md:flex items-center gap-3">
-          <a
-            href="#course"
-            className="text-sm text-white/50 hover:text-white transition-colors"
+        <div className="hidden md:flex items-center gap-4">
+          <a href="#course" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', textDecoration: 'none', transition: 'color 0.2s' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'white')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}
+          >Enroll</a>
+          <a href="#masterclass" style={{
+            fontSize: '12px', fontWeight: 700,
+            background: '#e2a9f1', color: '#050505',
+            padding: '8px 18px', textDecoration: 'none',
+            boxShadow: '0 0 22px rgba(226,169,241,0.4)',
+            transition: 'all 0.2s',
+            fontFamily: "'Space Mono', monospace", letterSpacing: '0.04em',
+          }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#eeaeff'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 32px rgba(226,169,241,0.6)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#e2a9f1'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 22px rgba(226,169,241,0.4)' }}
           >
-            Enroll
-          </a>
-          <a
-            href="#masterclass"
-            className="text-sm bg-[#E8DEFA] hover:bg-[#f0eaff] text-[#0a0a0a] font-bold px-4 py-2 rounded-lg transition-all shadow-[0_0_22px_rgba(232,222,250,0.4)] hover:shadow-[0_0_32px_rgba(232,222,250,0.6)]"
-          >
-            Register free
+            REGISTER FREE
           </a>
         </div>
 
-        {/* Mobile menu toggle */}
-        <button
-          className="md:hidden text-white/60 hover:text-white"
-          onClick={() => setOpen(!open)}
-        >
+        <button className="md:hidden" style={{ color: 'rgba(255,255,255,0.6)', background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => setOpen(!open)}>
           {open ? <X size={20} /> : <Menu size={20} />}
         </button>
       </div>
 
-      {/* Mobile menu */}
       {open && (
-        <div className="md:hidden border-t border-white/5 bg-[#0a0a0a] px-6 py-5 space-y-4">
-          {['#masterclass', '#course', '#curriculum', '#faq'].map((href, i) => (
-            <a
-              key={href}
-              href={href}
-              onClick={() => setOpen(false)}
-              className="block text-sm text-white/60 hover:text-white transition-colors"
-            >
-              {['Masterclass', 'DJ Course', 'Curriculum', 'FAQ'][i]}
-            </a>
+        <div style={{ borderTop: '1px solid rgba(226,169,241,0.08)', background: '#050505', padding: '20px 24px' }} className="md:hidden space-y-4">
+          {[['#masterclass', 'Masterclass'], ['#course', 'DJ Course'], ['#curriculum', 'Curriculum'], ['#faq', 'FAQ']].map(([href, label]) => (
+            <a key={href} href={href} onClick={() => setOpen(false)}
+              style={{ display: 'block', fontSize: '14px', color: 'rgba(255,255,255,0.55)', textDecoration: 'none' }}
+            >{label}</a>
           ))}
-          <a
-            href="#masterclass"
-            className="block text-center bg-[#E8DEFA] text-[#0a0a0a] font-semibold py-3 rounded-lg text-sm"
-          >
-            Register free — Masterclass
-          </a>
+          <a href="#masterclass" style={{
+            display: 'block', textAlign: 'center',
+            background: '#e2a9f1', color: '#050505',
+            fontWeight: 700, padding: '14px',
+            fontSize: '12px', fontFamily: "'Space Mono', monospace",
+            letterSpacing: '0.08em', textDecoration: 'none',
+          }}>REGISTER FREE — MASTERCLASS</a>
         </div>
       )}
     </header>

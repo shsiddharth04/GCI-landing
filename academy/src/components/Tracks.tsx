@@ -6,23 +6,20 @@ const ITEMS = [
 function TickerItem({ text }: { text: string }) {
   return (
     <span className="inline-flex items-center gap-6 px-3">
-      <span className="text-[#0a0a0a] font-mono text-xs font-semibold tracking-[0.2em] uppercase whitespace-nowrap">
+      <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#050505', whiteSpace: 'nowrap' }}>
         {text}
       </span>
-      <span className="text-[#0a0a0a]/40 text-lg leading-none">·</span>
+      <span style={{ color: 'rgba(5,5,5,0.35)', fontSize: '18px', lineHeight: 1 }}>·</span>
     </span>
   )
 }
 
 export default function Ticker() {
   const repeated = [...ITEMS, ...ITEMS]
-
   return (
-    <div className="bg-[#E8DEFA] overflow-hidden py-4 border-y border-[#E8DEFA]">
+    <div style={{ background: '#e2a9f1', overflow: 'hidden', padding: '14px 0', borderTop: '1px solid rgba(226,169,241,0.3)', borderBottom: '1px solid rgba(226,169,241,0.3)' }}>
       <div className="ticker-track">
-        {repeated.map((item, i) => (
-          <TickerItem key={i} text={item} />
-        ))}
+        {repeated.map((item, i) => <TickerItem key={i} text={item} />)}
       </div>
     </div>
   )
