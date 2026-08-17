@@ -38,7 +38,7 @@ export default function Pathway() {
               <div className="flex flex-col sm:flex-row gap-3">
                 <a
                   href="#register"
-                  className="inline-flex items-center justify-center gap-2 bg-[#0a0a0a] hover:bg-[#141414] text-[#E8DEFA] font-semibold px-7 py-4 rounded-xl text-sm transition-colors"
+                  className="inline-flex items-center justify-center gap-2 bg-[#0a0a0a] hover:bg-[#0d0d0d] text-[#E8DEFA] font-bold px-7 py-4 rounded-xl text-sm transition-all shadow-[0_0_32px_rgba(10,10,10,0.6)] border border-[#0a0a0a]/80"
                 >
                   Register — it's free
                 </a>
@@ -94,7 +94,7 @@ export default function Pathway() {
               </p>
               <a
                 href="#enroll"
-                className="inline-flex items-center justify-center gap-2 bg-[#E8DEFA] hover:bg-[#d4c8f0] text-[#0a0a0a] font-semibold px-7 py-4 rounded-xl text-sm transition-colors"
+                className="inline-flex items-center justify-center gap-2 bg-[#E8DEFA] hover:bg-[#f0eaff] text-[#0a0a0a] font-bold px-7 py-4 rounded-xl text-sm transition-all shadow-[0_0_40px_rgba(232,222,250,0.45)] hover:shadow-[0_0_55px_rgba(232,222,250,0.65)]"
               >
                 Enroll now — {courseFee}
               </a>

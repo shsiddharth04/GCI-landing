@@ -30,12 +30,12 @@ export default function WhyAcademy() {
         </div>
 
         {/* Items */}
-        <div className="grid md:grid-cols-3 gap-px bg-white/5 border border-white/5 rounded-2xl overflow-hidden">
+        <div className="grid md:grid-cols-3 gap-px bg-[#E8DEFA]/8 border border-[#E8DEFA]/10 rounded-2xl overflow-hidden">
           {WHY_ITEMS.map(({ index, title, body }) => (
-            <div key={index} className="bg-[#0a0a0a] p-8 md:p-10">
-              <div className="font-mono text-[11px] text-[#E8DEFA]/35 mb-6 tracking-widest">[{index}]</div>
+            <div key={index} className="bg-[#0a0a0a] p-8 md:p-10 hover:bg-[#0e0e0e] transition-colors">
+              <div className="font-mono text-sm text-[#E8DEFA] mb-6 tracking-widest font-semibold">[{index}]</div>
               <h3 className="text-lg font-semibold mb-4 leading-snug">{title}</h3>
-              <p className="text-sm text-white/40 leading-relaxed">{body}</p>
+              <p className="text-sm text-white/45 leading-relaxed">{body}</p>
             </div>
           ))}
         </div>

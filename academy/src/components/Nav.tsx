@@ -5,14 +5,14 @@ export default function Nav() {
   const [open, setOpen] = useState(false)
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#0a0a0a]/85 backdrop-blur-md">
+    <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/8 bg-[#0a0a0a]/90 backdrop-blur-md">
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
-        <a href="/" className="flex items-center gap-3">
-          <img src="/logo-mark.svg" alt="GCI" className="h-7 w-7" />
-          <div className="leading-tight">
-            <div className="text-xs font-mono text-[#E8DEFA]/50 tracking-widest uppercase">Gig Culture India</div>
-            <div className="text-sm font-semibold tracking-tight -mt-0.5">
+        <a href="/" className="flex items-center gap-3 group">
+          <img src="/logo-mark.svg" alt="GCI" className="h-9 w-9 transition-opacity group-hover:opacity-80" />
+          <div className="leading-none">
+            <div className="font-mono text-[9px] text-[#E8DEFA]/55 tracking-[0.2em] uppercase mb-0.5">Gig Culture India</div>
+            <div className="text-[15px] font-bold tracking-tight">
               Music <span className="text-[#E8DEFA]">Academy</span>
             </div>
           </div>
@@ -35,7 +35,7 @@ export default function Nav() {
           </a>
           <a
             href="#masterclass"
-            className="text-sm bg-[#E8DEFA] hover:bg-[#d4c8f0] text-[#0a0a0a] font-semibold px-4 py-2 rounded-lg transition-colors"
+            className="text-sm bg-[#E8DEFA] hover:bg-[#f0eaff] text-[#0a0a0a] font-bold px-4 py-2 rounded-lg transition-all shadow-[0_0_22px_rgba(232,222,250,0.4)] hover:shadow-[0_0_32px_rgba(232,222,250,0.6)]"
           >
             Register free
           </a>

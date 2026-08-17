@@ -11,9 +11,9 @@ function Waveform({ className = '' }: { className?: string }) {
           key={i}
           className="eq-bar w-[3px] rounded-full bg-[#E8DEFA]"
           style={{
-            height: `${h * 40}px`,
+            height: `${h * 48}px`,
             animationDelay: `${BAR_DELAYS[i]}s`,
-            opacity: 0.4 + h * 0.5,
+            opacity: 0.6 + h * 0.38,
           }}
         />
       ))}
@@ -34,13 +34,15 @@ export default function Hero() {
 
   return (
     <section className="min-h-screen flex flex-col justify-center pt-16 px-6 relative overflow-hidden">
-      {/* Background glow */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] rounded-full bg-[#E8DEFA]/5 blur-[120px] pointer-events-none" />
+      {/* Ambient glows */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] rounded-full bg-[#E8DEFA]/[0.11] blur-[110px] pointer-events-none" />
+      <div className="absolute bottom-0 right-[-10%] w-[500px] h-[400px] rounded-full bg-[#E8DEFA]/[0.06] blur-[90px] pointer-events-none" />
+      <div className="absolute top-[60%] left-[-5%] w-[350px] h-[250px] rounded-full bg-[#E8DEFA]/[0.04] blur-[70px] pointer-events-none" />
 
       <div className="relative max-w-5xl mx-auto w-full py-20">
         {/* Tag */}
         <div className="flex items-center gap-2 mb-8">
-          <span className="font-mono text-[10px] text-[#E8DEFA]/50 tracking-widest uppercase border border-[#E8DEFA]/20 px-3 py-1.5 rounded-full">
+          <span className="font-mono text-[10px] text-[#E8DEFA] tracking-widest uppercase border border-[#E8DEFA]/40 bg-[#E8DEFA]/8 px-3 py-1.5 rounded-full">
             DJ Education · In-studio · Gurugram
           </span>
         </div>
@@ -61,13 +63,13 @@ export default function Hero() {
         <div className="flex flex-col sm:flex-row gap-3 mb-16">
           <a
             href="#masterclass"
-            className="inline-flex items-center justify-center gap-2 bg-[#E8DEFA] hover:bg-[#d4c8f0] text-[#0a0a0a] font-semibold px-7 py-4 rounded-xl text-sm transition-colors"
+            className="inline-flex items-center justify-center gap-2 bg-[#E8DEFA] hover:bg-[#f0eaff] text-[#0a0a0a] font-bold px-7 py-4 rounded-xl text-sm transition-all shadow-[0_0_40px_rgba(232,222,250,0.45)] hover:shadow-[0_0_55px_rgba(232,222,250,0.65)]"
           >
             Register free — Masterclass
           </a>
           <a
             href="#course"
-            className="inline-flex items-center justify-center gap-2 border border-white/12 hover:border-white/25 text-white/65 hover:text-white px-7 py-4 rounded-xl text-sm font-medium transition-colors"
+            className="inline-flex items-center justify-center gap-2 border border-[#E8DEFA]/30 hover:border-[#E8DEFA]/60 text-[#E8DEFA]/70 hover:text-[#E8DEFA] px-7 py-4 rounded-xl text-sm font-semibold transition-all hover:bg-[#E8DEFA]/5"
           >
             View DJ Course — {feeLabel}
           </a>
@@ -87,7 +89,7 @@ export default function Hero() {
           ].map(({ label, value }) => (
             <div key={label} className="flex items-center gap-2.5">
               <span className="font-mono text-[10px] text-white/25 uppercase tracking-widest">{label}</span>
-              <span className="font-mono text-xs text-[#E8DEFA]/70">{value}</span>
+              <span className="font-mono text-xs text-[#E8DEFA]">{value}</span>
             </div>
           ))}
         </div>
