@@ -1,49 +1,93 @@
-export default function Hero() {
-  return (
-    <section className="pt-40 pb-28 px-6 text-center relative overflow-hidden">
-      {/* Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full bg-violet-600/10 blur-3xl pointer-events-none" />
+import { loadSettings } from '../admin/settings'
 
-      <div className="relative max-w-4xl mx-auto">
-        <div className="inline-flex items-center gap-2 border border-violet-500/30 bg-violet-500/10 text-violet-300 text-xs font-medium px-3 py-1.5 rounded-full mb-6">
-          <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
-          Cohort 1 — Applications Open
+const BAR_HEIGHTS = [0.4, 0.7, 1, 0.6, 0.85, 0.5, 0.9, 0.65, 0.75, 0.45, 1, 0.55, 0.8, 0.35, 0.95]
+const BAR_DELAYS = [0, 0.15, 0.3, 0.05, 0.45, 0.2, 0.6, 0.1, 0.35, 0.5, 0.25, 0.7, 0.4, 0.55, 0.15]
+
+function Waveform({ className = '' }: { className?: string }) {
+  return (
+    <div className={`flex items-end gap-[3px] ${className}`}>
+      {BAR_HEIGHTS.map((h, i) => (
+        <div
+          key={i}
+          className="eq-bar w-[3px] rounded-full bg-[#E8DEFA]"
+          style={{
+            height: `${h * 40}px`,
+            animationDelay: `${BAR_DELAYS[i]}s`,
+            opacity: 0.4 + h * 0.5,
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
+export default function Hero() {
+  const settings = loadSettings()
+  const { course, masterclass } = settings
+
+  const batchLabel = course.batchStartDate
+    ? new Date(course.batchStartDate).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })
+    : '[BATCH START DATE]'
+
+  const seatLabel = masterclass.seatCap ? `${masterclass.seatCap} seats` : '[SEAT CAP] seats'
+  const feeLabel = course.fee ? `₹${Number(course.fee).toLocaleString('en-IN')}` : '[COURSE FEE]'
+
+  return (
+    <section className="min-h-screen flex flex-col justify-center pt-16 px-6 relative overflow-hidden">
+      {/* Background glow */}
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] rounded-full bg-[#E8DEFA]/5 blur-[120px] pointer-events-none" />
+
+      <div className="relative max-w-5xl mx-auto w-full py-20">
+        {/* Tag */}
+        <div className="flex items-center gap-2 mb-8">
+          <span className="font-mono text-[10px] text-[#E8DEFA]/50 tracking-widest uppercase border border-[#E8DEFA]/20 px-3 py-1.5 rounded-full">
+            DJ Education · In-studio · Gurugram
+          </span>
         </div>
 
-        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.05] mb-6">
-          Learn to book gigs.<br />
-          <span className="text-violet-400">Get paid doing what you love.</span>
+        {/* Headline */}
+        <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-[106px] font-bold tracking-tight leading-[0.95] mb-8">
+          Learn to<br />
+          <span className="text-[#E8DEFA]">read a room.</span>
         </h1>
 
-        <p className="text-lg md:text-xl text-white/50 max-w-2xl mx-auto mb-10 leading-relaxed">
-          GCI Academy is a hands-on, cohort-based program teaching independent musicians and event hosts
-          how to navigate the live music industry — from pricing and contracts to growth and branding.
+        {/* Subheadline */}
+        <p className="text-base md:text-lg text-white/45 max-w-xl mb-10 leading-relaxed">
+          GCI Music Academy is a hands-on DJ education program run out of our studio in Gurugram.
+          Graduate directly into GCI's live-booking pipeline — not just a certificate.
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-3 justify-center" id="apply">
+        {/* Dual CTA */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-16">
           <a
-            href="#tracks"
-            className="bg-violet-600 hover:bg-violet-500 text-white px-7 py-3.5 rounded-xl font-semibold text-sm transition-colors"
+            href="#masterclass"
+            className="inline-flex items-center justify-center gap-2 bg-[#E8DEFA] hover:bg-[#d4c8f0] text-[#0a0a0a] font-semibold px-7 py-4 rounded-xl text-sm transition-colors"
           >
-            Apply for Cohort 1
+            Register free — Masterclass
           </a>
           <a
-            href="#curriculum"
-            className="border border-white/10 hover:border-white/20 text-white/70 hover:text-white px-7 py-3.5 rounded-xl font-semibold text-sm transition-colors"
+            href="#course"
+            className="inline-flex items-center justify-center gap-2 border border-white/12 hover:border-white/25 text-white/65 hover:text-white px-7 py-4 rounded-xl text-sm font-medium transition-colors"
           >
-            View Curriculum
+            View DJ Course — {feeLabel}
           </a>
         </div>
 
-        <div className="mt-16 grid grid-cols-3 gap-8 max-w-lg mx-auto text-center">
+        {/* Waveform */}
+        <div className="mb-14">
+          <Waveform />
+        </div>
+
+        {/* Stats strip */}
+        <div className="flex flex-wrap gap-x-10 gap-y-3">
           {[
-            { stat: '8 weeks', label: 'Program length' },
-            { stat: '2 tracks', label: 'Artist & Host' },
-            { stat: '100%', label: 'Online & async' },
-          ].map(({ stat, label }) => (
-            <div key={label}>
-              <div className="text-2xl font-bold text-white">{stat}</div>
-              <div className="text-xs text-white/40 mt-1">{label}</div>
+            { label: 'Batch starts', value: batchLabel },
+            { label: 'Masterclass seats', value: seatLabel },
+            { label: 'Format', value: course.format === 'in-studio' ? 'In-studio only' : course.format === 'hybrid' ? 'Hybrid' : 'In-studio, Gurugram' },
+          ].map(({ label, value }) => (
+            <div key={label} className="flex items-center gap-2.5">
+              <span className="font-mono text-[10px] text-white/25 uppercase tracking-widest">{label}</span>
+              <span className="font-mono text-xs text-[#E8DEFA]/70">{value}</span>
             </div>
           ))}
         </div>

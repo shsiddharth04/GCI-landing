@@ -1,31 +1,66 @@
-const weeks = [
-  { week: 'Week 1–2', title: 'Foundations', desc: 'How the live music economy works, where money moves, and where independent artists and hosts fit in.' },
-  { week: 'Week 3', title: 'Platform Onboarding', desc: 'Set up your GCI profile, connect your Spotify or SoundCloud, and understand how the AI matching engine reads your data.' },
-  { week: 'Week 4', title: 'Pricing & Negotiation', desc: 'Build a personal pricing framework. Learn when to hold your rate and when flexibility wins a long-term relationship.' },
-  { week: 'Week 5', title: 'Contracts & Legal Basics', desc: 'Understand what a booking contract must include, common red flags, and how GCI automates contract protection.' },
-  { week: 'Week 6', title: 'Marketing & Discoverability', desc: 'Build a digital presence that feeds the algorithm: SoundCloud strategy, press kit essentials, and social proof.' },
-  { week: 'Week 7', title: 'Running the Booking Flow', desc: 'End-to-end walkthrough of a real booking — from match to show night — using the GCI platform.' },
-  { week: 'Week 8', title: 'Capstone & Launch', desc: 'Complete your first live booking or event brief on the platform with cohort peer review and instructor feedback.' },
+import { loadSettings } from '../admin/settings'
+
+const PLACEHOLDER_MODULES = [
+  { weekLabel: 'Session 1', title: 'Understanding sound & the room', description: '' },
+  { weekLabel: 'Session 2', title: 'Reading energy: crowd dynamics', description: '' },
+  { weekLabel: 'Session 3', title: 'Equipment deep-dive', description: '' },
+  { weekLabel: 'Session 4', title: 'Track selection & crate building', description: '' },
+  { weekLabel: 'Session 5', title: 'Mixing fundamentals', description: '' },
+  { weekLabel: 'Session 6', title: 'Live set construction', description: '' },
+  { weekLabel: 'Session 7', title: 'Business: pricing, contracts, bookings', description: '' },
+  { weekLabel: 'Session 8', title: 'Capstone: live session + feedback', description: '' },
 ]
 
 export default function Curriculum() {
+  const settings = loadSettings()
+  const modules = settings.curriculum.length > 0
+    ? [...settings.curriculum].sort((a, b) => a.order - b.order)
+    : PLACEHOLDER_MODULES.map((m, i) => ({ ...m, id: String(i), order: i }))
+
+  const isPlaceholder = settings.curriculum.length === 0
+
   return (
-    <section id="curriculum" className="py-24 px-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">8-week curriculum</h2>
-          <p className="text-white/50 max-w-xl mx-auto">
-            Every module is built around real scenarios from the GCI marketplace — not hypothetical case studies.
-          </p>
+    <section id="curriculum" className="py-28 px-6 bg-[#141414]/50">
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
+          <div>
+            <p className="font-mono text-[10px] text-[#E8DEFA]/40 tracking-widest uppercase mb-4">The curriculum</p>
+            <h2 className="text-4xl md:text-5xl font-bold leading-tight">
+              Every session.<br />
+              <span className="text-[#E8DEFA]">Inside the studio.</span>
+            </h2>
+          </div>
+          {isPlaceholder && (
+            <p className="text-xs text-white/25 font-mono max-w-xs">
+              Module details will be confirmed and updated before launch.
+            </p>
+          )}
         </div>
 
-        <div className="relative pl-6 border-l border-white/8">
-          {weeks.map(({ week, title, desc }, i) => (
-            <div key={i} className="mb-10 relative">
-              <div className="absolute -left-[29px] top-1 w-4 h-4 rounded-full border-2 border-violet-500 bg-[#080808]" />
-              <div className="text-xs text-violet-400 font-semibold mb-1">{week}</div>
-              <h3 className="text-base font-semibold mb-1">{title}</h3>
-              <p className="text-sm text-white/45 leading-relaxed">{desc}</p>
+        {/* Module list */}
+        <div className="space-y-0 border border-white/6 rounded-2xl overflow-hidden">
+          {modules.map((mod, i) => (
+            <div
+              key={mod.id}
+              className="flex gap-6 p-6 md:p-8 border-b border-white/5 last:border-0 bg-[#0a0a0a] hover:bg-[#141414] transition-colors group"
+            >
+              <div className="font-mono text-xs text-[#E8DEFA]/30 mt-0.5 w-8 shrink-0 group-hover:text-[#E8DEFA]/60 transition-colors">
+                [{String(i + 1).padStart(2, '0')}]
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4">
+                  <span className="font-mono text-[10px] text-[#E8DEFA]/40 tracking-widest uppercase shrink-0">
+                    {mod.weekLabel}
+                  </span>
+                  <h3 className="text-sm md:text-base font-semibold text-white/90">
+                    {mod.title}
+                  </h3>
+                </div>
+                {mod.description && (
+                  <p className="text-sm text-white/35 mt-2 leading-relaxed">{mod.description}</p>
+                )}
+              </div>
             </div>
           ))}
         </div>
