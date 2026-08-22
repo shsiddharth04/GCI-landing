@@ -7,6 +7,7 @@ import HostDashboard from "./pages/HostDashboard.tsx";
 import ArtistDashboard from "./pages/ArtistDashboard.tsx";
 import ArtistOnboarding from "./pages/ArtistOnboarding.tsx";
 import ArtistProfile from "./pages/ArtistProfile.tsx";
+import GenreWheel from "./pages/GenreWheel/index.tsx";
 import { supabase } from "./lib/supabase.ts";
 import "./index.css";
 
@@ -51,6 +52,7 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/dashboard/artist" element={<ArtistDashboard />} />
           <Route path="/onboarding/artist" element={<ArtistOnboarding />} />
           <Route path="/artist/:id" element={<ArtistProfile />} />
+          <Route path="/genre-wheel" element={<GenreWheel />} />
         </Routes>
       </AuthRedirect>
     </BrowserRouter>
