@@ -38,7 +38,7 @@ export default function Footer() {
               { label: 'Curriculum', href: '#curriculum' },
               { label: 'FAQ', href: '#faq' },
               { label: 'GCI Platform', href: '/' },
-              { label: 'Contact', href: 'mailto:hello@gigcultureindia.com' },
+              { label: 'Contact', href: 'mailto:trinityloom@gigcultureindia.com' },
             ].map(({ label, href }) => (
               <a key={label} href={href} style={{
                 fontSize: '13px', color: 'rgba(255,255,255,0.32)', textDecoration: 'none', transition: 'color 0.2s',
@@ -57,7 +57,7 @@ export default function Footer() {
             © 2026 Gig Culture India Pvt. Ltd. · All rights reserved.
           </span>
           <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(226,169,241,0.18)', letterSpacing: '0.08em' }}>
-            GCI Music Academy · Gurugram
+            GCI Music Academy · Gurugram · +91 79775 97701
           </span>
         </div>
       </div>

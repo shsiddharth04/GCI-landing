@@ -192,7 +192,7 @@ export default function Hero() {
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 0 60px rgba(226,169,241,0.65)'; (e.currentTarget as HTMLElement).style.background = '#eeaeff' }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 0 40px rgba(226,169,241,0.45)'; (e.currentTarget as HTMLElement).style.background = '#e2a9f1' }}
           >
-            Register free — Masterclass
+            Register free — ₹5,000 Masterclass
           </a>
           <a href="#course"
             className="inline-flex items-center justify-center"
@@ -205,7 +205,7 @@ export default function Hero() {
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(226,169,241,0.6)'; (e.currentTarget as HTMLElement).style.color = '#e2a9f1'; (e.currentTarget as HTMLElement).style.background = 'rgba(226,169,241,0.05)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(226,169,241,0.3)'; (e.currentTarget as HTMLElement).style.color = 'rgba(226,169,241,0.75)'; (e.currentTarget as HTMLElement).style.background = 'transparent' }}
           >
-            View DJ Course — {feeLabel}
+            Request a callback — {feeLabel}
           </a>
         </motion.div>
 

@@ -3,13 +3,42 @@ import { ChevronDown } from 'lucide-react'
 import { loadSettings } from '../admin/settings'
 
 const BASE_FAQS = [
-  { q: 'Do I need prior DJ experience to join the masterclass?', a: 'No. The masterclass is beginner-friendly by design. Come curious — not prepared.' },
-  { q: 'What equipment will I be using during the course?', a: 'You will train on professional club-standard gear inside GCI Studio. Full details confirmed before enrollment.' },
-  { q: 'Is the masterclass genuinely free?', a: 'Yes. No payment. No hidden fees. Capacity is capped — register early to secure a seat.' },
-  { q: 'Where is GCI Studio?', a: 'In Gurugram. The exact address is sent via confirmation email after you register.' },
-  { q: 'What happens after I complete the DJ Course?', a: 'You graduate booking-ready on the GCI marketplace. Real hosts, AI-matched to your sound, with automated contract protection on every gig.' },
-  { q: 'Is there parking at the studio?', a: 'Parking and transit details are included in your registration confirmation.' },
-  { q: 'Can I enroll in the course without attending the masterclass?', a: 'Yes — the masterclass is the recommended starting point, not a prerequisite.' },
+  {
+    q: 'Do I need prior DJ experience to join the masterclass?',
+    a: 'No. The masterclass is beginner-friendly by design. Come curious — not prepared.',
+  },
+  {
+    q: 'What equipment will I be using during the course?',
+    a: 'You train on the Pioneer XDJ-RX3 — the same control-panel architecture as the CDJ-3000 and DJM-900NXS2 used in clubs worldwide — paired with studio monitors and Sennheiser HD 25 Plus headphones. You don\'t train on watered-down gear.',
+  },
+  {
+    q: 'How many students are in each batch?',
+    a: '3 students per batch. Intentionally. There\'s no back-row anonymity, no waiting your turn while a crowded room gets the instructor\'s attention. It\'s direct, hands-on mentorship from day one.',
+  },
+  {
+    q: 'Is the masterclass genuinely free?',
+    a: 'Yes. No payment, no hidden fees. It\'s a ₹5,000 session — yours at no cost. Capacity is capped, so register early.',
+  },
+  {
+    q: 'Is there a deposit to enroll in the DJ Course?',
+    a: '10% of the course fee (₹2,220) confirms your seat. This deposit is non-refundable. The remainder is due before the first session.',
+  },
+  {
+    q: 'Where is GCI Studio?',
+    a: 'In Gurugram. The exact address is sent via confirmation after you register for the masterclass.',
+  },
+  {
+    q: 'What happens after I complete the DJ Course?',
+    a: 'You\'re onboarded onto the GigCultureIndia platform as a listed artist. Your profile enters our AI vibe-matching engine, connecting you directly to venues, event hosts and organizers looking for artists like you. Real bookings. Automated contracts. You don\'t just finish a course — you become part of the ecosystem.',
+  },
+  {
+    q: 'Can I enroll in the course without attending the masterclass?',
+    a: 'Yes — the masterclass is the recommended starting point, not a hard prerequisite.',
+  },
+  {
+    q: 'Do I get any software or resources to keep after the course?',
+    a: 'Yes. You receive curated reference material, practice tracks, guides, and your Rekordbox workflow setup to continue building outside of sessions.',
+  },
 ]
 
 export default function FAQ() {
