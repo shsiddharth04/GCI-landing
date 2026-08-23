@@ -55,13 +55,13 @@ export default function Instructors() {
                       style={{
                         width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%',
                         display: 'block',
-                        filter: 'grayscale(100%) contrast(1.15) brightness(0.75)',
+                        filter: 'grayscale(100%) contrast(1.05) brightness(1.2)',
                       }}
                     />
-                    {/* Duotone colour layer — ink shadows, lavender highlights via mix-blend-mode */}
+                    {/* Duotone colour layer */}
                     <div style={{
                       position: 'absolute', inset: 0,
-                      background: 'linear-gradient(160deg, rgba(226,169,241,0.22) 0%, rgba(10,4,20,0.55) 100%)',
+                      background: 'linear-gradient(160deg, rgba(226,169,241,0.18) 0%, rgba(10,4,20,0.35) 100%)',
                       mixBlendMode: 'color',
                     }} />
                     {/* Bottom fade into card */}

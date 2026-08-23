@@ -18,15 +18,7 @@ export default function Pathway() {
   const { course, masterclass } = loadSettings()
   const [callbackOpen, setCallbackOpen] = useState(false)
 
-  const masterclassDate = masterclass.date
-    ? new Date(masterclass.date).toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })
-    : '[MASTERCLASS DATE]'
-  const masterclassTime = masterclass.time || '[TIME]'
-  const seatsLeft = masterclass.seatCap ? `${masterclass.seatCap} seats` : '[SEAT CAP] seats'
-  const courseFee = course.fee ? `₹${Number(course.fee).toLocaleString('en-IN')}` : '[COURSE FEE]'
-  const batchStart = course.batchStartDate
-    ? new Date(course.batchStartDate).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })
-    : '[BATCH START DATE]'
+  const courseFee = course.fee ? `₹${Number(course.fee).toLocaleString('en-IN')}` : ''
 
   return (
     <>
@@ -63,12 +55,7 @@ export default function Pathway() {
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(226,169,241,0.6), transparent)' }} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {[
-                  { label: 'Date', value: masterclassDate },
-                  { label: 'Time', value: masterclassTime },
-                  { label: 'Duration', value: masterclass.duration || '[DURATION]' },
-                  { label: 'Location', value: masterclass.studioName || 'GCI Studio, Gurugram' },
-                  { label: 'Address', value: masterclass.studioAddress || '[STUDIO ADDRESS, GURUGRAM]' },
-                  { label: 'Seats', value: seatsLeft + ' (waitlist if full)' },
+                  { label: 'Location', value: 'GCI Studio, Gurugram' },
                   { label: 'Cost', value: 'Free  ·  ₹5,000 value' },
                 ].map(row => <DetailRow key={row.label} {...row} />)}
               </div>
@@ -158,12 +145,11 @@ export default function Pathway() {
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(226,169,241,0.5), transparent)' }} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {[
-                  { label: 'Batch starts', value: batchStart },
                   { label: 'Duration', value: '2 months' },
                   { label: 'Format', value: 'In-studio, Gurugram' },
                   { label: 'Equipment', value: 'Pioneer XDJ-RX3, Sennheiser HD 25 Plus' },
                   { label: 'Batch size', value: '3 students (by design)' },
-                  { label: 'Fee', value: courseFee },
+                  ...(courseFee ? [{ label: 'Fee', value: courseFee }] : []),
                 ].map(row => <DetailRow key={row.label} {...row} />)}
               </div>
               <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid rgba(226,169,241,0.08)' }}>

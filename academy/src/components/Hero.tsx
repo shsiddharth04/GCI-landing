@@ -98,11 +98,7 @@ const fadeUp = (delay: number) => ({
 export default function Hero() {
   const { course, masterclass } = loadSettings()
 
-  const batchLabel = course.batchStartDate
-    ? new Date(course.batchStartDate).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })
-    : '[BATCH START DATE]'
-  const seatLabel = masterclass.seatCap ? `${masterclass.seatCap} seats` : '[SEAT CAP] seats'
-  const feeLabel  = course.fee ? `₹${Number(course.fee).toLocaleString('en-IN')}` : '[COURSE FEE]'
+  const feeLabel = course.fee ? `₹${Number(course.fee).toLocaleString('en-IN')}` : ''
 
   return (
     <section className="min-h-screen flex flex-col justify-center pt-16 px-6 relative overflow-hidden bg-[#050505]">
@@ -217,9 +213,8 @@ export default function Hero() {
         {/* Stats strip */}
         <motion.div {...fadeUp(0.46)} className="flex flex-wrap gap-x-10 gap-y-3">
           {[
-            { label: 'Batch starts', value: batchLabel },
-            { label: 'Masterclass seats', value: seatLabel },
-            { label: 'Format', value: course.format === 'in-studio' ? 'In-studio only' : course.format === 'hybrid' ? 'Hybrid' : 'In-studio, Gurugram' },
+            { label: 'Format', value: 'In-studio · Gurugram' },
+            ...(feeLabel ? [{ label: 'Course fee', value: feeLabel }] : []),
           ].map(({ label, value }) => (
             <div key={label} className="flex items-center gap-2.5">
               <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(255,255,255,0.22)', letterSpacing: '0.18em', textTransform: 'uppercase' }}>{label}</span>

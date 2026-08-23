@@ -70,7 +70,7 @@ export default function MasterclassForm() {
         <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#e2a9f1', letterSpacing: '0.16em', textTransform: 'uppercase' }}>Free of cost</span>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <div style={{ background: '#050505', padding: '20px', border: '1px solid rgba(226,169,241,0.15)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {/* Name */}
         <input
           type="text"
@@ -110,8 +110,8 @@ export default function MasterclassForm() {
                 border: '1px solid rgba(226,169,241,0.2)',
                 cursor: 'pointer',
                 transition: 'all 0.15s',
-                background: isMU === opt.value ? '#e2a9f1' : 'rgba(255,255,255,0.04)',
-                color: isMU === opt.value ? '#050505' : 'rgba(255,255,255,0.45)',
+                background: isMU === opt.value ? '#e2a9f1' : '#111',
+                color: isMU === opt.value ? '#050505' : 'rgba(255,255,255,0.5)',
                 fontWeight: isMU === opt.value ? 700 : 400,
               }}
             >
