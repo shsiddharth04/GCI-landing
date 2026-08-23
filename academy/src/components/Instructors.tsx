@@ -53,16 +53,15 @@ export default function Instructors() {
                       src={inst.photoUrl}
                       alt={inst.name}
                       style={{
-                        width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%',
+                        width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 60%',
                         display: 'block',
-                        filter: 'grayscale(100%) contrast(1.05) brightness(1.2)',
+                        filter: 'grayscale(85%) contrast(1.05) brightness(1.15)',
                       }}
                     />
-                    {/* Duotone colour layer */}
+                    {/* Subtle lavender tint */}
                     <div style={{
                       position: 'absolute', inset: 0,
-                      background: 'linear-gradient(160deg, rgba(226,169,241,0.18) 0%, rgba(10,4,20,0.35) 100%)',
-                      mixBlendMode: 'color',
+                      background: 'linear-gradient(to bottom, rgba(226,169,241,0.06) 0%, rgba(10,4,20,0.2) 100%)',
                     }} />
                     {/* Bottom fade into card */}
                     <div style={{
