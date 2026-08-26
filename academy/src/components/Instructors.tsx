@@ -1,4 +1,6 @@
+import { motion } from 'motion/react'
 import { loadSettings } from '../admin/settings'
+import { fadeUp, staggerContainer, viewportOnce } from '../lib/motion'
 import type { Instructor, SocialLink } from '../admin/settings'
 
 function SocialIcon({ platform }: { platform: SocialLink['platform'] }) {
@@ -14,42 +16,50 @@ function SocialIcon({ platform }: { platform: SocialLink['platform'] }) {
 
 function LeadInstructor({ inst }: { inst: Instructor }) {
   return (
-    <div className="flex flex-col md:flex-row" style={{ background: '#0f0d18', border: '1px solid rgba(226,169,241,0.12)', position: 'relative', overflow: 'hidden', marginBottom: '1px' }}>
+    <motion.div
+      initial="hidden" whileInView="visible" viewport={viewportOnce}
+      variants={fadeUp}
+      className="flex flex-col md:flex-row"
+      style={{ background: '#0f0d18', border: '1px solid rgba(226,169,241,0.12)', position: 'relative', overflow: 'hidden', marginBottom: '1px' }}
+    >
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(226,169,241,0.6), transparent)', zIndex: 2 }} />
 
-      {/* Photo — left column */}
-      <div style={{ flex: '0 0 42%', minHeight: '480px', position: 'relative', overflow: 'hidden' }}>
-        {inst.photoUrl ? (
-          <>
-            <img
-              src={inst.photoUrl}
-              alt={inst.name}
-              style={{
-                width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 30%',
-                display: 'block',
-                filter: 'grayscale(80%) contrast(1.08) brightness(1.1)',
-                position: 'absolute', inset: 0,
-              }}
-            />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, transparent 60%, #0f0d18 100%)' }} />
-            <div style={{ position: 'absolute', inset: 0, background: 'rgba(226,169,241,0.04)' }} />
-          </>
-        ) : (
-          <div style={{ width: '100%', height: '100%', background: 'rgba(226,169,241,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontSize: '56px', fontWeight: 800, color: 'rgba(226,169,241,0.15)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-              {inst.initials || inst.name.slice(0, 2).toUpperCase()}
-            </span>
-          </div>
-        )}
+      {/* Photo: 300px tall on mobile, 480px on desktop */}
+      <div className="md:flex-[0_0_42%]" style={{ position: 'relative', overflow: 'hidden', minHeight: '300px' }}>
+        <style>{`@media (min-width: 768px) { .lead-photo { min-height: 480px !important; } }`}</style>
+        <div className="lead-photo" style={{ position: 'absolute', inset: 0 }}>
+          {inst.photoUrl ? (
+            <>
+              <img
+                src={inst.photoUrl}
+                alt={inst.name}
+                style={{
+                  width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 30%',
+                  display: 'block',
+                  filter: 'grayscale(80%) contrast(1.08) brightness(1.1)',
+                  position: 'absolute', inset: 0,
+                }}
+              />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, transparent 60%, #0f0d18 100%)' }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'rgba(226,169,241,0.04)' }} />
+            </>
+          ) : (
+            <div style={{ width: '100%', height: '100%', background: 'rgba(226,169,241,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: '56px', fontWeight: 800, color: 'rgba(226,169,241,0.15)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                {inst.initials || inst.name.slice(0, 2).toUpperCase()}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Content — right column */}
+      {/* Content */}
       <div style={{ flex: 1, padding: '48px 44px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(226,169,241,0.4)', letterSpacing: '0.3em', textTransform: 'uppercase', marginBottom: '20px' }}>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(226,169,241,0.4)', letterSpacing: '0.28em', textTransform: 'uppercase', marginBottom: '20px' }}>
           Lead Instructor
         </div>
 
-        <h3 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.05, fontFamily: "'Plus Jakarta Sans', sans-serif", marginBottom: '8px' }}>
+        <h3 style={{ fontSize: 'clamp(2.5rem, 5vw, 3.5rem)', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.05, fontFamily: "'Plus Jakarta Sans', sans-serif", marginBottom: '8px' }}>
           {inst.name}
         </h3>
 
@@ -61,7 +71,6 @@ function LeadInstructor({ inst }: { inst: Instructor }) {
           {inst.bio}
         </p>
 
-        {/* Credential lines */}
         {inst.credentialLines && inst.credentialLines.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '32px' }}>
             {inst.credentialLines.map((line, i) => (
@@ -73,7 +82,6 @@ function LeadInstructor({ inst }: { inst: Instructor }) {
           </div>
         )}
 
-        {/* Social links */}
         {inst.socialLinks && inst.socialLinks.length > 0 && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
             {inst.socialLinks.map((link, i) => (
@@ -103,13 +111,16 @@ function LeadInstructor({ inst }: { inst: Instructor }) {
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   )
 }
 
 function SecondaryInstructor({ inst }: { inst: Instructor }) {
   return (
-    <div style={{ background: '#0f0d18', border: '1px solid rgba(226,169,241,0.1)', display: 'flex', gap: '20px', padding: '24px', position: 'relative', overflow: 'hidden' }}>
+    <motion.div
+      variants={fadeUp}
+      style={{ background: '#0f0d18', border: '1px solid rgba(226,169,241,0.1)', display: 'flex', gap: '20px', padding: '24px', position: 'relative', overflow: 'hidden' }}
+    >
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(226,169,241,0.3), transparent)' }} />
 
       {inst.photoUrl ? (
@@ -127,19 +138,23 @@ function SecondaryInstructor({ inst }: { inst: Instructor }) {
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(226,169,241,0.55)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '10px' }}>{inst.role}</div>
         <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.7, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{inst.bio}</p>
       </div>
-    </div>
+    </motion.div>
   )
 }
 
 function PlaceholderLead() {
   return (
-    <div style={{ background: '#0f0d18', border: '1px solid rgba(226,169,241,0.1)', minHeight: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+    <motion.div
+      initial="hidden" whileInView="visible" viewport={viewportOnce}
+      variants={fadeUp}
+      style={{ background: '#0f0d18', border: '1px solid rgba(226,169,241,0.1)', minHeight: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}
+    >
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(226,169,241,0.4), transparent)' }} />
       <div style={{ textAlign: 'center' }}>
         <div style={{ width: '56px', height: '56px', background: 'rgba(226,169,241,0.07)', margin: '0 auto 16px' }} />
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(255,255,255,0.15)', letterSpacing: '0.1em' }}>[INSTRUCTOR TBC]</div>
       </div>
-    </div>
+    </motion.div>
   )
 }
 
@@ -152,14 +167,18 @@ export default function Instructors() {
   return (
     <section id="instructors" style={{ padding: '112px 24px', background: '#050505' }}>
       <div style={{ maxWidth: '1152px', margin: '0 auto' }}>
-        <div style={{ marginBottom: '48px' }}>
-          <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(226,169,241,0.4)', letterSpacing: '0.3em', textTransform: 'uppercase', marginBottom: '16px' }}>
+        <motion.div
+          initial="hidden" whileInView="visible" viewport={viewportOnce}
+          variants={fadeUp}
+          style={{ marginBottom: '48px' }}
+        >
+          <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(226,169,241,0.4)', letterSpacing: '0.28em', textTransform: 'uppercase', marginBottom: '16px' }}>
             Taught by
           </p>
-          <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 800, lineHeight: 1.1, letterSpacing: '-0.025em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <h2 style={{ fontSize: 'clamp(2.5rem, 5vw, 3.5rem)', fontWeight: 800, lineHeight: 1.1, letterSpacing: '-0.025em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             Practitioners.<br /><span style={{ color: '#e2a9f1' }}>Not academics.</span>
           </h2>
-        </div>
+        </motion.div>
 
         {instructors.length === 0 ? (
           <PlaceholderLead />
@@ -167,9 +186,13 @@ export default function Instructors() {
           <>
             {lead && <LeadInstructor inst={lead} />}
             {secondary.length > 0 && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1px', marginTop: '1px', background: 'rgba(226,169,241,0.08)' }}>
+              <motion.div
+                initial="hidden" whileInView="visible" viewport={viewportOnce}
+                variants={staggerContainer(0.1)}
+                style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1px', marginTop: '1px', background: 'rgba(226,169,241,0.08)' }}
+              >
                 {secondary.map(inst => <SecondaryInstructor key={inst.id} inst={inst} />)}
-              </div>
+              </motion.div>
             )}
           </>
         )}

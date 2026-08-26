@@ -3,9 +3,8 @@ const BAR_DELAYS  = [0, 0.2, 0.4, 0.1, 0.5, 0.3, 0.6, 0.15, 0.45, 0.25, 0.35, 0.
 
 export default function Footer() {
   return (
-    <footer style={{ borderTop: '1px solid rgba(226,169,241,0.1)', paddingTop: '64px', paddingBottom: '40px', padding: '64px 24px 40px', background: '#050505' }}>
+    <footer style={{ padding: '64px 24px 40px', background: '#050505', borderTop: '1px solid rgba(226,169,241,0.1)' }}>
       <div style={{ maxWidth: '1152px', margin: '0 auto' }}>
-        {/* Top row */}
         <div className="flex flex-col md:flex-row items-start justify-between gap-10" style={{ marginBottom: '56px' }}>
           {/* Brand */}
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
@@ -17,7 +16,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Waveform */}
+          {/* Waveform — increased opacity so it reads as a design element */}
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px' }}>
             {BAR_HEIGHTS.map((h, i) => (
               <div key={i} className="eq-bar" style={{
@@ -25,7 +24,7 @@ export default function Footer() {
                 background: '#e2a9f1',
                 height: `${h * 28}px`,
                 animationDelay: `${BAR_DELAYS[i]}s`,
-                opacity: 0.18 + h * 0.15,
+                opacity: 0.25 + h * 0.2,
               }} />
             ))}
           </div>
@@ -51,7 +50,6 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Bottom row */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-3" style={{ paddingTop: '24px', borderTop: '1px solid rgba(226,169,241,0.07)' }}>
           <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(255,255,255,0.18)', letterSpacing: '0.08em' }}>
             © 2026 Gig Culture India Pvt. Ltd. · All rights reserved.

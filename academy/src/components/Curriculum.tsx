@@ -1,4 +1,6 @@
+import { motion } from 'motion/react'
 import { loadSettings } from '../admin/settings'
+import { fadeUp, staggerContainer, viewportOnce } from '../lib/motion'
 
 const PLACEHOLDER_MODULES = [
   { weekLabel: 'Session 1', title: 'Understanding sound & the room' },
@@ -20,12 +22,17 @@ export default function Curriculum() {
   return (
     <section id="curriculum" style={{ padding: '112px 24px', background: '#0a0810' }}>
       <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6" style={{ marginBottom: '56px' }}>
+        <motion.div
+          initial="hidden" whileInView="visible" viewport={viewportOnce}
+          variants={fadeUp}
+          className="flex flex-col md:flex-row md:items-end justify-between gap-6"
+          style={{ marginBottom: '56px' }}
+        >
           <div>
-            <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(226,169,241,0.4)', letterSpacing: '0.3em', textTransform: 'uppercase', marginBottom: '16px' }}>
+            <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(226,169,241,0.4)', letterSpacing: '0.28em', textTransform: 'uppercase', marginBottom: '16px' }}>
               The curriculum
             </p>
-            <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 800, lineHeight: 1.1, letterSpacing: '-0.025em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.5rem)', fontWeight: 800, lineHeight: 1.1, letterSpacing: '-0.025em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               Every session.<br /><span style={{ color: '#e2a9f1' }}>Inside the studio.</span>
             </h2>
           </div>
@@ -34,15 +41,19 @@ export default function Curriculum() {
               Module details confirmed before launch.
             </p>
           )}
-        </div>
+        </motion.div>
 
-        {/* Module list */}
-        <div style={{ border: '1px solid rgba(226,169,241,0.1)', overflow: 'hidden', position: 'relative' }}>
-          {/* Top accent */}
+        <motion.div
+          initial="hidden" whileInView="visible" viewport={viewportOnce}
+          variants={staggerContainer(0.04)}
+          style={{ border: '1px solid rgba(226,169,241,0.1)', overflow: 'hidden', position: 'relative' }}
+        >
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(226,169,241,0.5), transparent)' }} />
 
           {modules.map((mod, i) => (
-            <div key={mod.id}
+            <motion.div
+              key={mod.id}
+              variants={fadeUp}
               style={{
                 display: 'flex', gap: '24px', padding: '24px 32px',
                 borderBottom: i < modules.length - 1 ? '1px solid rgba(226,169,241,0.07)' : 'none',
@@ -51,7 +62,7 @@ export default function Curriculum() {
               onMouseEnter={e => ((e.currentTarget as HTMLDivElement).style.background = '#0f0d18')}
               onMouseLeave={e => ((e.currentTarget as HTMLDivElement).style.background = '#0a0810')}
             >
-              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: 'rgba(226,169,241,0.35)', marginTop: '2px', width: '32px', flexShrink: 0, transition: 'color 0.2s' }}>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: 'rgba(226,169,241,0.35)', marginTop: '2px', width: '32px', flexShrink: 0 }}>
                 [{String(i + 1).padStart(2, '0')}]
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -67,9 +78,9 @@ export default function Curriculum() {
                   <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.35)', marginTop: '6px', lineHeight: 1.6, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{mod.description}</p>
                 )}
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   )

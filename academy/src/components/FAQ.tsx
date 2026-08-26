@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
+import { motion } from 'motion/react'
 import { loadSettings } from '../admin/settings'
+import { fadeUp, viewportOnce } from '../lib/motion'
 
 const BASE_FAQS = [
   {
@@ -9,15 +11,15 @@ const BASE_FAQS = [
   },
   {
     q: 'What equipment will I be using during the course?',
-    a: 'You train on the Pioneer XDJ-RX3, the same control-panel architecture as the CDJ-3000 and DJM-900NXS2 used in clubs worldwide, paired with studio monitors and Sennheiser HD 25 Plus headphones. You don\'t train on watered-down gear.',
+    a: "You train on the Pioneer XDJ-RX3, the same control-panel architecture as the CDJ-3000 and DJM-900NXS2 used in clubs worldwide, paired with studio monitors and Sennheiser HD 25 Plus headphones. You don't train on watered-down gear.",
   },
   {
     q: 'How many students are in each batch?',
-    a: '3 students per batch. Intentionally. There\'s no back-row anonymity, no waiting your turn while a crowded room gets the instructor\'s attention. It\'s direct, hands-on mentorship from day one.',
+    a: "3 students per batch. Intentionally. There's no back-row anonymity, no waiting your turn while a crowded room gets the instructor's attention. It's direct, hands-on mentorship from day one.",
   },
   {
     q: 'Is the masterclass genuinely free?',
-    a: 'Yes. No payment, no hidden fees. It\'s a ₹2,500 value session, yours at no cost. Capacity is capped, so register early.',
+    a: "Yes. No payment, no hidden fees. It's a ₹2,500 value session, yours at no cost. Capacity is capped, so register early.",
   },
   {
     q: 'Is there a deposit to enroll in the DJ Course?',
@@ -29,7 +31,7 @@ const BASE_FAQS = [
   },
   {
     q: 'What happens after I complete the DJ Course?',
-    a: 'You\'re onboarded onto the GigCultureIndia platform as a listed artist. Your profile enters our AI vibe-matching engine, connecting you directly to venues, event hosts and organizers looking for artists like you. Real bookings. Automated contracts. You don\'t just finish a course. You become part of the ecosystem.',
+    a: "You're onboarded onto the GigCultureIndia platform as a listed artist. Your profile enters our AI vibe-matching engine, connecting you directly to venues, event hosts and organizers looking for artists like you. Real bookings. Automated contracts. You don't just finish a course. You become part of the ecosystem.",
   },
   {
     q: 'Can I enroll in the course without attending the masterclass?',
@@ -60,14 +62,18 @@ export default function FAQ() {
   return (
     <section id="faq" style={{ padding: '112px 24px', background: '#0a0810' }}>
       <div style={{ maxWidth: '720px', margin: '0 auto' }}>
-        <div style={{ marginBottom: '56px' }}>
-          <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(226,169,241,0.4)', letterSpacing: '0.3em', textTransform: 'uppercase', marginBottom: '16px' }}>
+        <motion.div
+          initial="hidden" whileInView="visible" viewport={viewportOnce}
+          variants={fadeUp}
+          style={{ marginBottom: '56px' }}
+        >
+          <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(226,169,241,0.4)', letterSpacing: '0.28em', textTransform: 'uppercase', marginBottom: '16px' }}>
             FAQ
           </p>
-          <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 800, lineHeight: 1.1, letterSpacing: '-0.025em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.5rem)', fontWeight: 800, lineHeight: 1.1, letterSpacing: '-0.025em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             Questions.<br /><span style={{ color: '#e2a9f1' }}>Straight answers.</span>
           </h2>
-        </div>
+        </motion.div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
           {faqs.map(({ q, a }, i) => (
@@ -87,7 +93,7 @@ export default function FAQ() {
                 <ChevronDown size={15} style={{ flexShrink: 0, color: 'rgba(226,169,241,0.35)', transform: open === i ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
               </button>
               {open === i && (
-                <div style={{ padding: '0 24px 20px', fontSize: '13px', color: 'rgba(255,255,255,0.42)', lineHeight: 1.7, borderTop: '1px solid rgba(226,169,241,0.06)', paddingTop: '16px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                <div style={{ padding: '0 24px 20px', paddingTop: '16px', fontSize: '13px', color: 'rgba(255,255,255,0.42)', lineHeight: 1.7, borderTop: '1px solid rgba(226,169,241,0.06)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                   {a}
                 </div>
               )}

@@ -1,76 +1,5 @@
-import { useEffect, useRef } from 'react'
 import { motion } from 'motion/react'
 import { loadSettings } from '../admin/settings'
-
-/* ─── Particle canvas ─────────────────────────────────────────── */
-function ParticleField() {
-  const ref = useRef<HTMLCanvasElement>(null)
-
-  useEffect(() => {
-    const canvas = ref.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    let w = (canvas.width = window.innerWidth)
-    let h = (canvas.height = window.innerHeight)
-
-    const onResize = () => { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight }
-    window.addEventListener('resize', onResize)
-
-    const pts = Array.from({ length: 55 }, () => ({
-      x: Math.random() * w, y: Math.random() * h,
-      r: Math.random() * 1.0 + 0.2,
-      vx: (Math.random() - 0.5) * 0.18, vy: (Math.random() - 0.5) * 0.18,
-      a: Math.random() * 0.14 + 0.03,
-    }))
-
-    let raf: number
-    const tick = () => {
-      ctx.clearRect(0, 0, w, h)
-      for (const p of pts) {
-        p.x = (p.x + p.vx + w) % w
-        p.y = (p.y + p.vy + h) % h
-        ctx.beginPath()
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(226,169,241,${p.a})`
-        ctx.fill()
-      }
-      raf = requestAnimationFrame(tick)
-    }
-    tick()
-
-    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', onResize) }
-  }, [])
-
-  return <canvas ref={ref} className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }} />
-}
-
-/* ─── Aurora blobs ────────────────────────────────────────────── */
-function AuroraBlobs() {
-  return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 1 }}>
-      <div style={{
-        position: 'absolute', width: '70vw', height: '70vw', borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(226,169,241,0.1) 0%, transparent 62%)',
-        filter: 'blur(90px)', left: '15%', top: '8%',
-        animation: 'blob-a 24s ease-in-out infinite',
-      }} />
-      <div style={{
-        position: 'absolute', width: '50vw', height: '55vh', borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(170,130,255,0.07) 0%, transparent 62%)',
-        filter: 'blur(80px)', right: '-8%', top: '-5%',
-        animation: 'blob-b 30s ease-in-out infinite 8s',
-      }} />
-      <div style={{
-        position: 'absolute', width: '42vw', height: '48vh', borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(220,140,255,0.06) 0%, transparent 62%)',
-        filter: 'blur(85px)', left: '-6%', bottom: '-5%',
-        animation: 'blob-c 27s ease-in-out infinite 14s',
-      }} />
-    </div>
-  )
-}
 
 /* ─── Eq waveform ─────────────────────────────────────────────── */
 const BAR_HEIGHTS = [0.4, 0.7, 1, 0.6, 0.85, 0.5, 0.9, 0.65, 0.75, 0.45, 1, 0.55, 0.8, 0.35, 0.95]
@@ -96,19 +25,65 @@ const fadeUp = (delay: number) => ({
 
 /* ─── Hero ────────────────────────────────────────────────────── */
 export default function Hero() {
-  const { course, masterclass } = loadSettings()
+  const { course, instructors } = loadSettings()
 
   const feeLabel = course.fee ? `₹${Number(course.fee).toLocaleString('en-IN')}` : ''
+  const lead = instructors.find(i => i.isLead) ?? instructors[0]
+  const heroPhoto = lead?.photoUrl ?? null
 
   return (
     <section className="min-h-screen flex flex-col justify-center pt-16 px-6 relative overflow-hidden bg-[#050505]">
-      <ParticleField />
-      <AuroraBlobs />
+
+      {/* Single subtle background gradient — replaces 3 competing blobs */}
+      <div className="absolute inset-0 pointer-events-none" style={{
+        background: 'radial-gradient(ellipse 65% 55% at 55% 45%, rgba(226,169,241,0.05) 0%, transparent 70%)',
+        zIndex: 1,
+      }} />
+
+      {/* Instructor photo — desktop only, absolute right side, duotone */}
+      {heroPhoto && (
+        <div className="absolute inset-0 pointer-events-none hidden md:block" style={{ zIndex: 2 }}>
+          <div style={{
+            position: 'absolute',
+            right: 0,
+            top: 0,
+            bottom: 0,
+            width: '50%',
+            overflow: 'hidden',
+          }}>
+            <img
+              src={heroPhoto}
+              alt=""
+              aria-hidden="true"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: 'center 20%',
+                filter: 'grayscale(100%) contrast(1.05) brightness(1.1)',
+                opacity: 0.2,
+              }}
+            />
+            {/* Left fade so it doesn't compete with the text column */}
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(to right, #050505 0%, transparent 35%, transparent 75%, #050505 100%)',
+            }} />
+            {/* Lavender tint */}
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'rgba(226,169,241,0.07)',
+            }} />
+          </div>
+        </div>
+      )}
 
       {/* Edge vignette */}
       <div className="absolute inset-0 pointer-events-none" style={{
-        zIndex: 2,
-        background: 'radial-gradient(ellipse 80% 80% at 50% 50%, transparent 40%, rgba(5,5,5,0.75) 100%)',
+        zIndex: 3,
+        background: 'radial-gradient(ellipse 80% 80% at 50% 50%, transparent 40%, rgba(5,5,5,0.6) 100%)',
       }} />
 
       {/* Top hairline */}
@@ -119,7 +94,7 @@ export default function Hero() {
 
       <div className="relative max-w-5xl mx-auto w-full py-20" style={{ zIndex: 10 }}>
 
-        {/* Logo + brand — prominent */}
+        {/* Logo + brand */}
         <motion.div className="flex items-center gap-4 mb-12" {...fadeUp(0.1)}>
           <div className="relative">
             <div style={{
@@ -144,15 +119,15 @@ export default function Hero() {
           </div>
         </motion.div>
 
-        {/* Tag */}
+        {/* Tag pill */}
         <motion.div {...fadeUp(0.16)} className="mb-8">
           <span style={{
-            fontFamily: "'Space Mono', monospace", fontSize: '9px', letterSpacing: '0.3em',
+            fontFamily: "'Space Mono', monospace", fontSize: '9px', letterSpacing: '0.26em',
             color: '#e2a9f1', textTransform: 'uppercase',
             border: '1px solid rgba(226,169,241,0.35)', background: 'rgba(226,169,241,0.07)',
-            padding: '6px 14px', display: 'inline-block',
+            padding: '6px 14px', display: 'inline-flex', flexWrap: 'wrap', gap: '0',
           }}>
-            DJ Education · In-studio · Gurugram
+            In-studio · Gurugram · 3 students per batch
           </span>
         </motion.div>
 

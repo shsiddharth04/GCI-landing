@@ -1,25 +1,41 @@
 import { useState } from 'react'
+import { motion } from 'motion/react'
 import { loadSettings } from '../admin/settings'
+import { fadeIn, fadeUp, staggerContainer, viewportOnce } from '../lib/motion'
 import type { GalleryItem } from '../admin/settings'
 
-function ImageTile({ item, tall }: { item: GalleryItem; tall?: boolean }) {
+function ImageTile({ item, tall, isFeatured }: { item: GalleryItem; tall?: boolean; isFeatured?: boolean }) {
   return (
-    <div style={{ position: 'relative', overflow: 'hidden', height: tall ? '480px' : '320px', background: '#0f0d18' }}>
+    <motion.div
+      variants={fadeIn}
+      style={{ position: 'relative', overflow: 'hidden', height: tall ? '480px' : '280px', background: '#0f0d18' }}
+    >
       <img
         src={item.src}
         alt={item.alt}
         style={{
           width: '100%', height: '100%', objectFit: 'cover',
           display: 'block',
-          filter: 'grayscale(75%) contrast(1.08)',
-          transition: 'filter 0.4s, transform 0.4s',
+          filter: 'grayscale(90%) contrast(1.12) brightness(1.05)',
+          transition: 'filter 0.5s, transform 0.5s',
         }}
-        onMouseEnter={e => { (e.currentTarget as HTMLImageElement).style.filter = 'grayscale(35%) contrast(1.05)'; (e.currentTarget as HTMLImageElement).style.transform = 'scale(1.02)' }}
-        onMouseLeave={e => { (e.currentTarget as HTMLImageElement).style.filter = 'grayscale(75%) contrast(1.08)'; (e.currentTarget as HTMLImageElement).style.transform = 'scale(1)' }}
+        onMouseEnter={e => {
+          (e.currentTarget as HTMLImageElement).style.filter = 'grayscale(20%) contrast(1.05)'
+          ;(e.currentTarget as HTMLImageElement).style.transform = 'scale(1.02)'
+        }}
+        onMouseLeave={e => {
+          (e.currentTarget as HTMLImageElement).style.filter = 'grayscale(90%) contrast(1.12) brightness(1.05)'
+          ;(e.currentTarget as HTMLImageElement).style.transform = 'scale(1)'
+        }}
       />
-      {/* lavender tint overlay */}
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(226,169,241,0.06)', pointerEvents: 'none' }} />
-    </div>
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(226,169,241,0.10)', pointerEvents: 'none' }} />
+      {isFeatured && (
+        <div style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          background: 'linear-gradient(to bottom, transparent 55%, rgba(5,5,5,0.65) 100%)',
+        }} />
+      )}
+    </motion.div>
   )
 }
 
@@ -27,18 +43,19 @@ function VideoTile({ item, tall }: { item: GalleryItem; tall?: boolean }) {
   const [playing, setPlaying] = useState(false)
 
   return (
-    <div style={{ position: 'relative', overflow: 'hidden', height: tall ? '480px' : '320px', background: '#0f0d18', cursor: 'pointer' }}
+    <motion.div
+      variants={fadeIn}
+      style={{ position: 'relative', overflow: 'hidden', height: tall ? '480px' : '280px', background: '#0f0d18', cursor: 'pointer' }}
       onClick={() => setPlaying(true)}
     >
       {!playing ? (
         <>
           {item.poster ? (
-            <img src={item.poster} alt={item.alt} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'grayscale(75%) contrast(1.08)' }} />
+            <img src={item.poster} alt={item.alt} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'grayscale(90%) contrast(1.12) brightness(1.05)' }} />
           ) : (
             <div style={{ width: '100%', height: '100%', background: '#0f0d18' }} />
           )}
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(226,169,241,0.06)', pointerEvents: 'none' }} />
-          {/* Play button */}
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(226,169,241,0.10)', pointerEvents: 'none' }} />
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{
               width: '56px', height: '56px', borderRadius: '50%',
@@ -60,14 +77,14 @@ function VideoTile({ item, tall }: { item: GalleryItem; tall?: boolean }) {
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
       )}
-    </div>
+    </motion.div>
   )
 }
 
-function Tile({ item, tall }: { item: GalleryItem; tall?: boolean }) {
+function Tile({ item, tall, isFeatured }: { item: GalleryItem; tall?: boolean; isFeatured?: boolean }) {
   return item.type === 'video'
     ? <VideoTile item={item} tall={tall} />
-    : <ImageTile item={item} tall={tall} />
+    : <ImageTile item={item} tall={tall} isFeatured={isFeatured} />
 }
 
 export default function StudioGallery() {
@@ -79,38 +96,54 @@ export default function StudioGallery() {
 
   return (
     <section style={{ padding: '0 0 0 0', background: '#050505' }}>
-      {/* Header */}
+      <style>{`
+        @media (max-width: 639px) {
+          .gallery-first-row { grid-template-columns: 1fr !important; }
+          .gallery-first-row .gallery-stack { display: contents !important; }
+          .gallery-rest { grid-template-columns: 1fr 1fr !important; }
+        }
+      `}</style>
+
       <div style={{ padding: '80px 24px 40px', maxWidth: '1152px', margin: '0 auto' }}>
-        <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(226,169,241,0.4)', letterSpacing: '0.3em', textTransform: 'uppercase', marginBottom: '14px' }}>
-          From our sessions
-        </p>
-        <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', fontWeight: 800, lineHeight: 1.1, letterSpacing: '-0.025em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-          What a session<br />actually looks like.
-        </h2>
+        <motion.div initial="hidden" whileInView="visible" viewport={viewportOnce} variants={fadeUp}>
+          <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(226,169,241,0.4)', letterSpacing: '0.28em', textTransform: 'uppercase', marginBottom: '14px' }}>
+            From our sessions
+          </p>
+          <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', fontWeight: 800, lineHeight: 1.1, letterSpacing: '-0.025em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            What a session<br />actually looks like.
+          </h2>
+        </motion.div>
       </div>
 
-      {/* Asymmetric grid */}
       <div style={{ maxWidth: '1152px', margin: '0 auto', padding: '0 24px 80px' }}>
-        {/* First row: large + small stacked */}
         {first && (
-          <div style={{ display: 'grid', gridTemplateColumns: second ? '3fr 2fr' : '1fr', gap: '2px', marginBottom: '2px' }}>
-            <Tile item={first} tall />
+          <motion.div
+            initial="hidden" whileInView="visible" viewport={viewportOnce}
+            variants={staggerContainer(0.06)}
+            className="gallery-first-row"
+            style={{ display: 'grid', gridTemplateColumns: second ? '3fr 2fr' : '1fr', gap: '2px', marginBottom: '2px' }}
+          >
+            <Tile item={first} tall isFeatured />
             {second && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              <div className="gallery-stack" style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 <Tile item={second} />
                 {rest[0] && <Tile item={rest[0]} />}
               </div>
             )}
-          </div>
+          </motion.div>
         )}
 
-        {/* Remaining items in a row */}
         {rest.length > (rest[0] ? 1 : 0) && (
-          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(rest.slice(rest[0] ? 1 : 0).length, 3)}, 1fr)`, gap: '2px' }}>
+          <motion.div
+            initial="hidden" whileInView="visible" viewport={viewportOnce}
+            variants={staggerContainer(0.06)}
+            className="gallery-rest"
+            style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(rest.slice(rest[0] ? 1 : 0).length, 3)}, 1fr)`, gap: '2px' }}
+          >
             {rest.slice(rest[0] ? 1 : 0).map((item, i) => (
               <Tile key={i} item={item} />
             ))}
-          </div>
+          </motion.div>
         )}
       </div>
     </section>
