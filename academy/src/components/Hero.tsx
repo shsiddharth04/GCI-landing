@@ -25,60 +25,18 @@ const fadeUp = (delay: number) => ({
 
 /* ─── Hero ────────────────────────────────────────────────────── */
 export default function Hero() {
-  const { course, instructors } = loadSettings()
+  const { course } = loadSettings()
 
   const feeLabel = course.fee ? `₹${Number(course.fee).toLocaleString('en-IN')}` : ''
-  const lead = instructors.find(i => i.isLead) ?? instructors[0]
-  const heroPhoto = lead?.photoUrl ?? null
 
   return (
     <section className="min-h-screen flex flex-col justify-center pt-16 px-6 relative overflow-hidden bg-[#050505]">
 
-      {/* Single subtle background gradient — replaces 3 competing blobs */}
+      {/* Single subtle background gradient */}
       <div className="absolute inset-0 pointer-events-none" style={{
-        background: 'radial-gradient(ellipse 65% 55% at 55% 45%, rgba(226,169,241,0.05) 0%, transparent 70%)',
+        background: 'radial-gradient(ellipse 65% 55% at 50% 45%, rgba(226,169,241,0.05) 0%, transparent 70%)',
         zIndex: 1,
       }} />
-
-      {/* Instructor photo — desktop only, absolute right side, duotone */}
-      {heroPhoto && (
-        <div className="absolute inset-0 pointer-events-none hidden md:block" style={{ zIndex: 2 }}>
-          <div style={{
-            position: 'absolute',
-            right: 0,
-            top: 0,
-            bottom: 0,
-            width: '50%',
-            overflow: 'hidden',
-          }}>
-            <img
-              src={heroPhoto}
-              alt=""
-              aria-hidden="true"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                objectPosition: 'center 20%',
-                filter: 'grayscale(100%) contrast(1.05) brightness(1.1)',
-                opacity: 0.2,
-              }}
-            />
-            {/* Left fade so it doesn't compete with the text column */}
-            <div style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'linear-gradient(to right, #050505 0%, transparent 35%, transparent 75%, #050505 100%)',
-            }} />
-            {/* Lavender tint */}
-            <div style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'rgba(226,169,241,0.07)',
-            }} />
-          </div>
-        </div>
-      )}
 
       {/* Edge vignette */}
       <div className="absolute inset-0 pointer-events-none" style={{
