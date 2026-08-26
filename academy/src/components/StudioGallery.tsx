@@ -3,12 +3,30 @@ import { motion } from 'motion/react'
 import { loadSettings } from '../admin/settings'
 import { fadeIn, fadeUp, staggerContainer, viewportOnce } from '../lib/motion'
 import type { GalleryItem } from '../admin/settings'
+import type { MouseEvent } from 'react'
+
+function tilt(e: MouseEvent<HTMLDivElement>, strength = 8) {
+  const rect = e.currentTarget.getBoundingClientRect()
+  const x = (e.clientX - rect.left) / rect.width - 0.5
+  const y = (e.clientY - rect.top) / rect.height - 0.5
+  e.currentTarget.style.transform = `perspective(900px) rotateY(${x * strength}deg) rotateX(${-y * strength}deg) scale(1.01)`
+}
+function resetTilt(e: MouseEvent<HTMLDivElement>) {
+  e.currentTarget.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) scale(1)'
+}
 
 function ImageTile({ item, tall, isFeatured }: { item: GalleryItem; tall?: boolean; isFeatured?: boolean }) {
   return (
     <motion.div
       variants={fadeIn}
-      style={{ position: 'relative', overflow: 'hidden', height: tall ? '480px' : '280px', background: '#0f0d18' }}
+      onMouseMove={tilt}
+      onMouseLeave={resetTilt}
+      style={{
+        position: 'relative', overflow: 'hidden',
+        height: tall ? '480px' : '280px', background: '#0f0d18',
+        transition: 'transform 0.18s ease',
+        transformStyle: 'preserve-3d',
+      }}
     >
       <img
         src={item.src}
@@ -17,16 +35,10 @@ function ImageTile({ item, tall, isFeatured }: { item: GalleryItem; tall?: boole
           width: '100%', height: '100%', objectFit: 'cover',
           display: 'block',
           filter: 'grayscale(100%) contrast(1.3) brightness(0.85)',
-          transition: 'filter 0.5s, transform 0.5s',
+          transition: 'filter 0.5s',
         }}
-        onMouseEnter={e => {
-          (e.currentTarget as HTMLImageElement).style.filter = 'grayscale(0%) contrast(1.1) brightness(1.0)'
-          ;(e.currentTarget as HTMLImageElement).style.transform = 'scale(1.02)'
-        }}
-        onMouseLeave={e => {
-          (e.currentTarget as HTMLImageElement).style.filter = 'grayscale(100%) contrast(1.3) brightness(0.85)'
-          ;(e.currentTarget as HTMLImageElement).style.transform = 'scale(1)'
-        }}
+        onMouseEnter={e => { (e.currentTarget as HTMLImageElement).style.filter = 'grayscale(0%) contrast(1.1) brightness(1.0)' }}
+        onMouseLeave={e => { (e.currentTarget as HTMLImageElement).style.filter = 'grayscale(100%) contrast(1.3) brightness(0.85)' }}
       />
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(212,191,255,0.06)', pointerEvents: 'none' }} />
       {isFeatured && (

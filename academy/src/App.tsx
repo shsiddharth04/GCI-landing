@@ -1,3 +1,4 @@
+import CustomCursor from './components/CustomCursor'
 import Nav from './components/Nav'
 import Hero from './components/Hero'
 import Tracks from './components/Tracks'
@@ -14,6 +15,7 @@ import Footer from './components/Footer'
 export default function App() {
   return (
     <div className="grain min-h-screen bg-[#050505] text-white relative">
+      <CustomCursor />
       <Nav />
       <Hero />
       <Tracks />
