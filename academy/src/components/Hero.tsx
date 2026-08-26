@@ -12,18 +12,18 @@ const W_DELAYS = Array.from({ length: W_COUNT }, () => Math.random() * 0.8)
 
 function FullWidthWaveform() {
   return (
-    <div style={{ width: '100%', display: 'flex', alignItems: 'flex-end', gap: '2px', height: '48px' }}>
+    <div style={{ width: '100%', display: 'flex', alignItems: 'flex-end', gap: '2px', height: '28px' }}>
       {W_HEIGHTS.map((h, i) => (
         <div
           key={i}
           className="eq-bar"
           style={{
             flex: 1,
-            height: `${h * 48}px`,
+            height: `${h * 28}px`,
             background: '#d4bfff',
             borderRadius: '1px',
             animationDelay: `${W_DELAYS[i]}s`,
-            opacity: 0.18 + h * 0.45,
+            opacity: 0.06 + h * 0.14,
           }}
         />
       ))}
