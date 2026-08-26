@@ -82,10 +82,10 @@ export default function StudioGallery() {
       {/* Header */}
       <div style={{ padding: '80px 24px 40px', maxWidth: '1152px', margin: '0 auto' }}>
         <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(226,169,241,0.4)', letterSpacing: '0.3em', textTransform: 'uppercase', marginBottom: '14px' }}>
-          From the studio
+          From our sessions
         </p>
         <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', fontWeight: 800, lineHeight: 1.1, letterSpacing: '-0.025em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-          Inside the room<br />where it happens.
+          What a session<br />actually looks like.
         </h2>
       </div>
 

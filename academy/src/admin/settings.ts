@@ -161,11 +161,11 @@ export const DEFAULT_SETTINGS: AcademySettings = {
     { id: '09', weekLabel: 'MOD 09', order: 8, title: 'GigCulture Artist Onboarding', description: 'Upon completion, you are onboarded onto the GigCultureIndia platform as a listed artist. Your profile enters our genre and vibe-matching engine, connecting you to venues, events and organizers actively looking for artists like you.' },
   ],
   studioGallery: [
-    { type: 'image', src: '/studio-2.jpg', alt: 'Inside the studio' },
-    { type: 'image', src: '/studio-4.jpg', alt: 'At the decks' },
-    { type: 'image', src: '/studio-3.jpg', alt: 'Masterclass in session' },
-    { type: 'image', src: '/studio-1.jpg', alt: 'Learning by doing' },
-    { type: 'video', src: '/masterclass.mov', alt: 'Masterclass session footage', poster: '/studio-2.jpg' },
+    { type: 'image', src: '/studio-2.jpg', alt: 'Masterclass session in progress' },
+    { type: 'image', src: '/studio-4.jpg', alt: 'Learning on the Pioneer XDJ-RX3' },
+    { type: 'image', src: '/studio-3.jpg', alt: 'Hands-on demo class' },
+    { type: 'image', src: '/studio-1.jpg', alt: 'One-on-one instruction' },
+    { type: 'video', src: '/masterclass.mov', alt: 'Demo class footage', poster: '/studio-2.jpg' },
   ],
   hero: {
     cohortLabel: 'Founding Batch · Applications Open',
