@@ -1,3 +1,23 @@
+export interface SocialLink {
+  platform: 'soundcloud' | 'instagram' | 'youtube' | 'spotify' | 'website'
+  url: string
+  label?: string
+}
+
+export interface GalleryItem {
+  type: 'image' | 'video'
+  src: string
+  alt: string
+  poster?: string
+}
+
+export interface PaymentPlan {
+  label: string
+  dueSchedule: string
+  note?: string
+  isHighlighted?: boolean
+}
+
 export interface CourseSettings {
   fee: string
   currency: string
@@ -11,6 +31,7 @@ export interface CourseSettings {
   seatCap: number
   isActive: boolean
   refundPolicy: string
+  paymentPlans: PaymentPlan[]
 }
 
 export interface MasterclassSettings {
@@ -19,6 +40,7 @@ export interface MasterclassSettings {
   duration: string
   studioName: string
   studioAddress: string
+  secondStudioAddress: string
   mapEmbedUrl: string
   seatCap: number
   isActive: boolean
@@ -35,6 +57,8 @@ export interface Instructor {
   initials: string
   photoUrl: string
   isLead: boolean
+  socialLinks?: SocialLink[]
+  credentialLines?: string[]
 }
 
 export interface CurriculumModule {
@@ -50,6 +74,7 @@ export interface AcademySettings {
   masterclass: MasterclassSettings
   instructors: Instructor[]
   curriculum: CurriculumModule[]
+  studioGallery: GalleryItem[]
   hero: {
     cohortLabel: string
     tagline: string
@@ -72,46 +97,80 @@ export const DEFAULT_SETTINGS: AcademySettings = {
     seatCap: 3,
     isActive: true,
     refundPolicy: '10% of the course fee is required to confirm your seat and is non-refundable.',
+    paymentPlans: [
+      {
+        label: 'Full payment',
+        dueSchedule: '100% due before the first session.',
+        note: 'Straightforward. No follow-up.',
+        isHighlighted: false,
+      },
+      {
+        label: '50 / 50 split',
+        dueSchedule: '10% deposit to confirm your seat. Remainder due before the first session.',
+        note: 'Deposit is non-refundable.',
+        isHighlighted: true,
+      },
+    ],
   },
   masterclass: {
     date: '',
     time: '',
     duration: '',
     studioName: 'GCI Studio, Gurugram',
-    studioAddress: '',
+    studioAddress: '389, Shankar Chowk Rd, Phase II, Udyog Vihar, Sector 20, Gurugram, Haryana 122016',
+    secondStudioAddress: 'V14/1, DLF Phase 3, Sector 24, Gurugram, Haryana 122010',
     mapEmbedUrl: '',
     seatCap: 0,
     isActive: true,
     cadence: 'one-off',
     recurringSchedule: '',
-    whatsInside: 'A hands-on session inside GCI Studio, Gurugram. Get behind the Pioneer XDJ-RX3, understand signal flow, and feel what DJing actually requires. Zero commitment — no payment, no prerequisites. Just show up.',
+    whatsInside: 'A hands-on session inside GCI Studio, Gurugram. Get behind the Pioneer XDJ-RX3, understand signal flow, and feel what DJing actually requires. Zero commitment. No payment, no prerequisites. Just show up.',
   },
   instructors: [
     {
       id: 'divith',
       name: 'Divith Chowdhary',
       role: 'Founder & Lead Instructor · DJ UNTITLED.',
-      bio: 'Founder of GigCultureIndia, performing as UNTITLED. — melodic techno, progressive house, organic house. Trained under the founder of The Music Academy (production credits: Bang Bang, Chennai Express). Builds and teaches this course from real time behind the decks, not a textbook.',
+      bio: 'Founder of GigCultureIndia, performing as UNTITLED. Melodic techno, progressive house, organic house. Trained under the founder of The Music Academy (production credits: Bang Bang, Chennai Express). Builds and teaches this course from real time behind the decks, not a textbook.',
       initials: 'DC',
       photoUrl: '/divith.jpg',
       isLead: true,
+      credentialLines: [
+        'Performing as UNTITLED.',
+        'Trained under the founder of The Music Academy',
+        'Founder, Gig Culture India',
+      ],
+      socialLinks: [
+        {
+          platform: 'instagram',
+          url: 'https://www.instagram.com/untitled.art.ist',
+          label: '@untitled.art.ist',
+        },
+      ],
     },
   ],
   curriculum: [
-    { id: '01', weekLabel: 'MOD 01', order: 0, title: 'The DJ Journey: Foundations', description: 'The DJ mindset — discipline, curiosity and consistency. Gear literacy: decoding the tools of the trade. Finding your sonic identity: the style and sound that will define you as an artist.' },
+    { id: '01', weekLabel: 'MOD 01', order: 0, title: 'The DJ Journey: Foundations', description: 'The DJ mindset: discipline, curiosity and consistency. Gear literacy: decoding the tools of the trade. Finding your sonic identity and the style that will define you as an artist.' },
     { id: '02', weekLabel: 'MOD 02', order: 1, title: 'Hands-On Basics', description: 'Studio and equipment setup, signal flow, drop mixing, beatmatching by ear. Applied practice sessions and a beatmatching skills assessment.' },
-    { id: '03', weekLabel: 'MOD 03', order: 2, title: 'Pioneer DJ Deep Dive', description: 'Full CDJ architecture and workflow. Mixer controls and FX chains. Creative mixing techniques — going beyond basic transitions into expressive mixing.' },
-    { id: '04', weekLabel: 'MOD 04', order: 3, title: 'Mixing & Harmonization', description: 'Harmonic mixing in key using the Camelot wheel. Harmonization techniques for tonal precision — layering and blending tracks so transitions feel musical, not mechanical.' },
+    { id: '03', weekLabel: 'MOD 03', order: 2, title: 'Pioneer DJ Deep Dive', description: 'Full CDJ architecture and workflow. Mixer controls and FX chains. Creative mixing techniques: going beyond basic transitions into expressive mixing.' },
+    { id: '04', weekLabel: 'MOD 04', order: 3, title: 'Mixing & Harmonization', description: 'Harmonic mixing in key using the Camelot wheel. Harmonization techniques for tonal precision: layering and blending tracks so transitions feel musical, not mechanical.' },
     { id: '05', weekLabel: 'MOD 05', order: 4, title: 'Studio Time: Practice Module', description: 'Real-time practice sessions and harmonized set building. Applying every technique learned to build and perform a full, cohesive set.' },
-    { id: '06', weekLabel: 'MOD 06', order: 5, title: 'Rekordbox Fundamentals', description: 'Rekordbox setup and workflow — the industry-standard track management and preparation software every professional DJ relies on.' },
-    { id: '07', weekLabel: 'MOD 07', order: 6, title: 'Mixing & Mastering Basics', description: 'Mixing vs. mastering: the technical distinction that separates amateur and professional sound. Levels, EQ, and sonic space — frequency balance and clean signal levels.' },
+    { id: '06', weekLabel: 'MOD 06', order: 5, title: 'Rekordbox Fundamentals', description: 'Rekordbox setup and workflow. The industry-standard track management and preparation software every professional DJ relies on.' },
+    { id: '07', weekLabel: 'MOD 07', order: 6, title: 'Mixing & Mastering Basics', description: 'Mixing vs. mastering: the technical distinction that separates amateur and professional sound. Levels, EQ, and sonic space for clean, balanced output.' },
     { id: '08', weekLabel: 'MOD 08', order: 7, title: 'Career, Gigs & Branding', description: 'How gigs actually happen. Promotion strategy and building artist visibility. Label ecosystem, career development, stage presence, and social media.' },
     { id: '09', weekLabel: 'MOD 09', order: 8, title: 'GigCulture Artist Onboarding', description: 'Upon completion, you are onboarded onto the GigCultureIndia platform as a listed artist. Your profile enters our genre and vibe-matching engine, connecting you to venues, events and organizers actively looking for artists like you.' },
   ],
+  studioGallery: [
+    { type: 'image', src: '/studio-2.jpg', alt: 'Inside the studio' },
+    { type: 'image', src: '/studio-4.jpg', alt: 'At the decks' },
+    { type: 'image', src: '/studio-3.jpg', alt: 'Masterclass in session' },
+    { type: 'image', src: '/studio-1.jpg', alt: 'Learning by doing' },
+    { type: 'video', src: '/masterclass.mov', alt: 'Masterclass session footage', poster: '/studio-2.jpg' },
+  ],
   hero: {
-    cohortLabel: 'Founding Batch — Applications Open',
+    cohortLabel: 'Founding Batch · Applications Open',
     tagline: 'Learn to\nread a room.',
-    subheadline: 'GCI Academy is a hands-on DJ education program inside our Gurugram studio. Graduate directly onto the GCI booking pipeline — not just a certificate.',
+    subheadline: 'GCI Academy is a hands-on DJ education program inside our Gurugram studio. Graduate directly onto the GCI booking pipeline, not just with a certificate.',
   },
   updatedAt: '',
 }
@@ -129,6 +188,7 @@ export function loadSettings(): AcademySettings {
       course: { ...structuredClone(DEFAULT_SETTINGS).course, ...stored.course },
       masterclass: { ...structuredClone(DEFAULT_SETTINGS).masterclass, ...stored.masterclass },
       hero: { ...structuredClone(DEFAULT_SETTINGS).hero, ...stored.hero },
+      studioGallery: stored.studioGallery ?? structuredClone(DEFAULT_SETTINGS).studioGallery,
       // curriculum and instructors from storage override defaults entirely
       curriculum: stored.curriculum ?? structuredClone(DEFAULT_SETTINGS).curriculum,
       instructors: stored.instructors ?? structuredClone(DEFAULT_SETTINGS).instructors,

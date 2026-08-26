@@ -1,7 +1,6 @@
 const WHY_ITEMS = [
-  { index: '01', title: 'A real booking pipeline — not a diploma.', body: 'Every graduate gets discoverable on the GCI marketplace from day one. Hosts with real budgets, AI-matched to your sound. No cold emails, no industry gatekeepers.' },
+  { index: '01', title: 'A real booking pipeline, not a diploma.', body: 'Every graduate gets discoverable on the GCI marketplace from day one. Hosts with real budgets, AI-matched to your sound. No cold emails, no industry gatekeepers.' },
   { index: '02', title: 'Hands-on with real equipment.', body: 'You learn on professional DJ gear inside our Gurugram studio. Not a simulation. Not a YouTube tutorial. You play, you make mistakes, you get better.' },
-  { index: '03', title: 'Contracts that protect you from day one.', body: 'Every booking through GCI is backed by an automated, legally binding contract. You learn how they work — and you use them. No more no-pays.' },
 ]
 
 const CARD_STYLE = {

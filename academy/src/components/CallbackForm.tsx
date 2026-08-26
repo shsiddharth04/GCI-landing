@@ -34,7 +34,7 @@ export default function CallbackForm({ onClose }: Props) {
     if (dbError) {
       setState('error')
       setError(dbError.code === '23505'
-        ? 'We already have your details — we\'ll be in touch soon.'
+        ? 'We already have your details. We\'ll be in touch soon.'
         : 'Something went wrong. Please try again.')
       return
     }

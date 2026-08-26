@@ -171,24 +171,26 @@ export default function Hero() {
           style={{ color: 'rgba(255,255,255,0.42)' }}
         >
           GCI Music Academy is a hands-on DJ education program run out of our studio in Gurugram.
-          Graduate directly into GCI's live-booking pipeline — not just a certificate.
+          Graduate directly into GCI's live-booking pipeline, not just a certificate.
         </motion.p>
 
         {/* CTAs */}
         <motion.div {...fadeUp(0.34)} className="flex flex-col sm:flex-row gap-3 mb-16">
           <a href="#masterclass"
-            className="inline-flex items-center justify-center"
+            className="inline-flex flex-col items-center justify-center"
             style={{
               background: '#e2a9f1', color: '#050505', fontWeight: 700,
-              padding: '16px 28px', fontSize: '13px',
+              padding: '14px 28px', fontSize: '13px',
               boxShadow: '0 0 40px rgba(226,169,241,0.45)',
               transition: 'all 0.2s',
               fontFamily: "'Plus Jakarta Sans', sans-serif",
+              gap: '3px',
             }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 0 60px rgba(226,169,241,0.65)'; (e.currentTarget as HTMLElement).style.background = '#eeaeff' }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 0 40px rgba(226,169,241,0.45)'; (e.currentTarget as HTMLElement).style.background = '#e2a9f1' }}
           >
-            Register free — ₹5,000 Masterclass
+            <span>Register · it&apos;s free</span>
+            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 400, color: 'rgba(5,5,5,0.5)', letterSpacing: '0.08em' }}>₹2,500 value</span>
           </a>
           <a href="#course"
             className="inline-flex items-center justify-center"
@@ -201,7 +203,7 @@ export default function Hero() {
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(226,169,241,0.6)'; (e.currentTarget as HTMLElement).style.color = '#e2a9f1'; (e.currentTarget as HTMLElement).style.background = 'rgba(226,169,241,0.05)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(226,169,241,0.3)'; (e.currentTarget as HTMLElement).style.color = 'rgba(226,169,241,0.75)'; (e.currentTarget as HTMLElement).style.background = 'transparent' }}
           >
-            Request a callback — {feeLabel}
+            Join the DJ Course →
           </a>
         </motion.div>
 

@@ -32,7 +32,7 @@ export default function Pathway() {
             {/* Left: copy + form */}
             <div style={{ maxWidth: '480px', flex: 1 }}>
               <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(5,5,5,0.4)', letterSpacing: '0.28em', textTransform: 'uppercase', marginBottom: '16px' }}>
-                [01] — Start here
+                [01] Start here
               </div>
               <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 800, color: '#050505', lineHeight: 1.1, letterSpacing: '-0.025em', marginBottom: '20px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                 Free Masterclass.<br />Inside the studio.
@@ -56,7 +56,7 @@ export default function Pathway() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {[
                   { label: 'Location', value: 'GCI Studio, Gurugram' },
-                  { label: 'Cost', value: 'Free  ·  ₹5,000 value' },
+                  { label: 'Cost', value: 'Free  ·  ₹2,500 value' },
                 ].map(row => <DetailRow key={row.label} {...row} />)}
               </div>
             </div>
@@ -69,7 +69,7 @@ export default function Pathway() {
         <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(226,169,241,0.4)', letterSpacing: '0.22em', textTransform: 'uppercase' }}>Masterclass</span>
         <ArrowRight size={13} style={{ color: 'rgba(226,169,241,0.35)' }} />
         <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#e2a9f1', letterSpacing: '0.22em', textTransform: 'uppercase' }}>DJ Course</span>
-        <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(255,255,255,0.18)', marginLeft: '8px' }}>— complete the masterclass, enroll in the course</span>
+        <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(255,255,255,0.18)', marginLeft: '8px' }}>complete the masterclass, enroll in the course</span>
       </div>
 
       {/* ── DJ Course ───────────────────────────────────────────── */}
@@ -80,13 +80,13 @@ export default function Pathway() {
             {/* Left: copy + callback CTA */}
             <div style={{ maxWidth: '480px', flex: 1 }}>
               <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(226,169,241,0.4)', letterSpacing: '0.28em', textTransform: 'uppercase', marginBottom: '16px' }}>
-                [02] — Go deeper
+                [02] Go deeper
               </div>
               <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 800, lineHeight: 1.1, letterSpacing: '-0.025em', marginBottom: '20px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                 The DJ Course.<br /><span style={{ color: '#e2a9f1' }}>The real thing.</span>
               </h2>
               <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.42)', lineHeight: 1.7, marginBottom: '32px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                In-studio, Gurugram. The full curriculum across 9 modules — gear, theory, live sets, Rekordbox, and the business of being a DJ. Graduate booking-ready and listed on the GCI marketplace.
+                In-studio, Gurugram. The full curriculum across 9 modules: gear, theory, live sets, Rekordbox, and the business of being a DJ. Graduate booking-ready and listed on the GCI marketplace.
               </p>
 
               {/* Callback CTA — expands to form */}
@@ -110,7 +110,7 @@ export default function Pathway() {
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#eeaeff'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 55px rgba(226,169,241,0.65)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#e2a9f1'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 40px rgba(226,169,241,0.45)' }}
                   >
-                    Request a callback — {courseFee}
+                    Join the DJ Course →
                   </motion.button>
                 ) : (
                   <motion.div
@@ -128,7 +128,7 @@ export default function Pathway() {
                   >
                     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(226,169,241,0.55), transparent)' }} />
                     <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(226,169,241,0.4)', letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: '16px' }}>
-                      Request a callback
+                      Leave your details
                     </div>
                     <CallbackForm onClose={() => setCallbackOpen(false)} />
                   </motion.div>

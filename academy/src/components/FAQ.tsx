@@ -5,11 +5,11 @@ import { loadSettings } from '../admin/settings'
 const BASE_FAQS = [
   {
     q: 'Do I need prior DJ experience to join the masterclass?',
-    a: 'No. The masterclass is beginner-friendly by design. Come curious — not prepared.',
+    a: 'No. The masterclass is beginner-friendly by design. Come curious, not prepared.',
   },
   {
     q: 'What equipment will I be using during the course?',
-    a: 'You train on the Pioneer XDJ-RX3 — the same control-panel architecture as the CDJ-3000 and DJM-900NXS2 used in clubs worldwide — paired with studio monitors and Sennheiser HD 25 Plus headphones. You don\'t train on watered-down gear.',
+    a: 'You train on the Pioneer XDJ-RX3, the same control-panel architecture as the CDJ-3000 and DJM-900NXS2 used in clubs worldwide, paired with studio monitors and Sennheiser HD 25 Plus headphones. You don\'t train on watered-down gear.',
   },
   {
     q: 'How many students are in each batch?',
@@ -17,7 +17,7 @@ const BASE_FAQS = [
   },
   {
     q: 'Is the masterclass genuinely free?',
-    a: 'Yes. No payment, no hidden fees. It\'s a ₹5,000 session — yours at no cost. Capacity is capped, so register early.',
+    a: 'Yes. No payment, no hidden fees. It\'s a ₹2,500 value session, yours at no cost. Capacity is capped, so register early.',
   },
   {
     q: 'Is there a deposit to enroll in the DJ Course?',
@@ -29,11 +29,11 @@ const BASE_FAQS = [
   },
   {
     q: 'What happens after I complete the DJ Course?',
-    a: 'You\'re onboarded onto the GigCultureIndia platform as a listed artist. Your profile enters our AI vibe-matching engine, connecting you directly to venues, event hosts and organizers looking for artists like you. Real bookings. Automated contracts. You don\'t just finish a course — you become part of the ecosystem.',
+    a: 'You\'re onboarded onto the GigCultureIndia platform as a listed artist. Your profile enters our AI vibe-matching engine, connecting you directly to venues, event hosts and organizers looking for artists like you. Real bookings. Automated contracts. You don\'t just finish a course. You become part of the ecosystem.',
   },
   {
     q: 'Can I enroll in the course without attending the masterclass?',
-    a: 'Yes — the masterclass is the recommended starting point, not a hard prerequisite.',
+    a: 'Yes, the masterclass is the recommended starting point, not a hard prerequisite.',
   },
   {
     q: 'Do I get any software or resources to keep after the course?',
@@ -45,8 +45,16 @@ export default function FAQ() {
   const [open, setOpen] = useState<number | null>(null)
   const { masterclass } = loadSettings()
 
-  const faqs = masterclass.studioAddress
-    ? BASE_FAQS.map(f => f.q.includes('Where is GCI Studio') ? { ...f, a: masterclass.studioAddress } : f)
+  const studioAnswer = (() => {
+    const a1 = masterclass.studioAddress
+    const a2 = masterclass.secondStudioAddress
+    if (a1 && a2) return `Two studio locations in Gurugram. Masters Union students: ${a1}. All other students: ${a2}. Your assigned studio is confirmed in your registration confirmation.`
+    if (a1) return a1
+    return null
+  })()
+
+  const faqs = studioAnswer
+    ? BASE_FAQS.map(f => f.q.includes('Where is GCI Studio') ? { ...f, a: studioAnswer } : f)
     : BASE_FAQS
 
   return (

@@ -72,7 +72,7 @@ export default function Nav() {
             fontWeight: 700, padding: '14px',
             fontSize: '12px', fontFamily: "'Space Mono', monospace",
             letterSpacing: '0.08em', textDecoration: 'none',
-          }}>REGISTER FREE — MASTERCLASS</a>
+          }}>REGISTER FREE · MASTERCLASS</a>
         </div>
       )}
     </header>
