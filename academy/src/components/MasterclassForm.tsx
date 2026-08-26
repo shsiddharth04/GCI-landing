@@ -66,7 +66,7 @@ export default function MasterclassForm() {
         background: '#050505', border: '1px solid rgba(212,191,255,0.18)',
         padding: '8px 14px',
       }}>
-        <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'rgba(255,255,255,0.28)', letterSpacing: '0.12em', textDecoration: 'line-through' }}>₹5,000</span>
+        <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'rgba(255,255,255,0.28)', letterSpacing: '0.12em', textDecoration: 'line-through' }}>₹2,500</span>
         <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#d4bfff', letterSpacing: '0.16em', textTransform: 'uppercase' }}>Free of cost</span>
       </div>
 
