@@ -3,7 +3,7 @@ import { ArrowRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { loadSettings } from '../admin/settings'
 import { fadeUp, viewportOnce } from '../lib/motion'
-import MasterclassForm from './MasterclassForm'
+import SessionPicker from './SessionPicker'
 import CallbackForm from './CallbackForm'
 
 function DetailRow({ label, value }: { label: string; value: string }) {
@@ -51,7 +51,7 @@ export default function Pathway() {
                 {masterclass.whatsInside}
               </p>
 
-              <MasterclassForm />
+              <SessionPicker />
             </motion.div>
 
             {/* Right: details card */}

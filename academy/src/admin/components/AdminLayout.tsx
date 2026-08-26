@@ -1,8 +1,9 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, BookOpen, Calendar, Users, GraduationCap, ClipboardList, LogOut } from 'lucide-react'
+import { LayoutDashboard, BookOpen, Calendar, Users, GraduationCap, ClipboardList, LogOut, CalendarDays } from 'lucide-react'
 
 const navItems = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: '/admin/schedule', label: 'Schedule', icon: CalendarDays },
   { to: '/admin/course', label: 'Course', icon: GraduationCap },
   { to: '/admin/masterclass', label: 'Masterclass', icon: Calendar },
   { to: '/admin/curriculum', label: 'Curriculum', icon: BookOpen },
