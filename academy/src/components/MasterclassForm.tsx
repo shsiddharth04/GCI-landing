@@ -42,12 +42,12 @@ export default function MasterclassForm() {
       <div style={{
         marginTop: '28px',
         background: '#050505',
-        border: '1px solid rgba(226,169,241,0.2)',
+        border: '1px solid rgba(212,191,255,0.2)',
         padding: '28px 24px',
         position: 'relative',
       }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(226,169,241,0.7), transparent)' }} />
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#e2a9f1', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: '10px' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(212,191,255,0.7), transparent)' }} />
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#d4bfff', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: '10px' }}>
           You're registered
         </div>
         <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.6, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
@@ -63,14 +63,14 @@ export default function MasterclassForm() {
       <div style={{
         display: 'inline-flex', alignItems: 'center', gap: '10px',
         marginBottom: '20px',
-        background: '#050505', border: '1px solid rgba(226,169,241,0.18)',
+        background: '#050505', border: '1px solid rgba(212,191,255,0.18)',
         padding: '8px 14px',
       }}>
         <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'rgba(255,255,255,0.28)', letterSpacing: '0.12em', textDecoration: 'line-through' }}>₹5,000</span>
-        <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#e2a9f1', letterSpacing: '0.16em', textTransform: 'uppercase' }}>Free of cost</span>
+        <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: '#d4bfff', letterSpacing: '0.16em', textTransform: 'uppercase' }}>Free of cost</span>
       </div>
 
-      <div style={{ background: '#050505', padding: '20px', border: '1px solid rgba(226,169,241,0.15)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <div style={{ background: '#050505', padding: '20px', border: '1px solid rgba(212,191,255,0.15)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {/* Name */}
         <input
           type="text"
@@ -107,10 +107,10 @@ export default function MasterclassForm() {
                 fontSize: '12px',
                 fontFamily: "'Space Mono', monospace",
                 letterSpacing: '0.06em',
-                border: '1px solid rgba(226,169,241,0.2)',
+                border: '1px solid rgba(212,191,255,0.2)',
                 cursor: 'pointer',
                 transition: 'all 0.15s',
-                background: isMU === opt.value ? '#e2a9f1' : '#111',
+                background: isMU === opt.value ? '#d4bfff' : '#111',
                 color: isMU === opt.value ? '#050505' : 'rgba(255,255,255,0.5)',
                 fontWeight: isMU === opt.value ? 700 : 400,
               }}
@@ -132,7 +132,7 @@ export default function MasterclassForm() {
           type="submit"
           disabled={state === 'submitting'}
           style={{
-            background: state === 'submitting' ? 'rgba(226,169,241,0.5)' : '#e2a9f1',
+            background: state === 'submitting' ? 'rgba(212,191,255,0.5)' : '#d4bfff',
             color: '#050505',
             fontWeight: 700,
             padding: '16px',
@@ -140,7 +140,7 @@ export default function MasterclassForm() {
             border: 'none',
             cursor: state === 'submitting' ? 'not-allowed' : 'pointer',
             fontFamily: "'Plus Jakarta Sans', sans-serif",
-            boxShadow: state === 'submitting' ? 'none' : '0 0 30px rgba(226,169,241,0.4)',
+            boxShadow: state === 'submitting' ? 'none' : '0 0 30px rgba(212,191,255,0.4)',
             transition: 'all 0.2s',
           }}
         >
@@ -153,7 +153,7 @@ export default function MasterclassForm() {
 
 const inputStyle: React.CSSProperties = {
   background: 'rgba(255,255,255,0.05)',
-  border: '1px solid rgba(226,169,241,0.18)',
+  border: '1px solid rgba(212,191,255,0.18)',
   padding: '13px 16px',
   fontSize: '14px',
   color: 'white',

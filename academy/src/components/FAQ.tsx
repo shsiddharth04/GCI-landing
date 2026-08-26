@@ -67,18 +67,24 @@ export default function FAQ() {
           variants={fadeUp}
           style={{ marginBottom: '56px' }}
         >
-          <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(226,169,241,0.4)', letterSpacing: '0.28em', textTransform: 'uppercase', marginBottom: '16px' }}>
+          <p style={{
+            display: 'inline-block',
+            fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#d4bfff',
+            letterSpacing: '0.28em', textTransform: 'uppercase', marginBottom: '16px',
+            border: '1px solid rgba(212,191,255,0.5)', background: 'rgba(212,191,255,0.1)',
+            padding: '5px 12px',
+          }}>
             FAQ
           </p>
           <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.5rem)', fontWeight: 800, lineHeight: 1.1, letterSpacing: '-0.025em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-            Questions.<br /><span style={{ color: '#e2a9f1' }}>Straight answers.</span>
+            Questions.<br /><span style={{ color: '#d4bfff' }}>Straight answers.</span>
           </h2>
         </motion.div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
           {faqs.map(({ q, a }, i) => (
-            <div key={i} style={{ background: '#0f0d18', border: '1px solid rgba(226,169,241,0.08)', overflow: 'hidden', position: 'relative' }}>
-              {i === 0 && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(226,169,241,0.45), transparent)' }} />}
+            <div key={i} style={{ background: '#0f0d18', border: '1px solid rgba(212,191,255,0.08)', overflow: 'hidden', position: 'relative' }}>
+              {i === 0 && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(212,191,255,0.45), transparent)' }} />}
               <button onClick={() => setOpen(open === i ? null : i)}
                 style={{
                   width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -86,14 +92,14 @@ export default function FAQ() {
                   background: 'none', border: 'none', cursor: 'pointer', color: 'white',
                   transition: 'background 0.2s',
                 }}
-                onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(226,169,241,0.03)')}
+                onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(212,191,255,0.03)')}
                 onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.background = 'none')}
               >
                 <span style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.8)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{q}</span>
-                <ChevronDown size={15} style={{ flexShrink: 0, color: 'rgba(226,169,241,0.35)', transform: open === i ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                <ChevronDown size={15} style={{ flexShrink: 0, color: 'rgba(212,191,255,0.35)', transform: open === i ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
               </button>
               {open === i && (
-                <div style={{ padding: '0 24px 20px', paddingTop: '16px', fontSize: '13px', color: 'rgba(255,255,255,0.42)', lineHeight: 1.7, borderTop: '1px solid rgba(226,169,241,0.06)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                <div style={{ padding: '0 24px 20px', paddingTop: '16px', fontSize: '13px', color: 'rgba(255,255,255,0.42)', lineHeight: 1.7, borderTop: '1px solid rgba(212,191,255,0.06)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                   {a}
                 </div>
               )}
