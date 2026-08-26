@@ -1,4 +1,6 @@
+import { motion } from 'motion/react'
 import { loadSettings } from '../admin/settings'
+import { fadeUp, staggerContainer, viewportOnce } from '../lib/motion'
 
 export default function PaymentPlans() {
   const { course } = loadSettings()
@@ -19,22 +21,31 @@ export default function PaymentPlans() {
     <section style={{ padding: '96px 24px', background: '#050505' }}>
       <div style={{ maxWidth: '1152px', margin: '0 auto' }}>
 
-        <div style={{ marginBottom: '56px' }}>
-          <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', letterSpacing: '0.3em', color: 'rgba(226,169,241,0.4)', textTransform: 'uppercase', marginBottom: '16px' }}>
+        <motion.div
+          initial="hidden" whileInView="visible" viewport={viewportOnce}
+          variants={fadeUp}
+          style={{ marginBottom: '56px' }}
+        >
+          <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', letterSpacing: '0.28em', color: 'rgba(226,169,241,0.4)', textTransform: 'uppercase', marginBottom: '16px' }}>
             Flexible payment
           </p>
-          <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 800, lineHeight: 1.1, letterSpacing: '-0.025em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.5rem)', fontWeight: 800, lineHeight: 1.1, letterSpacing: '-0.025em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             Built for artists,<br /><span style={{ color: '#e2a9f1' }}>not loan apps.</span>
           </h2>
           <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.38)', marginTop: '16px', maxWidth: '420px', lineHeight: 1.7, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             The DJ Course is {feeLabel} total. Choose the structure that works for you.
           </p>
-        </div>
+        </motion.div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(260px, 1fr))`, gap: '1px', background: 'rgba(226,169,241,0.1)', border: '1px solid rgba(226,169,241,0.1)', overflow: 'hidden' }}>
+        <motion.div
+          initial="hidden" whileInView="visible" viewport={viewportOnce}
+          variants={staggerContainer(0.1)}
+          style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(260px, 1fr))`, gap: '1px', background: 'rgba(226,169,241,0.1)', border: '1px solid rgba(226,169,241,0.1)', overflow: 'hidden' }}
+        >
           {plans.map((plan, i) => (
-            <div
+            <motion.div
               key={i}
+              variants={fadeUp}
               style={{
                 background: plan.isHighlighted ? '#130f1e' : '#0f0d18',
                 padding: '36px 32px',
@@ -58,7 +69,7 @@ export default function PaymentPlans() {
                 {plan.label}
               </div>
 
-              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.7, fontFamily: "'Plus Jakarta Sans', sans-serif", marginBottom: plan.note ? '12px' : '0' }}>
+              <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.7, fontFamily: "'Plus Jakarta Sans', sans-serif", marginBottom: plan.note ? '12px' : '0' }}>
                 {plan.dueSchedule}
               </p>
 
@@ -67,9 +78,9 @@ export default function PaymentPlans() {
                   {plan.note}
                 </p>
               )}
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   )

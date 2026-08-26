@@ -1,8 +1,43 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Menu, X } from 'lucide-react'
+
+const NAV_SECTIONS = [
+  ['#masterclass', 'Masterclass'],
+  ['#course', 'DJ Course'],
+  ['#curriculum', 'Curriculum'],
+  ['#faq', 'FAQ'],
+] as const
 
 export default function Nav() {
   const [open, setOpen] = useState(false)
+  const [activeSection, setActiveSection] = useState<string>('')
+
+  useEffect(() => {
+    const ids = NAV_SECTIONS.map(([href]) => href.slice(1))
+    const observers: IntersectionObserver[] = []
+
+    ids.forEach(id => {
+      const el = document.getElementById(id)
+      if (!el) return
+      const obs = new IntersectionObserver(
+        ([entry]) => { if (entry.isIntersecting) setActiveSection(id) },
+        { rootMargin: '-40% 0px -50% 0px', threshold: 0 }
+      )
+      obs.observe(el)
+      observers.push(obs)
+    })
+
+    return () => observers.forEach(obs => obs.disconnect())
+  }, [])
+
+  useEffect(() => {
+    if (!open) return
+    const handler = () => setOpen(false)
+    window.addEventListener('scroll', handler, { passive: true, once: true })
+    return () => window.removeEventListener('scroll', handler)
+  }, [open])
+
+  const isActive = (href: string) => href.slice(1) === activeSection
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50" style={{
@@ -24,12 +59,16 @@ export default function Nav() {
         </a>
 
         {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-8" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)' }}>
-          {[['#masterclass', 'Masterclass'], ['#course', 'DJ Course'], ['#curriculum', 'Curriculum'], ['#faq', 'FAQ']].map(([href, label]) => (
+        <nav className="hidden md:flex items-center gap-8" style={{ fontSize: '13px' }}>
+          {NAV_SECTIONS.map(([href, label]) => (
             <a key={href} href={href}
-              style={{ transition: 'color 0.2s', textDecoration: 'none' }}
-              onMouseEnter={e => (e.currentTarget.style.color = 'white')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}
+              style={{
+                transition: 'color 0.2s',
+                textDecoration: 'none',
+                color: isActive(href) ? '#e2a9f1' : 'rgba(255,255,255,0.45)',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.color = isActive(href) ? '#e2a9f1' : 'white')}
+              onMouseLeave={e => (e.currentTarget.style.color = isActive(href) ? '#e2a9f1' : 'rgba(255,255,255,0.45)')}
             >{label}</a>
           ))}
         </nav>
@@ -61,9 +100,9 @@ export default function Nav() {
 
       {open && (
         <div style={{ borderTop: '1px solid rgba(226,169,241,0.08)', background: '#050505', padding: '20px 24px' }} className="md:hidden space-y-4">
-          {[['#masterclass', 'Masterclass'], ['#course', 'DJ Course'], ['#curriculum', 'Curriculum'], ['#faq', 'FAQ']].map(([href, label]) => (
+          {NAV_SECTIONS.map(([href, label]) => (
             <a key={href} href={href} onClick={() => setOpen(false)}
-              style={{ display: 'block', fontSize: '14px', color: 'rgba(255,255,255,0.55)', textDecoration: 'none' }}
+              style={{ display: 'block', fontSize: '14px', color: isActive(href) ? '#e2a9f1' : 'rgba(255,255,255,0.55)', textDecoration: 'none' }}
             >{label}</a>
           ))}
           <a href="#masterclass" style={{

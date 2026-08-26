@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { loadSettings } from '../admin/settings'
+import { fadeUp, viewportOnce } from '../lib/motion'
 import MasterclassForm from './MasterclassForm'
 import CallbackForm from './CallbackForm'
 
@@ -30,7 +31,11 @@ export default function Pathway() {
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-10">
 
             {/* Left: copy + form */}
-            <div style={{ maxWidth: '480px', flex: 1 }}>
+            <motion.div
+              initial="hidden" whileInView="visible" viewport={viewportOnce}
+              variants={fadeUp}
+              style={{ maxWidth: '480px', flex: 1 }}
+            >
               <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(5,5,5,0.4)', letterSpacing: '0.28em', textTransform: 'uppercase', marginBottom: '16px' }}>
                 [01] Start here
               </div>
@@ -41,17 +46,20 @@ export default function Pathway() {
                 {masterclass.whatsInside}
               </p>
 
-              {/* MasterclassForm renders inline here */}
               <MasterclassForm />
-            </div>
+            </motion.div>
 
             {/* Right: details card */}
-            <div style={{
-              background: '#050505', border: '1px solid rgba(226,169,241,0.15)',
-              padding: '28px', minWidth: '260px', position: 'relative',
-              boxShadow: '0 0 60px rgba(5,5,5,0.4)',
-              alignSelf: 'flex-start',
-            }}>
+            <motion.div
+              initial="hidden" whileInView="visible" viewport={viewportOnce}
+              variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.38, delay: 0.12, ease: 'easeOut' } } }}
+              style={{
+                background: '#050505', border: '1px solid rgba(226,169,241,0.15)',
+                padding: '28px', minWidth: '260px', position: 'relative',
+                boxShadow: '0 0 60px rgba(5,5,5,0.4)',
+                alignSelf: 'flex-start',
+              }}
+            >
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(226,169,241,0.6), transparent)' }} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {[
@@ -59,7 +67,7 @@ export default function Pathway() {
                   { label: 'Cost', value: 'Free  ·  ₹2,500 value' },
                 ].map(row => <DetailRow key={row.label} {...row} />)}
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -78,7 +86,11 @@ export default function Pathway() {
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-10">
 
             {/* Left: copy + callback CTA */}
-            <div style={{ maxWidth: '480px', flex: 1 }}>
+            <motion.div
+              initial="hidden" whileInView="visible" viewport={viewportOnce}
+              variants={fadeUp}
+              style={{ maxWidth: '480px', flex: 1 }}
+            >
               <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(226,169,241,0.4)', letterSpacing: '0.28em', textTransform: 'uppercase', marginBottom: '16px' }}>
                 [02] Go deeper
               </div>
@@ -89,7 +101,6 @@ export default function Pathway() {
                 In-studio, Gurugram. The full curriculum across 9 modules: gear, theory, live sets, Rekordbox, and the business of being a DJ. Graduate booking-ready and listed on the GCI marketplace.
               </p>
 
-              {/* Callback CTA — expands to form */}
               <AnimatePresence mode="wait">
                 {!callbackOpen ? (
                   <motion.button
@@ -134,14 +145,18 @@ export default function Pathway() {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>
+            </motion.div>
 
             {/* Right: details card */}
-            <div style={{
-              background: '#0f0d18', border: '1px solid rgba(226,169,241,0.14)',
-              padding: '28px', minWidth: '260px', position: 'relative',
-              alignSelf: 'flex-start',
-            }}>
+            <motion.div
+              initial="hidden" whileInView="visible" viewport={viewportOnce}
+              variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.38, delay: 0.12, ease: 'easeOut' } } }}
+              style={{
+                background: '#0f0d18', border: '1px solid rgba(226,169,241,0.14)',
+                padding: '28px', minWidth: '260px', position: 'relative',
+                alignSelf: 'flex-start',
+              }}
+            >
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(226,169,241,0.5), transparent)' }} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {[
@@ -158,7 +173,7 @@ export default function Pathway() {
                   {course.refundPolicy}
                 </p>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
