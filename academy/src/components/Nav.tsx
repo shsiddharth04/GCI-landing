@@ -42,18 +42,18 @@ export default function Nav() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50" style={{
       background: 'rgba(5,5,5,0.88)', backdropFilter: 'blur(16px)',
-      borderBottom: '1px solid rgba(226,169,241,0.1)',
+      borderBottom: '1px solid rgba(212,191,255,0.1)',
     }}>
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
         <a href="/" className="flex items-center gap-3 group">
           <img src="/logo-mark.svg" alt="GCI" style={{ width: '36px', height: '36px' }} />
           <div style={{ lineHeight: 1 }}>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', letterSpacing: '0.2em', color: 'rgba(226,169,241,0.5)', textTransform: 'uppercase', marginBottom: '3px' }}>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', letterSpacing: '0.2em', color: 'rgba(212,191,255,0.5)', textTransform: 'uppercase', marginBottom: '3px' }}>
               Gig Culture India
             </div>
             <div style={{ fontSize: '15px', fontWeight: 700, letterSpacing: '-0.01em' }}>
-              Music <span style={{ color: '#e2a9f1' }}>Academy</span>
+              Music <span style={{ color: '#d4bfff' }}>Academy</span>
             </div>
           </div>
         </a>
@@ -65,10 +65,10 @@ export default function Nav() {
               style={{
                 transition: 'color 0.2s',
                 textDecoration: 'none',
-                color: isActive(href) ? '#e2a9f1' : 'rgba(255,255,255,0.45)',
+                color: isActive(href) ? '#d4bfff' : 'rgba(255,255,255,0.45)',
               }}
-              onMouseEnter={e => (e.currentTarget.style.color = isActive(href) ? '#e2a9f1' : 'white')}
-              onMouseLeave={e => (e.currentTarget.style.color = isActive(href) ? '#e2a9f1' : 'rgba(255,255,255,0.45)')}
+              onMouseEnter={e => (e.currentTarget.style.color = isActive(href) ? '#d4bfff' : 'white')}
+              onMouseLeave={e => (e.currentTarget.style.color = isActive(href) ? '#d4bfff' : 'rgba(255,255,255,0.45)')}
             >{label}</a>
           ))}
         </nav>
@@ -80,14 +80,14 @@ export default function Nav() {
           >Enroll</a>
           <a href="#masterclass" style={{
             fontSize: '12px', fontWeight: 700,
-            background: '#e2a9f1', color: '#050505',
+            background: '#d4bfff', color: '#050505',
             padding: '8px 18px', textDecoration: 'none',
-            boxShadow: '0 0 22px rgba(226,169,241,0.4)',
+            boxShadow: '0 0 22px rgba(212,191,255,0.4)',
             transition: 'all 0.2s',
             fontFamily: "'Space Mono', monospace", letterSpacing: '0.04em',
           }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#eeaeff'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 32px rgba(226,169,241,0.6)' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#e2a9f1'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 22px rgba(226,169,241,0.4)' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#e0d4ff'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 32px rgba(212,191,255,0.6)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#d4bfff'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 22px rgba(212,191,255,0.4)' }}
           >
             REGISTER FREE
           </a>
@@ -99,15 +99,15 @@ export default function Nav() {
       </div>
 
       {open && (
-        <div style={{ borderTop: '1px solid rgba(226,169,241,0.08)', background: '#050505', padding: '20px 24px' }} className="md:hidden space-y-4">
+        <div style={{ borderTop: '1px solid rgba(212,191,255,0.08)', background: '#050505', padding: '20px 24px' }} className="md:hidden space-y-4">
           {NAV_SECTIONS.map(([href, label]) => (
             <a key={href} href={href} onClick={() => setOpen(false)}
-              style={{ display: 'block', fontSize: '14px', color: isActive(href) ? '#e2a9f1' : 'rgba(255,255,255,0.55)', textDecoration: 'none' }}
+              style={{ display: 'block', fontSize: '14px', color: isActive(href) ? '#d4bfff' : 'rgba(255,255,255,0.55)', textDecoration: 'none' }}
             >{label}</a>
           ))}
           <a href="#masterclass" style={{
             display: 'block', textAlign: 'center',
-            background: '#e2a9f1', color: '#050505',
+            background: '#d4bfff', color: '#050505',
             fontWeight: 700, padding: '14px',
             fontSize: '12px', fontFamily: "'Space Mono', monospace",
             letterSpacing: '0.08em', textDecoration: 'none',

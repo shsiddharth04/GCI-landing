@@ -14,7 +14,7 @@ function MiniWaveform() {
           style={{
             width: '2px',
             height: `${h * 24}px`,
-            background: '#e2a9f1',
+            background: '#d4bfff',
             borderRadius: '1px',
             animationDelay: `${BAR_DELAYS[i]}s`,
             opacity: 0.35 + h * 0.25,
@@ -48,13 +48,13 @@ const OUTCOMES = [
 
 export default function Graduation() {
   return (
-    <section style={{ background: '#e2a9f1', position: 'relative', overflow: 'hidden' }}>
+    <section style={{ background: '#d4bfff', position: 'relative', overflow: 'hidden', borderTop: '3px solid #050505', borderBottom: '3px solid #050505' }}>
       <style>{`
         .graduation-section { padding: 64px 20px; }
         @media (min-width: 768px) { .graduation-section { padding: 96px 24px; } }
       `}</style>
 
-      <div className="graduation-section" style={{ position: 'relative' }}>
+      <div className="graduation-section lavender-scan" style={{ position: 'relative' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 50% at 50% 100%, rgba(5,5,5,0.08) 0%, transparent 100%)', pointerEvents: 'none' }} />
 
         <div style={{ maxWidth: '1152px', margin: '0 auto', position: 'relative' }}>
@@ -63,7 +63,12 @@ export default function Graduation() {
             variants={fadeUp}
             style={{ marginBottom: '56px' }}
           >
-            <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', letterSpacing: '0.28em', color: 'rgba(5,5,5,0.4)', textTransform: 'uppercase', marginBottom: '16px' }}>
+            <p style={{
+              display: 'inline-block',
+              fontFamily: "'Space Mono', monospace", fontSize: '9px', letterSpacing: '0.28em',
+              color: '#d4bfff', textTransform: 'uppercase', marginBottom: '16px',
+              background: '#050505', padding: '5px 12px',
+            }}>
               What you graduate with
             </p>
             <h2 style={{ fontSize: 'clamp(2.2rem, 4.5vw, 3rem)', fontWeight: 800, color: '#050505', lineHeight: 1.1, letterSpacing: '-0.025em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
@@ -93,7 +98,7 @@ export default function Graduation() {
                 <div style={{
                   height: '1px',
                   background: highlight
-                    ? 'linear-gradient(90deg, transparent, rgba(226,169,241,0.6), transparent)'
+                    ? 'linear-gradient(90deg, transparent, rgba(212,191,255,0.6), transparent)'
                     : 'linear-gradient(90deg, transparent, rgba(5,5,5,0.3), transparent)',
                   marginBottom: '32px',
                 }} />
@@ -104,7 +109,7 @@ export default function Graduation() {
                   fontWeight: 700,
                   letterSpacing: '0.1em',
                   marginBottom: '20px',
-                  color: highlight ? '#e2a9f1' : 'rgba(5,5,5,0.4)',
+                  color: highlight ? '#d4bfff' : 'rgba(5,5,5,0.4)',
                 }}>
                   [{index}]
                 </div>
@@ -131,11 +136,11 @@ export default function Graduation() {
                 </p>
 
                 {highlight && (
-                  <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid rgba(226,169,241,0.12)' }}>
+                  <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid rgba(212,191,255,0.12)' }}>
                     <span style={{
                       fontFamily: "'Space Mono', monospace",
                       fontSize: '10px',
-                      color: '#e2a9f1',
+                      color: '#d4bfff',
                       letterSpacing: '0.2em',
                       textTransform: 'uppercase',
                     }}>

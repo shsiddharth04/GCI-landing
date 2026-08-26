@@ -45,12 +45,12 @@ export default function CallbackForm({ onClose }: Props) {
     return (
       <div style={{
         background: '#0f0d18',
-        border: '1px solid rgba(226,169,241,0.18)',
+        border: '1px solid rgba(212,191,255,0.18)',
         padding: '24px',
         position: 'relative',
       }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(226,169,241,0.6), transparent)' }} />
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#e2a9f1', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: '8px' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(212,191,255,0.6), transparent)' }} />
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#d4bfff', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: '8px' }}>
           Callback requested
         </div>
         <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
@@ -67,7 +67,7 @@ export default function CallbackForm({ onClose }: Props) {
         display: 'flex', gap: '20px', flexWrap: 'wrap',
         marginBottom: '18px',
         paddingBottom: '18px',
-        borderBottom: '1px solid rgba(226,169,241,0.08)',
+        borderBottom: '1px solid rgba(212,191,255,0.08)',
       }}>
         {[
           { label: 'Fee', value: '₹22,200' },
@@ -75,7 +75,7 @@ export default function CallbackForm({ onClose }: Props) {
           { label: 'Format', value: 'In-studio, Gurugram' },
         ].map(({ label, value }) => (
           <div key={label}>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(226,169,241,0.4)', letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: '3px' }}>{label}</div>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(212,191,255,0.4)', letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: '3px' }}>{label}</div>
             <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.72)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{value}</div>
           </div>
         ))}
@@ -116,10 +116,10 @@ export default function CallbackForm({ onClose }: Props) {
                 fontSize: '12px',
                 fontFamily: "'Space Mono', monospace",
                 letterSpacing: '0.06em',
-                border: '1px solid rgba(226,169,241,0.18)',
+                border: '1px solid rgba(212,191,255,0.18)',
                 cursor: 'pointer',
                 transition: 'all 0.15s',
-                background: isMU === opt.value ? '#e2a9f1' : 'rgba(255,255,255,0.04)',
+                background: isMU === opt.value ? '#d4bfff' : 'rgba(255,255,255,0.04)',
                 color: isMU === opt.value ? '#050505' : 'rgba(255,255,255,0.4)',
                 fontWeight: isMU === opt.value ? 700 : 400,
               }}
@@ -143,7 +143,7 @@ export default function CallbackForm({ onClose }: Props) {
               style={{
                 flex: 1,
                 background: 'transparent',
-                border: '1px solid rgba(226,169,241,0.15)',
+                border: '1px solid rgba(212,191,255,0.15)',
                 color: 'rgba(255,255,255,0.35)',
                 padding: '14px',
                 fontSize: '12px',
@@ -160,7 +160,7 @@ export default function CallbackForm({ onClose }: Props) {
             disabled={state === 'submitting'}
             style={{
               flex: 2,
-              background: state === 'submitting' ? 'rgba(226,169,241,0.5)' : '#e2a9f1',
+              background: state === 'submitting' ? 'rgba(212,191,255,0.5)' : '#d4bfff',
               color: '#050505',
               fontWeight: 700,
               padding: '14px',
@@ -168,7 +168,7 @@ export default function CallbackForm({ onClose }: Props) {
               border: 'none',
               cursor: state === 'submitting' ? 'not-allowed' : 'pointer',
               fontFamily: "'Plus Jakarta Sans', sans-serif",
-              boxShadow: state === 'submitting' ? 'none' : '0 0 28px rgba(226,169,241,0.35)',
+              boxShadow: state === 'submitting' ? 'none' : '0 0 28px rgba(212,191,255,0.35)',
               transition: 'all 0.2s',
             }}
           >
@@ -182,7 +182,7 @@ export default function CallbackForm({ onClose }: Props) {
 
 const inputStyle: React.CSSProperties = {
   background: 'rgba(255,255,255,0.05)',
-  border: '1px solid rgba(226,169,241,0.18)',
+  border: '1px solid rgba(212,191,255,0.18)',
   padding: '13px 16px',
   fontSize: '14px',
   color: 'white',

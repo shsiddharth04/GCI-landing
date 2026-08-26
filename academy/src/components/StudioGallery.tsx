@@ -16,24 +16,35 @@ function ImageTile({ item, tall, isFeatured }: { item: GalleryItem; tall?: boole
         style={{
           width: '100%', height: '100%', objectFit: 'cover',
           display: 'block',
-          filter: 'grayscale(90%) contrast(1.12) brightness(1.05)',
+          filter: 'grayscale(100%) contrast(1.3) brightness(0.85)',
           transition: 'filter 0.5s, transform 0.5s',
         }}
         onMouseEnter={e => {
-          (e.currentTarget as HTMLImageElement).style.filter = 'grayscale(20%) contrast(1.05)'
+          (e.currentTarget as HTMLImageElement).style.filter = 'grayscale(0%) contrast(1.1) brightness(1.0)'
           ;(e.currentTarget as HTMLImageElement).style.transform = 'scale(1.02)'
         }}
         onMouseLeave={e => {
-          (e.currentTarget as HTMLImageElement).style.filter = 'grayscale(90%) contrast(1.12) brightness(1.05)'
+          (e.currentTarget as HTMLImageElement).style.filter = 'grayscale(100%) contrast(1.3) brightness(0.85)'
           ;(e.currentTarget as HTMLImageElement).style.transform = 'scale(1)'
         }}
       />
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(226,169,241,0.10)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(212,191,255,0.06)', pointerEvents: 'none' }} />
       {isFeatured && (
-        <div style={{
-          position: 'absolute', inset: 0, pointerEvents: 'none',
-          background: 'linear-gradient(to bottom, transparent 55%, rgba(5,5,5,0.65) 100%)',
-        }} />
+        <>
+          <div style={{
+            position: 'absolute', inset: 0, pointerEvents: 'none',
+            background: 'linear-gradient(to bottom, transparent 55%, rgba(5,5,5,0.75) 100%)',
+          }} />
+          {/* Exhibition caption number */}
+          <div aria-hidden style={{
+            position: 'absolute', bottom: '20px', left: '24px',
+            fontFamily: "'Space Mono', monospace", fontSize: '80px', fontWeight: 700,
+            color: '#d4bfff', opacity: 0.5, lineHeight: 1,
+            userSelect: 'none', pointerEvents: 'none',
+          }}>
+            01
+          </div>
+        </>
       )}
     </motion.div>
   )
@@ -55,16 +66,16 @@ function VideoTile({ item, tall }: { item: GalleryItem; tall?: boolean }) {
           ) : (
             <div style={{ width: '100%', height: '100%', background: '#0f0d18' }} />
           )}
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(226,169,241,0.10)', pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(212,191,255,0.10)', pointerEvents: 'none' }} />
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{
               width: '56px', height: '56px', borderRadius: '50%',
-              background: 'rgba(226,169,241,0.15)',
-              border: '1px solid rgba(226,169,241,0.4)',
+              background: 'rgba(212,191,255,0.15)',
+              border: '1px solid rgba(212,191,255,0.4)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               backdropFilter: 'blur(8px)',
             }}>
-              <div style={{ width: 0, height: 0, borderTop: '10px solid transparent', borderBottom: '10px solid transparent', borderLeft: '16px solid #e2a9f1', marginLeft: '4px' }} />
+              <div style={{ width: 0, height: 0, borderTop: '10px solid transparent', borderBottom: '10px solid transparent', borderLeft: '16px solid #d4bfff', marginLeft: '4px' }} />
             </div>
           </div>
         </>
@@ -106,7 +117,7 @@ export default function StudioGallery() {
 
       <div style={{ padding: '80px 24px 40px', maxWidth: '1152px', margin: '0 auto' }}>
         <motion.div initial="hidden" whileInView="visible" viewport={viewportOnce} variants={fadeUp}>
-          <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(226,169,241,0.4)', letterSpacing: '0.28em', textTransform: 'uppercase', marginBottom: '14px' }}>
+          <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(212,191,255,0.4)', letterSpacing: '0.28em', textTransform: 'uppercase', marginBottom: '14px' }}>
             From our sessions
           </p>
           <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', fontWeight: 800, lineHeight: 1.1, letterSpacing: '-0.025em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>

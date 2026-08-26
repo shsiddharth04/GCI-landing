@@ -26,11 +26,17 @@ export default function PaymentPlans() {
           variants={fadeUp}
           style={{ marginBottom: '56px' }}
         >
-          <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', letterSpacing: '0.28em', color: 'rgba(226,169,241,0.4)', textTransform: 'uppercase', marginBottom: '16px' }}>
+          <p style={{
+            display: 'inline-block',
+            fontFamily: "'Space Mono', monospace", fontSize: '9px', letterSpacing: '0.28em',
+            color: '#d4bfff', textTransform: 'uppercase', marginBottom: '16px',
+            border: '1px solid rgba(212,191,255,0.5)', background: 'rgba(212,191,255,0.1)',
+            padding: '5px 12px',
+          }}>
             Flexible payment
           </p>
           <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.5rem)', fontWeight: 800, lineHeight: 1.1, letterSpacing: '-0.025em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-            Built for artists,<br /><span style={{ color: '#e2a9f1' }}>not loan apps.</span>
+            Built for artists,<br /><span style={{ color: '#d4bfff' }}>not loan apps.</span>
           </h2>
           <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.38)', marginTop: '16px', maxWidth: '420px', lineHeight: 1.7, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             The DJ Course is {feeLabel} total. Choose the structure that works for you.
@@ -40,7 +46,7 @@ export default function PaymentPlans() {
         <motion.div
           initial="hidden" whileInView="visible" viewport={viewportOnce}
           variants={staggerContainer(0.1)}
-          style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(260px, 1fr))`, gap: '1px', background: 'rgba(226,169,241,0.1)', border: '1px solid rgba(226,169,241,0.1)', overflow: 'hidden' }}
+          style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(260px, 1fr))`, gap: '1px', background: 'rgba(212,191,255,0.1)', border: '1px solid rgba(212,191,255,0.1)', overflow: 'hidden' }}
         >
           {plans.map((plan, i) => (
             <motion.div
@@ -55,11 +61,11 @@ export default function PaymentPlans() {
               onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = '#130f1e' }}
               onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = plan.isHighlighted ? '#130f1e' : '#0f0d18' }}
             >
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: plan.isHighlighted ? 'linear-gradient(90deg, transparent, rgba(226,169,241,0.7), transparent)' : 'linear-gradient(90deg, transparent, rgba(226,169,241,0.3), transparent)' }} />
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: plan.isHighlighted ? 'linear-gradient(90deg, transparent, rgba(212,191,255,0.7), transparent)' : 'linear-gradient(90deg, transparent, rgba(212,191,255,0.3), transparent)' }} />
 
               {plan.isHighlighted && (
                 <div style={{ marginBottom: '16px' }}>
-                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: '#050505', background: '#e2a9f1', letterSpacing: '0.16em', textTransform: 'uppercase', padding: '4px 10px' }}>
+                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: '#050505', background: '#d4bfff', letterSpacing: '0.16em', textTransform: 'uppercase', padding: '4px 10px' }}>
                     Most common
                   </span>
                 </div>
@@ -74,7 +80,7 @@ export default function PaymentPlans() {
               </p>
 
               {plan.note && (
-                <p style={{ fontSize: '11px', color: 'rgba(226,169,241,0.4)', lineHeight: 1.5, fontFamily: "'Space Mono', monospace" }}>
+                <p style={{ fontSize: '11px', color: 'rgba(212,191,255,0.4)', lineHeight: 1.5, fontFamily: "'Space Mono', monospace" }}>
                   {plan.note}
                 </p>
               )}

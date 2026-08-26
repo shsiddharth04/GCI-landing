@@ -34,9 +34,26 @@
     inset: 0;
     pointer-events: none;
     z-index: 50;
-    opacity: 0.028;
+    opacity: 0.065;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
     background-size: 200px 200px;
+  }
+
+  /* Dot grid — poster/print grid skeleton */
+  .ink-dot-grid {
+    background-image: radial-gradient(circle, rgba(212,191,255,0.14) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  /* Scan lines — screen-print texture for lavender blocks */
+  .lavender-scan {
+    background-image: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(5,5,5,0.045) 3px,
+      rgba(5,5,5,0.045) 4px
+    );
   }
 
   /* Equalizer bars */
@@ -56,6 +73,11 @@
     to { transform: translateX(-50%); }
   }
 
+  @keyframes ticker-scroll-reverse {
+    from { transform: translateX(-50%); }
+    to { transform: translateX(0); }
+  }
+
   .ticker-track {
     animation: ticker-scroll 30s linear infinite;
     will-change: transform;
@@ -63,7 +85,15 @@
     width: max-content;
   }
 
-  .ticker-track:hover {
+  .ticker-track-reverse {
+    animation: ticker-scroll-reverse 38s linear infinite;
+    will-change: transform;
+    display: flex;
+    width: max-content;
+  }
+
+  .ticker-track:hover,
+  .ticker-track-reverse:hover {
     animation-play-state: paused;
   }
 
