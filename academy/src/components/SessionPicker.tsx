@@ -257,7 +257,7 @@ export default function SessionPicker() {
         )}
         <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.65 }}>
           {isWait
-            ? "This slot just filled up. You're on the waitlist — we'll reach out if a spot opens."
+            ? "This slot just filled up. You're on the waitlist. We'll reach out if a spot opens."
             : 'Confirmation details are on their way to your email. See you in the studio.'}
         </p>
       </motion.div>
@@ -480,7 +480,7 @@ export default function SessionPicker() {
                     transition: 'opacity 0.15s',
                   }}
                 >
-                  {submitting ? 'Booking…' : 'Confirm booking — free'}
+                  {submitting ? 'Booking…' : 'Confirm booking · free'}
                 </button>
               </form>
             </div>

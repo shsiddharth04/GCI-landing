@@ -140,7 +140,7 @@ export const DEFAULT_SETTINGS: AcademySettings = {
       id: 'divith',
       name: 'Divith Chowdhary',
       role: 'Founder & Lead Instructor · DJ UNTITLED.',
-      bio: 'Founder of GigCultureIndia, performing as UNTITLED. Genre-fluid — the set goes wherever the room needs it to go. Trained under the founder of The Music Academy (production credits: Bang Bang, Chennai Express). Builds and teaches this course from real time behind the decks, not a textbook.',
+      bio: 'Founder of GigCultureIndia, performing as UNTITLED. Plays genre-fluid sets tuned to the room, not a fixed sound. Trained under the founder of The Music Academy (production credits: Bang Bang, Chennai Express). Builds and teaches this course from real time behind the decks, not a textbook.',
       initials: 'DC',
       photoUrl: '/divith.jpg',
       isLead: true,

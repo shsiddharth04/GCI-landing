@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react'
 
-const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789·—'
+const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789·'
 
 export function useScramble(original: string, speed = 28) {
   const [display, setDisplay] = useState(original)
