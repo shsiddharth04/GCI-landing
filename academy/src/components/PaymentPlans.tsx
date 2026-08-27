@@ -36,7 +36,7 @@ export default function PaymentPlans() {
             Flexible payment
           </p>
           <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.5rem)', fontWeight: 800, lineHeight: 1.1, letterSpacing: '-0.025em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-            Built for artists,<br /><span style={{ color: '#d4bfff' }}>not loan apps.</span>
+            The course fee,<br /><span style={{ color: '#d4bfff' }}>paid in three parts.</span>
           </h2>
           <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.38)', marginTop: '16px', maxWidth: '420px', lineHeight: 1.7, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             The DJ Course is {feeLabel} total. Choose the structure that works for you.

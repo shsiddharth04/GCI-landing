@@ -14,7 +14,7 @@ import Footer from './components/Footer'
 
 export default function App() {
   return (
-    <div className="grain min-h-screen bg-[#050505] text-white relative">
+    <div className="public-site grain min-h-screen bg-[#050505] text-white relative">
       <CustomCursor />
       <Nav />
       <Hero />
