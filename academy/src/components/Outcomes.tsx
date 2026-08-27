@@ -8,7 +8,7 @@ const WHY_ITEMS = [
 
 export default function WhyAcademy() {
   return (
-    <section style={{ padding: '112px 24px', background: '#050505' }}>
+    <section style={{ padding: 'clamp(64px, 10vw, 112px) 24px', background: '#050505' }}>
       <div style={{ maxWidth: '1152px', margin: '0 auto' }}>
         <motion.div
           initial="hidden" whileInView="visible" viewport={viewportOnce}

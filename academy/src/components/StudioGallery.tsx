@@ -1,37 +1,36 @@
-import { useState } from 'react'
 import { motion } from 'motion/react'
 import { loadSettings } from '../admin/settings'
-import { fadeIn, fadeUp, staggerContainer, viewportOnce } from '../lib/motion'
+import { fadeUp, fadeIn, viewportOnce } from '../lib/motion'
 import type { GalleryItem } from '../admin/settings'
 import type { MouseEvent } from 'react'
 
-function tilt(e: MouseEvent<HTMLDivElement>, strength = 8) {
+function tilt(e: MouseEvent<HTMLDivElement>, strength = 6) {
   const rect = e.currentTarget.getBoundingClientRect()
   const x = (e.clientX - rect.left) / rect.width - 0.5
   const y = (e.clientY - rect.top) / rect.height - 0.5
   e.currentTarget.style.transform = `perspective(900px) rotateY(${x * strength}deg) rotateX(${-y * strength}deg) scale(1.01)`
 }
 function resetTilt(e: MouseEvent<HTMLDivElement>) {
-  e.currentTarget.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) scale(1)'
+  e.currentTarget.style.transform = 'none'
 }
 
 function ImageTile({ item, isFeatured }: { item: GalleryItem; isFeatured?: boolean }) {
   return (
-    <motion.div
-      variants={fadeIn}
+    <div
       onMouseMove={tilt}
       onMouseLeave={resetTilt}
       style={{
         position: 'relative',
         background: '#0f0d18',
+        lineHeight: 0,
         transition: 'transform 0.18s ease',
         transformStyle: 'preserve-3d',
-        lineHeight: 0,
       }}
     >
       <img
         src={item.src}
         alt={item.alt}
+        loading="lazy"
         style={{
           display: 'block',
           width: '100%',
@@ -59,55 +58,23 @@ function ImageTile({ item, isFeatured }: { item: GalleryItem; isFeatured?: boole
           </div>
         </>
       )}
-    </motion.div>
+    </div>
   )
 }
 
 function VideoTile({ item }: { item: GalleryItem }) {
-  const [playing, setPlaying] = useState(false)
-
   return (
-    <motion.div
-      variants={fadeIn}
-      style={{ position: 'relative', background: '#0f0d18', cursor: 'pointer', lineHeight: 0 }}
-      onClick={() => !playing && setPlaying(true)}
-    >
-      {!playing ? (
-        <>
-          {item.poster ? (
-            <img
-              src={item.poster}
-              alt={item.alt}
-              style={{ display: 'block', width: '100%', height: 'auto', filter: 'grayscale(90%) contrast(1.12) brightness(1.05)' }}
-            />
-          ) : (
-            /* no poster — use a 16:9 placeholder so the tile has some height */
-            <div style={{ aspectRatio: '16 / 9', background: '#0f0d18' }} />
-          )}
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(212,191,255,0.10)', pointerEvents: 'none' }} />
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{
-              width: '56px', height: '56px', borderRadius: '50%',
-              background: 'rgba(212,191,255,0.15)',
-              border: '1px solid rgba(212,191,255,0.4)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              backdropFilter: 'blur(8px)',
-            }}>
-              <div style={{ width: 0, height: 0, borderTop: '10px solid transparent', borderBottom: '10px solid transparent', borderLeft: '16px solid #d4bfff', marginLeft: '4px' }} />
-            </div>
-          </div>
-        </>
-      ) : (
-        <video
-          src={item.src}
-          poster={item.poster}
-          autoPlay
-          controls
-          playsInline
-          style={{ display: 'block', width: '100%', height: 'auto' }}
-        />
-      )}
-    </motion.div>
+    <div style={{ position: 'relative', lineHeight: 0, background: '#0f0d18' }}>
+      <video
+        src={item.src}
+        autoPlay
+        muted
+        loop
+        playsInline
+        style={{ display: 'block', width: '100%', height: 'auto' }}
+      />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(212,191,255,0.04)', pointerEvents: 'none' }} />
+    </div>
   )
 }
 
@@ -122,15 +89,27 @@ export default function StudioGallery() {
 
   if (!studioGallery || studioGallery.length === 0) return null
 
+  const [featured, ...rest] = studioGallery
+
   return (
     <section style={{ background: '#050505' }}>
       <style>{`
-        .gallery-masonry { columns: 2; column-gap: 2px; }
-        .gallery-masonry-item { break-inside: avoid; margin-bottom: 2px; }
-        @media (max-width: 639px) { .gallery-masonry { columns: 1; } }
+        .gallery-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 2px;
+        }
+        .gallery-featured { grid-column: 1 / -1; }
+        @media (max-width: 767px) {
+          .gallery-grid { grid-template-columns: 1fr 1fr; }
+          .gallery-featured { grid-column: 1 / -1; }
+        }
+        @media (max-width: 479px) {
+          .gallery-grid { grid-template-columns: 1fr; }
+        }
       `}</style>
 
-      <div style={{ padding: '80px 24px 40px', maxWidth: '1152px', margin: '0 auto' }}>
+      <div style={{ padding: 'clamp(48px, 8vw, 80px) 24px 32px', maxWidth: '1152px', margin: '0 auto' }}>
         <motion.div initial="hidden" whileInView="visible" viewport={viewportOnce} variants={fadeUp}>
           <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(212,191,255,0.4)', letterSpacing: '0.28em', textTransform: 'uppercase', marginBottom: '14px' }}>
             From our sessions
@@ -141,21 +120,26 @@ export default function StudioGallery() {
         </motion.div>
       </div>
 
-      <div style={{ maxWidth: '1152px', margin: '0 auto', padding: '0 24px 80px' }}>
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={viewportOnce}
-          variants={staggerContainer(0.06)}
-          className="gallery-masonry"
-        >
-          {studioGallery.map((item, i) => (
-            <div key={i} className="gallery-masonry-item">
-              <Tile item={item} isFeatured={i === 0} />
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportOnce}
+        variants={fadeIn}
+        style={{ maxWidth: '1152px', margin: '0 auto', padding: '0 24px clamp(48px, 8vw, 80px)' }}
+      >
+        <div className="gallery-grid">
+          {featured && (
+            <div className="gallery-featured">
+              <Tile item={featured} isFeatured />
+            </div>
+          )}
+          {rest.map((item, i) => (
+            <div key={i}>
+              <Tile item={item} />
             </div>
           ))}
-        </motion.div>
-      </div>
+        </div>
+      </motion.div>
     </section>
   )
 }
