@@ -175,7 +175,6 @@ export const DEFAULT_SETTINGS: AcademySettings = {
     { type: 'image', src: '/studio-2.jpg', alt: 'Masterclass session in progress' },
     { type: 'image', src: '/studio-4.jpg', alt: 'Learning on the Pioneer XDJ-RX3' },
     { type: 'image', src: '/studio-3.jpg', alt: 'Hands-on demo class' },
-    { type: 'image', src: '/studio-1.jpg', alt: 'One-on-one instruction' },
     { type: 'video', src: '/masterclass.mov', alt: 'Demo class footage', poster: '/studio-2.jpg' },
   ],
   hero: {
