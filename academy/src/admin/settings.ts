@@ -47,8 +47,8 @@ export interface MasterclassSettings {
   recurringSchedule: string
   whatsInside: string
   // Slot schedule config
-  scheduleOpenTime: string   // '11:00' — first slot starts here
-  scheduleCloseTime: string  // '20:00' — last slot must end by here
+  scheduleOpenTime: string   // '10:00' — first slot starts here
+  scheduleCloseTime: string  // '22:00' — last slot must end by here
   slotMinutes: number        // 30
   slotCapacity: number       // 3 per slot
   scheduleDaysAhead: number  // how many days ahead to show (14)
@@ -129,8 +129,8 @@ export const DEFAULT_SETTINGS: AcademySettings = {
     cadence: 'one-off',
     recurringSchedule: '',
     whatsInside: 'A hands-on session inside GCI Studio, Gurugram. Get behind the Pioneer XDJ-RX3, understand signal flow, and feel what DJing actually requires. Zero commitment. No payment, no prerequisites. Just show up.',
-    scheduleOpenTime: '11:00',
-    scheduleCloseTime: '20:00',
+    scheduleOpenTime: '10:00',
+    scheduleCloseTime: '22:00',
     slotMinutes: 30,
     slotCapacity: 3,
     scheduleDaysAhead: 14,
@@ -140,7 +140,7 @@ export const DEFAULT_SETTINGS: AcademySettings = {
       id: 'divith',
       name: 'Divith Chowdhary',
       role: 'Founder & Lead Instructor · DJ UNTITLED.',
-      bio: 'Founder of GigCultureIndia, performing as UNTITLED. Melodic techno, progressive house, organic house. Trained under the founder of The Music Academy (production credits: Bang Bang, Chennai Express). Builds and teaches this course from real time behind the decks, not a textbook.',
+      bio: 'Founder of GigCultureIndia, performing as UNTITLED. Genre-fluid — the set goes wherever the room needs it to go. Trained under the founder of The Music Academy (production credits: Bang Bang, Chennai Express). Builds and teaches this course from real time behind the decks, not a textbook.',
       initials: 'DC',
       photoUrl: '/divith.jpg',
       isLead: true,

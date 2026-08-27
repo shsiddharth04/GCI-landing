@@ -112,8 +112,8 @@ type Stage = 'pick' | 'form' | 'success' | 'waitlisted'
 export default function SessionPicker() {
   const { masterclass } = loadSettings()
   const {
-    scheduleOpenTime = '11:00',
-    scheduleCloseTime = '20:00',
+    scheduleOpenTime = '10:00',
+    scheduleCloseTime = '22:00',
     slotMinutes = 30,
     slotCapacity = 3,
     scheduleDaysAhead = 14,

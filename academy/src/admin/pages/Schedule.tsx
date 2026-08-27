@@ -704,8 +704,8 @@ function fmt12(t: string) {
 
 function MasterclassSlotsPanel() {
   const { masterclass } = loadSettings()
-  const open  = masterclass.scheduleOpenTime  ?? '11:00'
-  const close = masterclass.scheduleCloseTime ?? '20:00'
+  const open  = masterclass.scheduleOpenTime  ?? '10:00'
+  const close = masterclass.scheduleCloseTime ?? '22:00'
   const mins  = masterclass.slotMinutes       ?? 30
   const cap   = masterclass.slotCapacity      ?? 3
 
