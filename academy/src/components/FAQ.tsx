@@ -19,7 +19,7 @@ const BASE_FAQS = [
   },
   {
     q: 'Is the masterclass genuinely free?',
-    a: "Yes. No payment, no hidden fees. It's a ₹2,500 value session, yours at no cost. Capacity is capped, so register early.",
+    a: "Yes. No payment, no hidden fees. Register, show up, learn. Capacity is capped, so register early.",
   },
   {
     q: 'Is there a deposit to enroll in the DJ Course?',

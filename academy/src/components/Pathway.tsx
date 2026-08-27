@@ -75,7 +75,7 @@ export default function Pathway() {
                       ]
                     : [{ label: 'Location', value: masterclass.studioAddress || masterclass.studioName || 'GCI Studio, Gurugram' }]
                   ),
-                  { label: 'Cost', value: 'Free  ·  ₹2,500 value' },
+                  { label: 'Cost', value: 'Free' },
                 ].map(row => <DetailRow key={row.label} {...row} />)}
               </div>
             </motion.div>
