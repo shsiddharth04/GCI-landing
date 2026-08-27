@@ -198,7 +198,8 @@ export function loadSettings(): AcademySettings {
       course: { ...structuredClone(DEFAULT_SETTINGS).course, ...stored.course },
       masterclass: { ...structuredClone(DEFAULT_SETTINGS).masterclass, ...stored.masterclass },
       hero: { ...structuredClone(DEFAULT_SETTINGS).hero, ...stored.hero },
-      studioGallery: stored.studioGallery ?? structuredClone(DEFAULT_SETTINGS).studioGallery,
+      studioGallery: (stored.studioGallery ?? structuredClone(DEFAULT_SETTINGS).studioGallery)
+        .filter((g: GalleryItem) => g.src !== '/studio-1.jpg'),
       // curriculum and instructors from storage override defaults entirely
       curriculum: stored.curriculum ?? structuredClone(DEFAULT_SETTINGS).curriculum,
       instructors: stored.instructors ?? structuredClone(DEFAULT_SETTINGS).instructors,

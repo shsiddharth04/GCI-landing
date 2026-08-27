@@ -26,6 +26,7 @@ function ImageTile({ item, isFeatured }: { item: GalleryItem; isFeatured?: boole
         background: '#0f0d18',
         transition: 'transform 0.18s ease',
         transformStyle: 'preserve-3d',
+        lineHeight: 0,
       }}
     >
       <img
@@ -68,8 +69,8 @@ function VideoTile({ item }: { item: GalleryItem }) {
   return (
     <motion.div
       variants={fadeIn}
-      style={{ position: 'relative', aspectRatio: '16 / 9', background: '#0f0d18', cursor: 'pointer', overflow: 'hidden' }}
-      onClick={() => setPlaying(true)}
+      style={{ position: 'relative', background: '#0f0d18', cursor: 'pointer', lineHeight: 0 }}
+      onClick={() => !playing && setPlaying(true)}
     >
       {!playing ? (
         <>
@@ -77,10 +78,11 @@ function VideoTile({ item }: { item: GalleryItem }) {
             <img
               src={item.poster}
               alt={item.alt}
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'grayscale(90%) contrast(1.12) brightness(1.05)' }}
+              style={{ display: 'block', width: '100%', height: 'auto', filter: 'grayscale(90%) contrast(1.12) brightness(1.05)' }}
             />
           ) : (
-            <div style={{ position: 'absolute', inset: 0, background: '#0f0d18' }} />
+            /* no poster — use a 16:9 placeholder so the tile has some height */
+            <div style={{ aspectRatio: '16 / 9', background: '#0f0d18' }} />
           )}
           <div style={{ position: 'absolute', inset: 0, background: 'rgba(212,191,255,0.10)', pointerEvents: 'none' }} />
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -101,7 +103,8 @@ function VideoTile({ item }: { item: GalleryItem }) {
           poster={item.poster}
           autoPlay
           controls
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }}
+          playsInline
+          style={{ display: 'block', width: '100%', height: 'auto' }}
         />
       )}
     </motion.div>
@@ -119,16 +122,12 @@ export default function StudioGallery() {
 
   if (!studioGallery || studioGallery.length === 0) return null
 
-  const [first, second, ...rest] = studioGallery
-
   return (
-    <section style={{ padding: '0 0 0 0', background: '#050505' }}>
+    <section style={{ background: '#050505' }}>
       <style>{`
-        @media (max-width: 639px) {
-          .gallery-first-row { grid-template-columns: 1fr !important; }
-          .gallery-first-row .gallery-stack { display: contents !important; }
-          .gallery-rest { grid-template-columns: 1fr 1fr !important; }
-        }
+        .gallery-masonry { columns: 2; column-gap: 2px; }
+        .gallery-masonry-item { break-inside: avoid; margin-bottom: 2px; }
+        @media (max-width: 639px) { .gallery-masonry { columns: 1; } }
       `}</style>
 
       <div style={{ padding: '80px 24px 40px', maxWidth: '1152px', margin: '0 auto' }}>
@@ -143,35 +142,19 @@ export default function StudioGallery() {
       </div>
 
       <div style={{ maxWidth: '1152px', margin: '0 auto', padding: '0 24px 80px' }}>
-        {first && (
-          <motion.div
-            initial="hidden" whileInView="visible" viewport={viewportOnce}
-            variants={staggerContainer(0.06)}
-            className="gallery-first-row"
-            style={{ display: 'grid', gridTemplateColumns: second ? '3fr 2fr' : '1fr', gap: '2px', marginBottom: '2px', alignItems: 'start' }}
-          >
-            <Tile item={first} isFeatured />
-            {second && (
-              <div className="gallery-stack" style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                <Tile item={second} />
-                {rest[0] && <Tile item={rest[0]} />}
-              </div>
-            )}
-          </motion.div>
-        )}
-
-        {rest.length > (rest[0] ? 1 : 0) && (
-          <motion.div
-            initial="hidden" whileInView="visible" viewport={viewportOnce}
-            variants={staggerContainer(0.06)}
-            className="gallery-rest"
-            style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(rest.slice(rest[0] ? 1 : 0).length, 3)}, 1fr)`, gap: '2px', alignItems: 'start' }}
-          >
-            {rest.slice(rest[0] ? 1 : 0).map((item, i) => (
-              <Tile key={i} item={item} />
-            ))}
-          </motion.div>
-        )}
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          variants={staggerContainer(0.06)}
+          className="gallery-masonry"
+        >
+          {studioGallery.map((item, i) => (
+            <div key={i} className="gallery-masonry-item">
+              <Tile item={item} isFeatured={i === 0} />
+            </div>
+          ))}
+        </motion.div>
       </div>
     </section>
   )
