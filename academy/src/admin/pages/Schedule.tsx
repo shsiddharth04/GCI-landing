@@ -488,7 +488,7 @@ function RescheduleForm({ session, onDone, onCancel }: { session: Session; onDon
 
 // ── Session row ───────────────────────────────────────────────────────────────
 
-function SessionRow({ session, allSessions, onRefresh }: { session: Session; allSessions: Session[]; onRefresh: () => void }) {
+function SessionRow({ session, allSessions, onRefresh, onRemove }: { session: Session; allSessions: Session[]; onRefresh: () => void; onRemove: () => void }) {
   const [expanded, setExpanded] = useState(false)
   const [regs, setRegs] = useState<Registration[]>([])
   const [loadingRegs, setLoadingRegs] = useState(false)
@@ -516,8 +516,8 @@ function SessionRow({ session, allSessions, onRefresh }: { session: Session; all
     setCancelling(true)
     try {
       await cancelSession(session.id)
-      onRefresh()
-    } catch (e: unknown) {
+      onRemove() // remove from list immediately — no refetch needed
+    } catch {
       setCancelling(false)
       setConfirmCancel(false)
     }
@@ -781,7 +781,13 @@ export default function Schedule() {
 
       <div className="flex flex-col gap-1.5">
         {filtered.map(s => (
-          <SessionRow key={s.id} session={s} allSessions={sessions} onRefresh={load} />
+          <SessionRow
+            key={s.id}
+            session={s}
+            allSessions={sessions}
+            onRefresh={load}
+            onRemove={() => setSessions(prev => prev.filter(x => x.id !== s.id))}
+          />
         ))}
       </div>
     </div>
