@@ -27,9 +27,9 @@
 }
 
 @layer utilities {
-  /* Custom cursor — hide default on non-touch */
+  /* Custom cursor — hide default on non-touch, public site only */
   @media (pointer: fine) {
-    html, * { cursor: none !important; }
+    .public-site, .public-site * { cursor: none !important; }
   }
 
   .cursor-outer {

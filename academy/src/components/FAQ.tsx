@@ -23,7 +23,7 @@ const BASE_FAQS = [
   },
   {
     q: 'Is there a deposit to enroll in the DJ Course?',
-    a: '₹2,000 confirms your seat and is non-refundable. After your first session, 50% of the remaining fee is due. The other 50% is due before the course ends.',
+    a: '₹2,000 confirms your seat and is non-refundable. 50% of the remaining fee is due after your first session. The other 50% is due before your 5th session.',
   },
   {
     q: 'Where is GCI Studio?',
