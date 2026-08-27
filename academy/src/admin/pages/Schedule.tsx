@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, RefreshCw, UserCheck, AlertCircle, Trash2, Calendar, Repeat } from 'lucide-react'
+import { Plus, RefreshCw, UserCheck, AlertCircle, Trash2, Calendar, Repeat, Lock, Unlock, LayoutGrid } from 'lucide-react'
 import {
   fetchAllSessions, fetchSessionRegistrations, createSession,
   rescheduleSession, reassignRegistration, fetchInstructors, cancelSession,
+  fetchMasterclassSlotData, upsertSlotOverride, deleteSlotOverride, fetchMasterclassBookings,
 } from '../../lib/db'
-import type { Session, Registration, Instructor } from '../../lib/db'
+import type { Session, Registration, Instructor, SlotOverride, MasterclassBooking } from '../../lib/db'
 import DatePicker from '../components/DatePicker'
 import TimePicker from '../components/TimePicker'
+import { loadSettings } from '../settings'
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
 
@@ -683,9 +685,229 @@ function SessionRow({ session, allSessions, onRefresh, onRemove }: { session: Se
   )
 }
 
+// ── Masterclass Slots panel ───────────────────────────────────────────────────
+
+function toMinutes(t: string) { const [h, m] = t.split(':').map(Number); return h * 60 + m }
+function fromMinutes(m: number) { return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}` }
+
+function genSlots(open: string, close: string, mins: number) {
+  const slots: { start: string; end: string }[] = []
+  let cur = toMinutes(open); const end = toMinutes(close)
+  while (cur + mins <= end) { slots.push({ start: fromMinutes(cur), end: fromMinutes(cur + mins) }); cur += mins }
+  return slots
+}
+
+function fmt12(t: string) {
+  const [h, m] = t.split(':').map(Number)
+  return `${h === 0 ? 12 : h > 12 ? h - 12 : h}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`
+}
+
+function MasterclassSlotsPanel() {
+  const { masterclass } = loadSettings()
+  const open  = masterclass.scheduleOpenTime  ?? '11:00'
+  const close = masterclass.scheduleCloseTime ?? '20:00'
+  const mins  = masterclass.slotMinutes       ?? 30
+  const cap   = masterclass.slotCapacity      ?? 3
+
+  const todayStr = new Date().toISOString().slice(0, 10)
+  const [date, setDate] = useState(todayStr)
+  const [counts, setCounts]     = useState<Record<string, number>>({})
+  const [blocked, setBlocked]   = useState<{ start_time: string; end_time: string }[]>([])
+  const [overrides, setOverrides] = useState<SlotOverride[]>([])
+  const [bookings, setBookings] = useState<MasterclassBooking[]>([])
+  const [loading, setLoading]   = useState(false)
+  const [saving, setSaving]     = useState<string | null>(null)
+  const [expanded, setExpanded] = useState<string | null>(null)
+
+  const slots = genSlots(open, close, mins)
+
+  async function load(d: string) {
+    setLoading(true)
+    try {
+      const [slotData, bks] = await Promise.all([
+        fetchMasterclassSlotData(d, d),
+        fetchMasterclassBookings(d),
+      ])
+      setCounts(slotData.counts)
+      setBlocked(slotData.blocked.filter(b => b.session_date === d).map(b => ({ start_time: b.start_time.slice(0, 5), end_time: b.end_time.slice(0, 5) })))
+      setOverrides(slotData.overrides)
+      setBookings(bks.filter(b => b.slot_date === d))
+    } catch { /* silent */ } finally { setLoading(false) }
+  }
+
+  useEffect(() => { load(date) }, [date])
+
+  function getOverride(start: string) { return overrides.find(o => o.slot_date === date && o.slot_start.slice(0, 5) === start) }
+  function isClassBlocked(start: string, end: string) { return blocked.some(b => b.start_time < end && b.end_time > start) }
+
+  function slotState(s: { start: string; end: string }) {
+    const ov = getOverride(s.start)
+    if (ov?.override === 'blocked') return 'manually-blocked'
+    if (!ov && isClassBlocked(s.start, s.end)) return 'class-blocked'
+    if (ov?.override === 'open') return 'forced-open'
+    return 'available'
+  }
+
+  async function blockSlot(s: { start: string; end: string }, reason?: string) {
+    setSaving(s.start)
+    try { await upsertSlotOverride(date, s.start, s.end, 'blocked', reason); await load(date) }
+    catch { /* silent */ } finally { setSaving(null) }
+  }
+
+  async function unblockSlot(s: { start: string; end: string }) {
+    setSaving(s.start)
+    const ov = getOverride(s.start)
+    try {
+      if (ov) await deleteSlotOverride(ov.id)
+      await load(date)
+    } catch { /* silent */ } finally { setSaving(null) }
+  }
+
+  async function forceOpenSlot(s: { start: string; end: string }) {
+    setSaving(s.start)
+    try { await upsertSlotOverride(date, s.start, s.end, 'open'); await load(date) }
+    catch { /* silent */ } finally { setSaving(null) }
+  }
+
+  function slotBookings(start: string) { return bookings.filter(b => b.slot_start_time.slice(0, 5) === start) }
+
+  return (
+    <div>
+      {/* Date nav */}
+      <div className="flex items-center gap-3 mb-6">
+        <button onClick={() => { const d = new Date(date + 'T00:00:00'); d.setDate(d.getDate() - 1); setDate(d.toISOString().slice(0, 10)) }}
+          className="w-8 h-8 flex items-center justify-center text-white/30 hover:text-white/70 border border-white/8 hover:border-white/20 transition-colors text-sm">‹</button>
+        <div className="w-48">
+          <DatePicker value={date} onChange={setDate} placeholder="Pick date" />
+        </div>
+        <button onClick={() => { const d = new Date(date + 'T00:00:00'); d.setDate(d.getDate() + 1); setDate(d.toISOString().slice(0, 10)) }}
+          className="w-8 h-8 flex items-center justify-center text-white/30 hover:text-white/70 border border-white/8 hover:border-white/20 transition-colors text-sm">›</button>
+        <button onClick={() => load(date)} className="text-white/20 hover:text-white/50 transition-colors ml-1">
+          <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
+        </button>
+        <span className="text-[10px] font-mono text-white/20 ml-auto">{open} – {close} · {mins} min slots · cap {cap}</span>
+      </div>
+
+      {/* Slot grid */}
+      <div className="flex flex-col gap-1">
+        {slots.map(s => {
+          const state = slotState(s)
+          const bks = slotBookings(s.start)
+          const booked = counts[`${date}|${s.start}`] ?? 0
+          const isExp = expanded === s.start
+          const isSaving = saving === s.start
+
+          const stateColor = {
+            'available':       'border-white/8',
+            'manually-blocked':'border-red-500/20 bg-red-500/5',
+            'class-blocked':   'border-amber-500/15 bg-amber-500/5',
+            'forced-open':     'border-emerald-500/20 bg-emerald-500/5',
+          }[state]
+
+          return (
+            <div key={s.start} className={`border transition-colors ${stateColor}`}>
+              <div className="flex items-center gap-4 px-4 py-3">
+                {/* Time */}
+                <div className="w-28 shrink-0">
+                  <span className="font-mono text-sm text-white/75">{fmt12(s.start)}</span>
+                  <span className="font-mono text-[9px] text-white/20 ml-1.5">–{fmt12(s.end)}</span>
+                </div>
+
+                {/* Booking count */}
+                <div className="flex items-center gap-1.5">
+                  <div className="flex gap-0.5">
+                    {Array.from({ length: cap }).map((_, i) => (
+                      <div key={i} className={`w-2 h-2 ${i < booked ? 'bg-[#d4bfff]' : 'bg-white/10'}`} />
+                    ))}
+                  </div>
+                  <span className="font-mono text-[9px] text-white/30">{booked}/{cap}</span>
+                </div>
+
+                {/* State badge */}
+                <div className="flex-1">
+                  {state === 'manually-blocked' && (
+                    <span className="font-mono text-[8px] text-red-400/70 tracking-widest uppercase">Blocked</span>
+                  )}
+                  {state === 'class-blocked' && (
+                    <span className="font-mono text-[8px] text-amber-400/60 tracking-widest uppercase">Course class</span>
+                  )}
+                  {state === 'forced-open' && (
+                    <span className="font-mono text-[8px] text-emerald-400/60 tracking-widest uppercase">Force-open</span>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-2 shrink-0">
+                  {bks.length > 0 && (
+                    <button onClick={() => setExpanded(isExp ? null : s.start)}
+                      className="font-mono text-[9px] text-[#d4bfff]/50 hover:text-[#d4bfff] tracking-widest uppercase transition-colors">
+                      {bks.length} booked {isExp ? '▲' : '▼'}
+                    </button>
+                  )}
+
+                  {(state === 'available' || state === 'forced-open') && (
+                    <button
+                      onClick={() => blockSlot(s)}
+                      disabled={isSaving}
+                      className="flex items-center gap-1 font-mono text-[9px] text-white/25 hover:text-red-400/70 tracking-widest uppercase transition-colors disabled:opacity-40"
+                    >
+                      <Lock size={9} />
+                      {isSaving ? '…' : 'Block'}
+                    </button>
+                  )}
+
+                  {state === 'manually-blocked' && (
+                    <button
+                      onClick={() => unblockSlot(s)}
+                      disabled={isSaving}
+                      className="flex items-center gap-1 font-mono text-[9px] text-white/25 hover:text-emerald-400/70 tracking-widest uppercase transition-colors disabled:opacity-40"
+                    >
+                      <Unlock size={9} />
+                      {isSaving ? '…' : 'Unblock'}
+                    </button>
+                  )}
+
+                  {state === 'class-blocked' && (
+                    <button
+                      onClick={() => forceOpenSlot(s)}
+                      disabled={isSaving}
+                      className="flex items-center gap-1 font-mono text-[9px] text-white/25 hover:text-[#d4bfff]/60 tracking-widest uppercase transition-colors disabled:opacity-40"
+                    >
+                      <Unlock size={9} />
+                      {isSaving ? '…' : 'Force open'}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Expanded bookings */}
+              {isExp && bks.length > 0 && (
+                <div className="border-t border-white/6 px-4 py-3 space-y-2">
+                  {bks.map(b => (
+                    <div key={b.id} className="flex items-center gap-3 text-sm">
+                      <UserCheck size={11} className="text-white/20 shrink-0" />
+                      <span className="text-white/70 font-medium">{b.name}</span>
+                      <span className="font-mono text-[10px] text-white/30">{b.phone}</span>
+                      <span className="font-mono text-[10px] text-white/20">{b.email}</span>
+                      <span className={`font-mono text-[8px] tracking-widest uppercase ml-auto ${b.status === 'confirmed' ? 'text-emerald-400/60' : 'text-amber-400/60'}`}>
+                        {b.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function Schedule() {
+  const [tab, setTab] = useState<'sessions' | 'slots'>('slots')
   const [sessions, setSessions] = useState<Session[]>([])
   const [instructors, setInstructors] = useState<Instructor[]>([])
   const [loading, setLoading] = useState(true)
@@ -721,83 +943,100 @@ export default function Schedule() {
     <div className="p-8 max-w-4xl">
 
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-semibold">Schedule</h1>
-          <div className="flex items-center gap-3 mt-1">
-            <span className="text-sm text-white/35">{loading ? '…' : `${counts.total} session${counts.total !== 1 ? 's' : ''}`}</span>
-            {!loading && counts.total > 0 && (
-              <>
-                <span className="text-white/12">·</span>
-                <span className="font-mono text-[10px] text-emerald-400/60">{counts.open} open</span>
-                {counts.full > 0 && <span className="font-mono text-[10px] text-amber-400/60">{counts.full} full</span>}
-              </>
-            )}
+      <div className="flex items-start justify-between mb-5">
+        <h1 className="text-xl font-semibold">Schedule</h1>
+        {tab === 'sessions' && (
+          <div className="flex items-center gap-3">
+            <button onClick={load} className="text-white/20 hover:text-white/50 transition-colors p-1">
+              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+            </button>
+            <button
+              onClick={() => setShowCreate(v => !v)}
+              className="flex items-center gap-2 bg-[#d4bfff] text-[#050505] text-xs font-bold font-mono tracking-widest uppercase px-4 py-2.5 hover:bg-white transition-colors"
+            >
+              <Plus size={13} />
+              New session
+            </button>
           </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <button onClick={load} className="text-white/20 hover:text-white/50 transition-colors p-1">
-            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-          </button>
-          <button
-            onClick={() => setShowCreate(v => !v)}
-            className="flex items-center gap-2 bg-[#d4bfff] text-[#050505] text-xs font-bold font-mono tracking-widest uppercase px-4 py-2.5 hover:bg-white transition-colors"
-          >
-            <Plus size={13} />
-            New session
-          </button>
-        </div>
+        )}
       </div>
 
-      {/* Create panel */}
-      {showCreate && (
-        <CreatePanel
-          instructors={instructors}
-          defaultLocation={defaultLocation}
-          onCreated={() => { setShowCreate(false); load() }}
-          onClose={() => setShowCreate(false)}
-        />
-      )}
-
-      {/* Type filter */}
-      <div className="flex gap-0.5 mb-5">
-        {(['all', 'masterclass', 'course_class'] as const).map(t => (
+      {/* Top tabs */}
+      <div className="flex border-b border-white/8 mb-6">
+        {([
+          ['slots',    'Masterclass slots', LayoutGrid],
+          ['sessions', 'Course sessions',   Calendar],
+        ] as const).map(([t, label, Icon]) => (
           <button
             key={t}
-            onClick={() => setTypeFilter(t)}
-            className={`text-[10px] font-mono tracking-widest uppercase px-4 py-2 transition-colors ${
-              typeFilter === t ? 'bg-[#d4bfff]/12 text-[#d4bfff]' : 'text-white/30 hover:text-white/55'
+            onClick={() => setTab(t)}
+            className={`flex items-center gap-2 px-5 py-3 text-xs font-mono tracking-widest uppercase transition-colors -mb-px ${
+              tab === t
+                ? 'border-b-2 border-[#d4bfff] text-[#d4bfff]'
+                : 'text-white/30 hover:text-white/60'
             }`}
           >
-            {t === 'all' ? 'All' : t === 'masterclass' ? 'Masterclass' : 'Course'}
+            <Icon size={12} />
+            {label}
           </button>
         ))}
       </div>
 
-      {error && (
-        <div className="mb-4 bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">{error}</div>
-      )}
+      {/* Masterclass slots tab */}
+      {tab === 'slots' && <MasterclassSlotsPanel />}
 
-      {!loading && filtered.length === 0 && !error && (
-        <div className="py-20 text-center">
-          <p className="text-white/20 text-sm font-mono">No sessions yet.</p>
-          <button onClick={() => setShowCreate(true)} className="mt-3 text-[#d4bfff]/60 hover:text-[#d4bfff] text-xs font-mono transition-colors">
-            + Create your first session
-          </button>
-        </div>
-      )}
+      {/* Course sessions tab */}
+      {tab === 'sessions' && (
+        <>
+          {showCreate && (
+            <CreatePanel
+              instructors={instructors}
+              defaultLocation={defaultLocation}
+              onCreated={() => { setShowCreate(false); load() }}
+              onClose={() => setShowCreate(false)}
+            />
+          )}
 
-      <div className="flex flex-col gap-1.5">
-        {filtered.map(s => (
-          <SessionRow
-            key={s.id}
-            session={s}
-            allSessions={sessions}
-            onRefresh={load}
-            onRemove={() => setSessions(prev => prev.filter(x => x.id !== s.id))}
-          />
-        ))}
-      </div>
+          <div className="flex gap-0.5 mb-5">
+            {(['all', 'masterclass', 'course_class'] as const).map(t => (
+              <button
+                key={t}
+                onClick={() => setTypeFilter(t)}
+                className={`text-[10px] font-mono tracking-widest uppercase px-4 py-2 transition-colors ${
+                  typeFilter === t ? 'bg-[#d4bfff]/12 text-[#d4bfff]' : 'text-white/30 hover:text-white/55'
+                }`}
+              >
+                {t === 'all' ? 'All' : t === 'masterclass' ? 'Masterclass' : 'Course'}
+              </button>
+            ))}
+          </div>
+
+          {error && (
+            <div className="mb-4 bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">{error}</div>
+          )}
+
+          {!loading && filtered.length === 0 && !error && (
+            <div className="py-20 text-center">
+              <p className="text-white/20 text-sm font-mono">No sessions yet.</p>
+              <button onClick={() => setShowCreate(true)} className="mt-3 text-[#d4bfff]/60 hover:text-[#d4bfff] text-xs font-mono transition-colors">
+                + Create your first session
+              </button>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-1.5">
+            {filtered.map(s => (
+              <SessionRow
+                key={s.id}
+                session={s}
+                allSessions={sessions}
+                onRefresh={load}
+                onRemove={() => setSessions(prev => prev.filter(x => x.id !== s.id))}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   )
 }
