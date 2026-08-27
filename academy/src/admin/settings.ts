@@ -47,6 +47,12 @@ export interface MasterclassSettings {
   cadence: 'one-off' | 'recurring' | ''
   recurringSchedule: string
   whatsInside: string
+  // Slot schedule config
+  scheduleOpenTime: string   // '11:00' — first slot starts here
+  scheduleCloseTime: string  // '20:00' — last slot must end by here
+  slotMinutes: number        // 30
+  slotCapacity: number       // 3 per slot
+  scheduleDaysAhead: number  // how many days ahead to show (14)
 }
 
 export interface Instructor {
@@ -125,6 +131,11 @@ export const DEFAULT_SETTINGS: AcademySettings = {
     cadence: 'one-off',
     recurringSchedule: '',
     whatsInside: 'A hands-on session inside GCI Studio, Gurugram. Get behind the Pioneer XDJ-RX3, understand signal flow, and feel what DJing actually requires. Zero commitment. No payment, no prerequisites. Just show up.',
+    scheduleOpenTime: '11:00',
+    scheduleCloseTime: '20:00',
+    slotMinutes: 30,
+    slotCapacity: 3,
+    scheduleDaysAhead: 14,
   },
   instructors: [
     {

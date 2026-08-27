@@ -91,6 +91,143 @@ export async function cancelRegistration(token: string): Promise<{ success: bool
   return data as { success: boolean; reason?: string }
 }
 
+// ── Masterclass slot booking (new slot-based system) ─────────────────────────
+
+export interface MasterclassBooking {
+  id: string
+  slot_date: string
+  slot_start_time: string
+  slot_end_time: string
+  name: string
+  email: string
+  phone: string
+  status: 'confirmed' | 'waitlisted' | 'cancelled'
+  created_at: string
+}
+
+export interface SlotCounts {
+  [key: string]: number // "YYYY-MM-DD|HH:MM" → confirmed count
+}
+
+export interface BlockedWindow {
+  session_date: string
+  start_time: string
+  end_time: string
+}
+
+export async function fetchMasterclassSlotData(fromDate: string, toDate: string): Promise<{
+  counts: SlotCounts
+  blocked: BlockedWindow[]
+  overrides: SlotOverride[]
+}> {
+  const [bookingsRes, blockedRes, overridesRes] = await Promise.all([
+    supabase
+      .from('masterclass_bookings')
+      .select('slot_date, slot_start_time, status')
+      .gte('slot_date', fromDate)
+      .lte('slot_date', toDate)
+      .eq('status', 'confirmed'),
+    supabase
+      .from('sessions')
+      .select('session_date, start_time, end_time')
+      .eq('session_type', 'course_class')
+      .gte('session_date', fromDate)
+      .lte('session_date', toDate)
+      .neq('status', 'cancelled'),
+    supabase
+      .from('masterclass_slot_overrides')
+      .select('*')
+      .gte('slot_date', fromDate)
+      .lte('slot_date', toDate),
+  ])
+  if (bookingsRes.error) throw bookingsRes.error
+  if (blockedRes.error) throw blockedRes.error
+  // overrides failure is non-fatal
+
+  const counts: SlotCounts = {}
+  for (const r of bookingsRes.data ?? []) {
+    const key = `${r.slot_date}|${(r.slot_start_time as string).slice(0, 5)}`
+    counts[key] = (counts[key] ?? 0) + 1
+  }
+
+  return {
+    counts,
+    blocked: (blockedRes.data ?? []) as BlockedWindow[],
+    overrides: (overridesRes.data ?? []) as SlotOverride[],
+  }
+}
+
+export async function bookMasterclassSlot(
+  date: string,
+  startTime: string,
+  endTime: string,
+  name: string,
+  email: string,
+  phone: string,
+  slotCapacity = 3,
+): Promise<{ id?: string; status?: 'confirmed' | 'waitlisted'; error?: string }> {
+  const { data, error } = await supabase.rpc('book_masterclass_slot', {
+    p_date: date,
+    p_start_time: startTime,
+    p_end_time: endTime,
+    p_name: name,
+    p_email: email,
+    p_phone: phone,
+    p_slot_capacity: slotCapacity,
+  })
+  if (error) throw error
+  return data as { id?: string; status?: 'confirmed' | 'waitlisted'; error?: string }
+}
+
+export interface SlotOverride {
+  id: string
+  slot_date: string
+  slot_start: string
+  slot_end: string
+  override: 'blocked' | 'open'
+  reason: string | null
+}
+
+export async function fetchSlotOverrides(fromDate: string, toDate: string): Promise<SlotOverride[]> {
+  const { data, error } = await supabase
+    .from('masterclass_slot_overrides')
+    .select('*')
+    .gte('slot_date', fromDate)
+    .lte('slot_date', toDate)
+    .order('slot_date').order('slot_start')
+  if (error) throw error
+  return (data ?? []) as SlotOverride[]
+}
+
+export async function upsertSlotOverride(
+  date: string, start: string, end: string,
+  override: 'blocked' | 'open', reason?: string
+): Promise<void> {
+  const { error } = await supabase
+    .from('masterclass_slot_overrides')
+    .upsert({ slot_date: date, slot_start: start, slot_end: end, override, reason: reason ?? null },
+      { onConflict: 'slot_date,slot_start' })
+  if (error) throw error
+}
+
+export async function deleteSlotOverride(id: string): Promise<void> {
+  const { error } = await supabase.from('masterclass_slot_overrides').delete().eq('id', id)
+  if (error) throw error
+}
+
+export async function fetchMasterclassBookings(fromDate?: string): Promise<MasterclassBooking[]> {
+  let q = supabase
+    .from('masterclass_bookings')
+    .select('*')
+    .neq('status', 'cancelled')
+    .order('slot_date', { ascending: true })
+    .order('slot_start_time', { ascending: true })
+  if (fromDate) q = q.gte('slot_date', fromDate)
+  const { data, error } = await q
+  if (error) throw error
+  return (data ?? []) as MasterclassBooking[]
+}
+
 // ── Admin queries (require service_role key in prod; anon key if RLS permits) ─
 
 export async function fetchAllSessions(): Promise<Session[]> {
