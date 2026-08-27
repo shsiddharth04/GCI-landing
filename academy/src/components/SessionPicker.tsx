@@ -226,8 +226,9 @@ export default function SessionPicker() {
       // Refresh counts
       const from = dates[0]; const to = dates[dates.length - 1]
       fetchMasterclassSlotData(from, to).then(({ counts, blocked }) => { setCounts(counts); setBlocked(blocked) }).catch(() => null)
-    } catch {
-      setFormError('Something went wrong. Try again.')
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      setFormError(`Booking failed: ${msg}`)
       setSubmitting(false)
     }
   }
