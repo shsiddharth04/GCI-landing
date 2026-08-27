@@ -24,7 +24,7 @@ export default function Pathway() {
   return (
     <>
       {/* ── Masterclass ─────────────────────────────────────────── */}
-      <section id="masterclass" className="lavender-scan" style={{ background: '#d4bfff', padding: '112px 24px', position: 'relative', overflow: 'hidden', borderTop: '3px solid #050505', borderBottom: '3px solid #050505' }}>
+      <section id="masterclass" className="lavender-scan" style={{ background: '#d4bfff', padding: 'clamp(64px, 10vw, 112px) 24px', position: 'relative', overflow: 'hidden', borderTop: '3px solid #050505', borderBottom: '3px solid #050505' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(5,5,5,0.06) 0%, transparent 100%)', pointerEvents: 'none' }} />
 
         <div style={{ maxWidth: '960px', margin: '0 auto', position: 'relative' }}>
@@ -68,13 +68,7 @@ export default function Pathway() {
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(212,191,255,0.6), transparent)' }} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {[
-                  ...(masterclass.secondStudioAddress
-                    ? [
-                        { label: 'MU students', value: masterclass.studioAddress || masterclass.studioName || 'Shankar Chowk, Udyog Vihar' },
-                        { label: 'All others', value: masterclass.secondStudioAddress },
-                      ]
-                    : [{ label: 'Location', value: masterclass.studioAddress || masterclass.studioName || 'GCI Studio, Gurugram' }]
-                  ),
+                  { label: 'Location', value: masterclass.studioAddress || masterclass.studioName || 'GCI Studio, Gurugram' },
                   { label: 'Cost', value: 'Free' },
                 ].map(row => <DetailRow key={row.label} {...row} />)}
               </div>
@@ -84,15 +78,15 @@ export default function Pathway() {
       </section>
 
       {/* ── Pathway strip ───────────────────────────────────────── */}
-      <div style={{ background: '#0f0d18', borderTop: '1px solid rgba(212,191,255,0.08)', borderBottom: '1px solid rgba(212,191,255,0.08)', padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
-        <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(212,191,255,0.4)', letterSpacing: '0.22em', textTransform: 'uppercase' }}>Masterclass</span>
-        <ArrowRight size={13} style={{ color: 'rgba(212,191,255,0.35)' }} />
-        <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#d4bfff', letterSpacing: '0.22em', textTransform: 'uppercase' }}>DJ Course</span>
-        <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(255,255,255,0.18)', marginLeft: '8px' }}>complete the masterclass, enroll in the course</span>
+      <div style={{ background: '#0f0d18', borderTop: '1px solid rgba(212,191,255,0.08)', borderBottom: '1px solid rgba(212,191,255,0.08)', padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+        <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(212,191,255,0.4)', letterSpacing: '0.22em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Masterclass</span>
+        <ArrowRight size={13} style={{ color: 'rgba(212,191,255,0.35)', flexShrink: 0 }} />
+        <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#d4bfff', letterSpacing: '0.22em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>DJ Course</span>
+        <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(255,255,255,0.18)', textAlign: 'center' }}>complete the masterclass, enroll in the course</span>
       </div>
 
       {/* ── DJ Course ───────────────────────────────────────────── */}
-      <section id="course" style={{ background: '#050505', padding: '112px 24px' }}>
+      <section id="course" style={{ background: '#050505', padding: 'clamp(64px, 10vw, 112px) 24px' }}>
         <div style={{ maxWidth: '960px', margin: '0 auto' }}>
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-10">
 
@@ -172,13 +166,7 @@ export default function Pathway() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {[
                   { label: 'Duration', value: '2 months' },
-                  ...(masterclass.secondStudioAddress
-                    ? [
-                        { label: 'MU students', value: masterclass.studioAddress || masterclass.studioName || 'Shankar Chowk, Udyog Vihar' },
-                        { label: 'All others', value: masterclass.secondStudioAddress },
-                      ]
-                    : [{ label: 'Studio', value: masterclass.studioAddress || masterclass.studioName || 'GCI Studio, Gurugram' }]
-                  ),
+                  { label: 'Studio', value: masterclass.studioAddress || masterclass.studioName || 'GCI Studio, Gurugram' },
                   { label: 'Equipment', value: 'Pioneer XDJ-RX3, Sennheiser HD 25 Plus' },
                   { label: 'Batch size', value: '3 students (by design)' },
                   ...(courseFee ? [{ label: 'Fee', value: courseFee }] : []),

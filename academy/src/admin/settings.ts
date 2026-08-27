@@ -40,7 +40,6 @@ export interface MasterclassSettings {
   duration: string
   studioName: string
   studioAddress: string
-  secondStudioAddress: string
   mapEmbedUrl: string
   seatCap: number
   isActive: boolean
@@ -48,8 +47,8 @@ export interface MasterclassSettings {
   recurringSchedule: string
   whatsInside: string
   // Slot schedule config
-  scheduleOpenTime: string   // '11:00' — first slot starts here
-  scheduleCloseTime: string  // '20:00' — last slot must end by here
+  scheduleOpenTime: string   // '10:00' — first slot starts here
+  scheduleCloseTime: string  // '22:00' — last slot must end by here
   slotMinutes: number        // 30
   slotCapacity: number       // 3 per slot
   scheduleDaysAhead: number  // how many days ahead to show (14)
@@ -124,15 +123,14 @@ export const DEFAULT_SETTINGS: AcademySettings = {
     duration: '',
     studioName: 'GCI Studio, Gurugram',
     studioAddress: '11th Floor, Capital Tower, Next To CDS Tower, Sector 20, Gurugram',
-    secondStudioAddress: 'DLF Phase 3, V Block, Sector 24, Gurugram',
     mapEmbedUrl: '',
     seatCap: 0,
     isActive: true,
     cadence: 'one-off',
     recurringSchedule: '',
     whatsInside: 'A hands-on session inside GCI Studio, Gurugram. Get behind the Pioneer XDJ-RX3, understand signal flow, and feel what DJing actually requires. Zero commitment. No payment, no prerequisites. Just show up.',
-    scheduleOpenTime: '11:00',
-    scheduleCloseTime: '20:00',
+    scheduleOpenTime: '10:00',
+    scheduleCloseTime: '22:00',
     slotMinutes: 30,
     slotCapacity: 3,
     scheduleDaysAhead: 14,
@@ -142,7 +140,7 @@ export const DEFAULT_SETTINGS: AcademySettings = {
       id: 'divith',
       name: 'Divith Chowdhary',
       role: 'Founder & Lead Instructor · DJ UNTITLED.',
-      bio: 'Founder of GigCultureIndia, performing as UNTITLED. Melodic techno, progressive house, organic house. Trained under the founder of The Music Academy (production credits: Bang Bang, Chennai Express). Builds and teaches this course from real time behind the decks, not a textbook.',
+      bio: 'Founder of GigCultureIndia, performing as UNTITLED. Plays genre-fluid sets tuned to the room, not a fixed sound. Trained under the founder of The Music Academy (production credits: Bang Bang, Chennai Express). Builds and teaches this course from real time behind the decks, not a textbook.',
       initials: 'DC',
       photoUrl: '/divith.jpg',
       isLead: true,
@@ -175,7 +173,6 @@ export const DEFAULT_SETTINGS: AcademySettings = {
     { type: 'image', src: '/studio-2.jpg', alt: 'Masterclass session in progress' },
     { type: 'image', src: '/studio-4.jpg', alt: 'Learning on the Pioneer XDJ-RX3' },
     { type: 'image', src: '/studio-3.jpg', alt: 'Hands-on demo class' },
-    { type: 'image', src: '/studio-1.jpg', alt: 'One-on-one instruction' },
     { type: 'video', src: '/masterclass.mov', alt: 'Demo class footage', poster: '/studio-2.jpg' },
   ],
   hero: {
@@ -199,7 +196,8 @@ export function loadSettings(): AcademySettings {
       course: { ...structuredClone(DEFAULT_SETTINGS).course, ...stored.course },
       masterclass: { ...structuredClone(DEFAULT_SETTINGS).masterclass, ...stored.masterclass },
       hero: { ...structuredClone(DEFAULT_SETTINGS).hero, ...stored.hero },
-      studioGallery: stored.studioGallery ?? structuredClone(DEFAULT_SETTINGS).studioGallery,
+      studioGallery: (stored.studioGallery ?? structuredClone(DEFAULT_SETTINGS).studioGallery)
+        .filter((g: GalleryItem) => g.src !== '/studio-1.jpg'),
       // curriculum and instructors from storage override defaults entirely
       curriculum: stored.curriculum ?? structuredClone(DEFAULT_SETTINGS).curriculum,
       instructors: stored.instructors ?? structuredClone(DEFAULT_SETTINGS).instructors,

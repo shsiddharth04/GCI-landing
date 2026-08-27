@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { fetchMasterclassSlotData, bookMasterclassSlot } from '../lib/db'
 import type { SlotCounts, BlockedWindow, SlotOverride } from '../lib/db'
 import { loadSettings } from '../admin/settings'
+import { supabase } from '../lib/supabase'
 
 // ── Slot generation ──────────────────────────────────────────────────────────
 
@@ -112,8 +113,8 @@ type Stage = 'pick' | 'form' | 'success' | 'waitlisted'
 export default function SessionPicker() {
   const { masterclass } = loadSettings()
   const {
-    scheduleOpenTime = '11:00',
-    scheduleCloseTime = '20:00',
+    scheduleOpenTime = '10:00',
+    scheduleCloseTime = '22:00',
     slotMinutes = 30,
     slotCapacity = 3,
     scheduleDaysAhead = 14,
@@ -223,6 +224,10 @@ export default function SessionPicker() {
         return
       }
       setStage(result.status === 'waitlisted' ? 'waitlisted' : 'success')
+      // Send confirmation email — fire-and-forget, never block the UX
+      supabase.functions.invoke('send-masterclass-confirmation', {
+        body: { name: name.trim(), email: email.trim(), date: activeDate, startTime: selectedSlot.start, endTime: selectedSlot.end, status: result.status ?? 'confirmed' },
+      }).catch(() => {})
       // Refresh counts
       const from = dates[0]; const to = dates[dates.length - 1]
       fetchMasterclassSlotData(from, to).then(({ counts, blocked }) => { setCounts(counts); setBlocked(blocked) }).catch(() => null)
@@ -257,7 +262,7 @@ export default function SessionPicker() {
         )}
         <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.65 }}>
           {isWait
-            ? "This slot just filled up. You're on the waitlist — we'll reach out if a spot opens."
+            ? "This slot just filled up. You're on the waitlist. We'll reach out if a spot opens."
             : 'Confirmation details are on their way to your email. See you in the studio.'}
         </p>
       </motion.div>
@@ -480,7 +485,7 @@ export default function SessionPicker() {
                     transition: 'opacity 0.15s',
                   }}
                 >
-                  {submitting ? 'Booking…' : 'Confirm booking — free'}
+                  {submitting ? 'Booking…' : 'Confirm booking · free'}
                 </button>
               </form>
             </div>

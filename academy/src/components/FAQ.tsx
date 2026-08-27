@@ -47,20 +47,14 @@ export default function FAQ() {
   const [open, setOpen] = useState<number | null>(null)
   const { masterclass } = loadSettings()
 
-  const studioAnswer = (() => {
-    const a1 = masterclass.studioAddress
-    const a2 = masterclass.secondStudioAddress
-    if (a1 && a2) return `Two studio locations in Gurugram. Masters Union students: ${a1}. All other students: ${a2}. Your assigned studio is confirmed in your registration confirmation.`
-    if (a1) return a1
-    return null
-  })()
+  const studioAnswer = masterclass.studioAddress || null
 
   const faqs = studioAnswer
     ? BASE_FAQS.map(f => f.q.includes('Where is GCI Studio') ? { ...f, a: studioAnswer } : f)
     : BASE_FAQS
 
   return (
-    <section id="faq" style={{ padding: '112px 24px', background: '#0a0810' }}>
+    <section id="faq" style={{ padding: 'clamp(64px, 10vw, 112px) 24px', background: '#0a0810' }}>
       <div style={{ maxWidth: '720px', margin: '0 auto' }}>
         <motion.div
           initial="hidden" whileInView="visible" viewport={viewportOnce}

@@ -54,12 +54,12 @@ function LeadInstructor({ inst }: { inst: Instructor }) {
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, padding: '48px 44px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+      <div style={{ flex: 1, padding: 'clamp(24px, 4vw, 48px) clamp(20px, 4vw, 44px)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(212,191,255,0.4)', letterSpacing: '0.28em', textTransform: 'uppercase', marginBottom: '20px' }}>
           Lead Instructor
         </div>
 
-        <h3 style={{ fontSize: 'clamp(2.5rem, 5vw, 3.5rem)', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.05, fontFamily: "'Plus Jakarta Sans', sans-serif", marginBottom: '8px' }}>
+        <h3 style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.05, fontFamily: "'Plus Jakarta Sans', sans-serif", marginBottom: '8px' }}>
           {inst.name}
         </h3>
 
@@ -165,7 +165,7 @@ export default function Instructors() {
   const secondary = instructors.filter(i => !i.isLead || i !== lead)
 
   return (
-    <section id="instructors" style={{ padding: '112px 24px', background: '#050505' }}>
+    <section id="instructors" style={{ padding: 'clamp(64px, 10vw, 112px) 24px', background: '#050505' }}>
       <div style={{ maxWidth: '1152px', margin: '0 auto' }}>
         <motion.div
           initial="hidden" whileInView="visible" viewport={viewportOnce}

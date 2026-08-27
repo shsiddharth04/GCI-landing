@@ -20,7 +20,7 @@ export default function Curriculum() {
     : PLACEHOLDER_MODULES
 
   return (
-    <section id="curriculum" style={{ padding: '112px 24px', background: '#0a0810' }}>
+    <section id="curriculum" style={{ padding: 'clamp(64px, 10vw, 112px) 24px', background: '#0a0810' }}>
       <div style={{ maxWidth: '900px', margin: '0 auto' }}>
         <motion.div
           initial="hidden" whileInView="visible" viewport={viewportOnce}
