@@ -68,13 +68,7 @@ export default function Pathway() {
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(212,191,255,0.6), transparent)' }} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {[
-                  ...(masterclass.secondStudioAddress
-                    ? [
-                        { label: 'MU students', value: masterclass.studioAddress || masterclass.studioName || 'Shankar Chowk, Udyog Vihar' },
-                        { label: 'All others', value: masterclass.secondStudioAddress },
-                      ]
-                    : [{ label: 'Location', value: masterclass.studioAddress || masterclass.studioName || 'GCI Studio, Gurugram' }]
-                  ),
+                  { label: 'Location', value: masterclass.studioAddress || masterclass.studioName || 'GCI Studio, Gurugram' },
                   { label: 'Cost', value: 'Free' },
                 ].map(row => <DetailRow key={row.label} {...row} />)}
               </div>
@@ -172,13 +166,7 @@ export default function Pathway() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {[
                   { label: 'Duration', value: '2 months' },
-                  ...(masterclass.secondStudioAddress
-                    ? [
-                        { label: 'MU students', value: masterclass.studioAddress || masterclass.studioName || 'Shankar Chowk, Udyog Vihar' },
-                        { label: 'All others', value: masterclass.secondStudioAddress },
-                      ]
-                    : [{ label: 'Studio', value: masterclass.studioAddress || masterclass.studioName || 'GCI Studio, Gurugram' }]
-                  ),
+                  { label: 'Studio', value: masterclass.studioAddress || masterclass.studioName || 'GCI Studio, Gurugram' },
                   { label: 'Equipment', value: 'Pioneer XDJ-RX3, Sennheiser HD 25 Plus' },
                   { label: 'Batch size', value: '3 students (by design)' },
                   ...(courseFee ? [{ label: 'Fee', value: courseFee }] : []),

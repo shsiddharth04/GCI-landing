@@ -40,7 +40,6 @@ export interface MasterclassSettings {
   duration: string
   studioName: string
   studioAddress: string
-  secondStudioAddress: string
   mapEmbedUrl: string
   seatCap: number
   isActive: boolean
@@ -124,7 +123,6 @@ export const DEFAULT_SETTINGS: AcademySettings = {
     duration: '',
     studioName: 'GCI Studio, Gurugram',
     studioAddress: '11th Floor, Capital Tower, Next To CDS Tower, Sector 20, Gurugram',
-    secondStudioAddress: 'DLF Phase 3, V Block, Sector 24, Gurugram',
     mapEmbedUrl: '',
     seatCap: 0,
     isActive: true,
