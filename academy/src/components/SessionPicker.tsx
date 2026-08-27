@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { fetchMasterclassSlotData, bookMasterclassSlot } from '../lib/db'
 import type { SlotCounts, BlockedWindow, SlotOverride } from '../lib/db'
 import { loadSettings } from '../admin/settings'
+import { supabase } from '../lib/supabase'
 
 // ── Slot generation ──────────────────────────────────────────────────────────
 
@@ -223,6 +224,10 @@ export default function SessionPicker() {
         return
       }
       setStage(result.status === 'waitlisted' ? 'waitlisted' : 'success')
+      // Send confirmation email — fire-and-forget, never block the UX
+      supabase.functions.invoke('send-masterclass-confirmation', {
+        body: { name: name.trim(), email: email.trim(), date: activeDate, startTime: selectedSlot.start, endTime: selectedSlot.end, status: result.status ?? 'confirmed' },
+      }).catch(() => {})
       // Refresh counts
       const from = dates[0]; const to = dates[dates.length - 1]
       fetchMasterclassSlotData(from, to).then(({ counts, blocked }) => { setCounts(counts); setBlocked(blocked) }).catch(() => null)
