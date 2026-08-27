@@ -43,20 +43,14 @@ function ImageTile({ item, isFeatured }: { item: GalleryItem; isFeatured?: boole
       />
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(212,191,255,0.06)', pointerEvents: 'none' }} />
       {isFeatured && (
-        <>
-          <div style={{
-            position: 'absolute', inset: 0, pointerEvents: 'none',
-            background: 'linear-gradient(to bottom, transparent 55%, rgba(5,5,5,0.75) 100%)',
-          }} />
-          <div aria-hidden style={{
-            position: 'absolute', bottom: '20px', left: '24px',
-            fontFamily: "'Space Mono', monospace", fontSize: '80px', fontWeight: 700,
-            color: '#d4bfff', opacity: 0.5, lineHeight: 1,
-            userSelect: 'none', pointerEvents: 'none',
-          }}>
-            01
-          </div>
-        </>
+        <div aria-hidden style={{
+          position: 'absolute', bottom: '16px', left: '16px',
+          fontFamily: "'Space Mono', monospace", fontSize: '56px', fontWeight: 700,
+          color: '#d4bfff', opacity: 0.4, lineHeight: 1,
+          userSelect: 'none', pointerEvents: 'none',
+        }}>
+          01
+        </div>
       )}
     </div>
   )
@@ -89,23 +83,20 @@ export default function StudioGallery() {
 
   if (!studioGallery || studioGallery.length === 0) return null
 
-  const [featured, ...rest] = studioGallery
-
   return (
     <section style={{ background: '#050505' }}>
       <style>{`
-        .gallery-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 2px;
+        .gallery-masonry {
+          columns: 2;
+          column-gap: 2px;
         }
-        .gallery-featured { grid-column: 1 / -1; }
-        @media (max-width: 767px) {
-          .gallery-grid { grid-template-columns: 1fr 1fr; }
-          .gallery-featured { grid-column: 1 / -1; }
+        .gallery-item {
+          break-inside: avoid;
+          margin-bottom: 2px;
+          display: block;
         }
         @media (max-width: 479px) {
-          .gallery-grid { grid-template-columns: 1fr; }
+          .gallery-masonry { columns: 1; }
         }
       `}</style>
 
@@ -127,15 +118,10 @@ export default function StudioGallery() {
         variants={fadeIn}
         style={{ maxWidth: '1152px', margin: '0 auto', padding: '0 24px clamp(48px, 8vw, 80px)' }}
       >
-        <div className="gallery-grid">
-          {featured && (
-            <div className="gallery-featured">
-              <Tile item={featured} isFeatured />
-            </div>
-          )}
-          {rest.map((item, i) => (
-            <div key={i}>
-              <Tile item={item} />
+        <div className="gallery-masonry">
+          {studioGallery.map((item, i) => (
+            <div key={i} className="gallery-item">
+              <Tile item={item} isFeatured={i === 0} />
             </div>
           ))}
         </div>
