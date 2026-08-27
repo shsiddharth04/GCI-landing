@@ -158,6 +158,14 @@ export async function reassignRegistration(
   return data as { success: boolean; reason?: string }
 }
 
+export async function cancelSession(sessionId: string): Promise<void> {
+  const { error } = await supabase
+    .from('sessions')
+    .update({ status: 'cancelled' })
+    .eq('id', sessionId)
+  if (error) throw error
+}
+
 export async function fetchInstructors(): Promise<Instructor[]> {
   const { data, error } = await supabase
     .from('instructors')
