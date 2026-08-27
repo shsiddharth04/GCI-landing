@@ -224,6 +224,7 @@ function RecurringForm({
   onCancel: () => void
 }) {
   const [instructorId, setInstructorId] = useState(instructors[0]?.id ?? '')
+  const [sessionType, setSessionType] = useState<'masterclass' | 'course_class'>('masterclass')
   const [days, setDays] = useState<number[]>([])
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
@@ -250,7 +251,7 @@ function RecurringForm({
       try {
         await createSession({
           instructor_id: instructorId,
-          session_type: 'masterclass',
+          session_type: sessionType,
           course_id: null,
           session_date: date,
           start_time: startTime,
@@ -282,7 +283,14 @@ function RecurringForm({
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-2 gap-3">
-        <div className="col-span-2">
+        <div>
+          <label className={labelCls}>Type</label>
+          <select value={sessionType} onChange={e => setSessionType(e.target.value as typeof sessionType)} className={inputCls}>
+            <option value="masterclass">Masterclass</option>
+            <option value="course_class">Course class</option>
+          </select>
+        </div>
+        <div>
           <label className={labelCls}>Instructor</label>
           <select value={instructorId} onChange={e => setInstructorId(e.target.value)} className={inputCls}>
             {instructors.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
