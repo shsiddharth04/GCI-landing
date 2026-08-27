@@ -1,5 +1,4 @@
 import { motion } from 'motion/react'
-import { loadSettings } from '../admin/settings'
 import { useScramble } from '../hooks/useScramble'
 
 /* ─── Full-width equalizer waveform ───────────────────────────── */
@@ -92,9 +91,6 @@ function ScrambleCTA({ label, sub, href, primary }: { label: string; sub?: strin
 
 /* ─── Hero ────────────────────────────────────────────────────── */
 export default function Hero() {
-  const { course } = loadSettings()
-  const feeLabel = course.fee ? `₹${Number(course.fee).toLocaleString('en-IN')}` : ''
-
   return (
     <section className="ink-dot-grid relative min-h-screen bg-[#050505] overflow-hidden flex flex-col justify-center pt-20">
 
@@ -281,30 +277,11 @@ export default function Hero() {
           </p>
 
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginLeft: 'auto' }}>
-            <ScrambleCTA label="Register — free" sub="₹2,500 value" href="#masterclass" primary />
+            <ScrambleCTA label="Register — free" href="#masterclass" primary />
             <ScrambleCTA label="Join the course" href="#course" />
           </div>
         </motion.div>
 
-        {/* Stats */}
-        {feeLabel && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.4, delay: 0.8 }}
-            style={{ display: 'flex', gap: '28px', marginTop: '24px', flexWrap: 'wrap' }}
-          >
-            {[
-              { label: 'Course fee', value: feeLabel },
-              { label: 'Format', value: 'In-studio' },
-            ].map(({ label, value }) => (
-              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(255,255,255,0.16)', letterSpacing: '0.18em', textTransform: 'uppercase' }}>{label}</span>
-                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#d4bfff' }}>{value}</span>
-              </div>
-            ))}
-          </motion.div>
-        )}
       </div>
 
       {/* ── Full-width waveform — pinned to bottom ────────────── */}
