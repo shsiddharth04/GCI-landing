@@ -166,6 +166,17 @@ export async function bookMasterclassSlot(
   phone: string,
   slotCapacity = 3,
 ): Promise<{ id?: string; status?: 'confirmed' | 'waitlisted'; error?: string }> {
+  // One slot per person — reject if email already has an active future booking
+  const today = new Date().toISOString().slice(0, 10)
+  const { data: existing } = await supabase
+    .from('masterclass_bookings')
+    .select('id')
+    .eq('email', email)
+    .neq('status', 'cancelled')
+    .gte('slot_date', today)
+    .limit(1)
+  if (existing && existing.length > 0) return { error: 'already_registered' }
+
   const { data, error } = await supabase.rpc('book_masterclass_slot', {
     p_date: date,
     p_start_time: startTime,
