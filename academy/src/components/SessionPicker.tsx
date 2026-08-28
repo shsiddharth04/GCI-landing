@@ -215,11 +215,6 @@ export default function SessionPicker() {
         name.trim(), email.trim(), phone.replace(/[\s\-+]/g, ''),
         slotCapacity,
       )
-      if (result.error === 'already_registered') {
-        setFormError('You already have a masterclass slot booked. Each person can register once.')
-        setSubmitting(false)
-        return
-      }
       if (result.error === 'slot_blocked') {
         setFormError('This slot was just blocked by a class. Pick another time.')
         // Refresh slot data

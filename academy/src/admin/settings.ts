@@ -132,7 +132,7 @@ export const DEFAULT_SETTINGS: AcademySettings = {
     scheduleOpenTime: '10:00',
     scheduleCloseTime: '22:00',
     slotMinutes: 30,
-    slotCapacity: 3,
+    slotCapacity: 1,
     scheduleDaysAhead: 14,
   },
   instructors: [
@@ -194,7 +194,11 @@ export function loadSettings(): AcademySettings {
       ...structuredClone(DEFAULT_SETTINGS),
       ...stored,
       course: { ...structuredClone(DEFAULT_SETTINGS).course, ...stored.course },
-      masterclass: { ...structuredClone(DEFAULT_SETTINGS).masterclass, ...stored.masterclass },
+      masterclass: (() => {
+        const m = { ...structuredClone(DEFAULT_SETTINGS).masterclass, ...stored.masterclass }
+        if (m.slotCapacity === 3) m.slotCapacity = 1 // migrate from old default
+        return m
+      })(),
       hero: { ...structuredClone(DEFAULT_SETTINGS).hero, ...stored.hero },
       studioGallery: (stored.studioGallery ?? structuredClone(DEFAULT_SETTINGS).studioGallery)
         .filter((g: GalleryItem) => g.src !== '/studio-1.jpg'),
