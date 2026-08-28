@@ -1,7 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
-const FROM = 'GCI Music Academy <academy@gigcultureindia.com>'
+const FROM = 'GCI Music Academy <noreply@gigcultureindia.com>'
 const STUDIO_ADDRESS = '11th Floor, Capital Tower, Next To CDS Tower, Sector 20, Gurugram'
 
 function fmt24to12(t: string): string {
@@ -80,7 +80,6 @@ function confirmedHtml(name: string, date: string, start: string, end: string): 
 
         <!-- Footer -->
         <tr><td style="padding:40px 0 0;border-top:1px solid rgba(212,191,255,0.08);margin-top:40px;">
-          <p style="margin:0 0 4px;font-size:12px;color:rgba(255,255,255,0.25);">Questions? Reply to this email.</p>
           <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.15);">GCI Music Academy · Gurugram</p>
         </td></tr>
 
@@ -139,7 +138,6 @@ function waitlistedHtml(name: string, date: string, start: string, end: string):
         </td></tr>
 
         <tr><td style="padding:40px 0 0;border-top:1px solid rgba(212,191,255,0.08);margin-top:40px;">
-          <p style="margin:0 0 4px;font-size:12px;color:rgba(255,255,255,0.25);">Questions? Reply to this email.</p>
           <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.15);">GCI Music Academy · Gurugram</p>
         </td></tr>
 
