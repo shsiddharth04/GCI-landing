@@ -174,10 +174,11 @@ export const DEFAULT_SETTINGS: AcademySettings = {
     { id: '09', weekLabel: 'MOD 09', order: 8, title: 'GigCulture Artist Onboarding', description: 'Upon completion, you are onboarded onto the GigCultureIndia platform as a listed artist. Your profile enters our genre and vibe-matching engine, connecting you to venues, events and organizers actively looking for artists like you.' },
   ],
   studioGallery: [
-    { type: 'image', src: '/studio-2.jpg', alt: 'Masterclass session in progress' },
-    { type: 'image', src: '/studio-4.jpg', alt: 'Learning on the Pioneer XDJ-RX3' },
-    { type: 'image', src: '/studio-3.jpg', alt: 'Hands-on demo class' },
-    { type: 'video', src: '/masterclass.mov', alt: 'Demo class footage', poster: '/studio-2.jpg' },
+    { type: 'video', src: '/masterclass/mc-v1.mov', alt: 'Masterclass session' },
+    { type: 'image', src: '/masterclass/mc-img1.jpg', alt: 'Inside the session' },
+    { type: 'video', src: '/masterclass/mc-v2.mov', alt: 'Learning on the decks' },
+    { type: 'video', src: '/masterclass/mc-v3.mov', alt: 'Hands-on demo' },
+    { type: 'image', src: '/masterclass/mc-img2.jpg', alt: 'Studio session' },
   ],
   hero: {
     cohortLabel: 'Founding Batch · Applications Open',
@@ -205,7 +206,7 @@ export function loadSettings(): AcademySettings {
       })(),
       hero: { ...structuredClone(DEFAULT_SETTINGS).hero, ...stored.hero },
       studioGallery: (stored.studioGallery ?? structuredClone(DEFAULT_SETTINGS).studioGallery)
-        .filter((g: GalleryItem) => g.src !== '/studio-1.jpg'),
+        .filter((g: GalleryItem) => !['/studio-1.jpg', '/studio-2.jpg', '/studio-3.jpg', '/studio-4.jpg', '/masterclass.mov'].includes(g.src)),
       // curriculum and instructors from storage override defaults entirely
       curriculum: stored.curriculum ?? structuredClone(DEFAULT_SETTINGS).curriculum,
       instructors: stored.instructors ?? structuredClone(DEFAULT_SETTINGS).instructors,

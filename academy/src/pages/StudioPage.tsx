@@ -1,7 +1,11 @@
 import { motion } from 'motion/react'
-import { loadSettings } from '../admin/settings'
 import type { GalleryItem } from '../admin/settings'
 import type { MouseEvent } from 'react'
+
+const STUDIO_MEDIA: GalleryItem[] = [
+  { type: 'video', src: '/studio/studio-v1.mov', alt: 'GCI Studio' },
+  { type: 'video', src: '/studio/studio-v2.mov', alt: 'The studio space' },
+]
 
 function tilt(e: MouseEvent<HTMLDivElement>, strength = 5) {
   const rect = e.currentTarget.getBoundingClientRect()
@@ -51,7 +55,7 @@ function VideoTile({ item }: { item: GalleryItem }) {
 }
 
 export default function StudioPage() {
-  const { studioGallery } = loadSettings()
+  const studioGallery = STUDIO_MEDIA
 
   function handleBack() {
     if (window.history.length > 1) {
