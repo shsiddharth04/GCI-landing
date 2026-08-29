@@ -125,6 +125,16 @@ export default function StudioGallery() {
             </div>
           ))}
         </div>
+        <div style={{ marginTop: '20px', textAlign: 'right' }}>
+          <a href="/studio" style={{
+            fontFamily: "'Space Mono', monospace", fontSize: '9px', letterSpacing: '0.22em',
+            textTransform: 'uppercase', color: 'rgba(212,191,255,0.45)',
+            textDecoration: 'none', transition: 'color 0.2s',
+          }}
+            onMouseEnter={e => (e.currentTarget.style.color = '#d4bfff')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(212,191,255,0.45)')}
+          >Studio tour &rarr;</a>
+        </div>
       </motion.div>
     </section>
   )

@@ -6,11 +6,19 @@ import { fadeUp, viewportOnce } from '../lib/motion'
 import SessionPicker from './SessionPicker'
 import CallbackForm from './CallbackForm'
 
-function DetailRow({ label, value }: { label: string; value: string }) {
+function DetailRow({ label, value, originalValue }: { label: string; value: string; originalValue?: string }) {
   return (
     <div>
       <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(212,191,255,0.4)', letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: '3px' }}>{label}</div>
-      <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{value}</div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+        {originalValue && (
+          <span style={{ fontSize: '12px', color: 'rgba(212,191,255,0.35)', textDecoration: 'line-through', fontFamily: "'Space Mono', monospace" }}>{originalValue}</span>
+        )}
+        <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)', fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: originalValue ? 700 : 400 }}>{value}</span>
+      </div>
+      {originalValue && (
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(212,191,255,0.45)', letterSpacing: '0.1em', marginTop: '4px' }}>₹179 masterclass fee credited on enrollment</div>
+      )}
     </div>
   )
 }
@@ -20,6 +28,8 @@ export default function Pathway() {
   const [callbackOpen, setCallbackOpen] = useState(false)
 
   const courseFee = course.fee ? `₹${Number(course.fee).toLocaleString('en-IN')}` : ''
+  const courseOriginalFee = course.originalFee ? `₹${Number(course.originalFee).toLocaleString('en-IN')}` : ''
+  const masterclassFee = masterclass.fee ? `₹${Number(masterclass.fee).toLocaleString('en-IN')}` : '₹179'
 
   return (
     <>
@@ -45,7 +55,7 @@ export default function Pathway() {
                 [01] Start here
               </div>
               <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 800, color: '#050505', lineHeight: 1.1, letterSpacing: '-0.025em', marginBottom: '20px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                Free Masterclass.<br />Inside the studio.
+                1-on-1 Masterclass.<br />Inside the studio.
               </h2>
               <p style={{ fontSize: '14px', color: 'rgba(5,5,5,0.58)', lineHeight: 1.7, marginBottom: '8px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                 {masterclass.whatsInside}
@@ -67,10 +77,12 @@ export default function Pathway() {
             >
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(212,191,255,0.6), transparent)' }} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                {[
-                  { label: 'Location', value: masterclass.studioAddress || masterclass.studioName || 'GCI Studio, Gurugram' },
-                  { label: 'Cost', value: 'Free' },
-                ].map(row => <DetailRow key={row.label} {...row} />)}
+                <DetailRow label="Location" value={masterclass.studioAddress || masterclass.studioName || 'GCI Studio, Gurugram'} />
+                <div>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(212,191,255,0.4)', letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: '3px' }}>Cost</div>
+                  <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)', fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600 }}>{masterclassFee}</div>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(212,191,255,0.45)', letterSpacing: '0.1em', marginTop: '4px' }}>Credited toward course fee on enrollment</div>
+                </div>
               </div>
             </motion.div>
           </div>
@@ -169,8 +181,10 @@ export default function Pathway() {
                   { label: 'Studio', value: masterclass.studioAddress || masterclass.studioName || 'GCI Studio, Gurugram' },
                   { label: 'Equipment', value: 'Pioneer XDJ-RX3, Sennheiser HD 25 Plus' },
                   { label: 'Batch size', value: '3 students (by design)' },
-                  ...(courseFee ? [{ label: 'Fee', value: courseFee }] : []),
-                ].map(row => <DetailRow key={row.label} {...row} />)}
+                ].map(row => <DetailRow key={row.label} label={row.label} value={row.value} />)}
+                {courseFee && (
+                  <DetailRow label="Fee" value={courseFee} originalValue={courseOriginalFee || undefined} />
+                )}
               </div>
               <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid rgba(212,191,255,0.08)' }}>
                 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(212,191,255,0.3)', letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: '6px' }}>Deposit</div>

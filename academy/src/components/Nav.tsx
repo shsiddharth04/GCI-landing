@@ -8,6 +8,8 @@ const NAV_SECTIONS = [
   ['#faq', 'FAQ'],
 ] as const
 
+const STUDIO_HREF = '/studio'
+
 export default function Nav() {
   const [open, setOpen] = useState(false)
   const [activeSection, setActiveSection] = useState<string>('')
@@ -71,6 +73,11 @@ export default function Nav() {
               onMouseLeave={e => (e.currentTarget.style.color = isActive(href) ? '#d4bfff' : 'rgba(255,255,255,0.45)')}
             >{label}</a>
           ))}
+          <a href={STUDIO_HREF}
+            style={{ transition: 'color 0.2s', textDecoration: 'none', color: 'rgba(255,255,255,0.45)' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'white')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}
+          >Studio</a>
         </nav>
 
         <div className="hidden md:flex items-center gap-4">
@@ -89,7 +96,7 @@ export default function Nav() {
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#e0d4ff'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 32px rgba(212,191,255,0.6)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#d4bfff'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 22px rgba(212,191,255,0.4)' }}
           >
-            REGISTER FREE
+            BOOK ₹179
           </a>
         </div>
 
@@ -105,13 +112,16 @@ export default function Nav() {
               style={{ display: 'block', fontSize: '14px', color: isActive(href) ? '#d4bfff' : 'rgba(255,255,255,0.55)', textDecoration: 'none' }}
             >{label}</a>
           ))}
-          <a href="#masterclass" style={{
+          <a href={STUDIO_HREF} onClick={() => setOpen(false)}
+            style={{ display: 'block', fontSize: '14px', color: 'rgba(255,255,255,0.55)', textDecoration: 'none' }}
+          >Studio</a>
+          <a href="#masterclass" onClick={() => setOpen(false)} style={{
             display: 'block', textAlign: 'center',
             background: '#d4bfff', color: '#050505',
             fontWeight: 700, padding: '14px',
             fontSize: '12px', fontFamily: "'Space Mono', monospace",
             letterSpacing: '0.08em', textDecoration: 'none',
-          }}>REGISTER FREE · MASTERCLASS</a>
+          }}>BOOK ₹179 · MASTERCLASS</a>
         </div>
       )}
     </header>

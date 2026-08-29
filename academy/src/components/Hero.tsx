@@ -277,7 +277,7 @@ export default function Hero() {
           </p>
 
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginLeft: 'auto' }}>
-            <ScrambleCTA label="Register free" href="#masterclass" primary />
+            <ScrambleCTA label="Book · ₹179" href="#masterclass" primary />
             <ScrambleCTA label="Join the course" href="#course" />
           </div>
         </motion.div>

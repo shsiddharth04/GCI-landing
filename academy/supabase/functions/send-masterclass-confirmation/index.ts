@@ -24,7 +24,7 @@ function confirmedHtml(name: string, date: string, start: string, end: string): 
   const timeLabel = `${fmt24to12(start)} to ${fmt24to12(end)}`
   return `<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>You're in — GCI Masterclass</title></head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Booking received — GCI Masterclass</title></head>
 <body style="margin:0;padding:0;background:#050505;font-family:'Helvetica Neue',Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#050505;padding:48px 24px;">
     <tr><td align="center">
@@ -41,13 +41,13 @@ function confirmedHtml(name: string, date: string, start: string, end: string): 
 
         <!-- Headline -->
         <tr><td style="padding:40px 0 8px;">
-          <p style="margin:0 0 6px;font-family:monospace;font-size:9px;letter-spacing:0.28em;text-transform:uppercase;color:#d4bfff;">Confirmed</p>
-          <h1 style="margin:0;font-size:32px;font-weight:800;color:#ffffff;letter-spacing:-0.025em;line-height:1.1;">You're in.</h1>
+          <p style="margin:0 0 6px;font-family:monospace;font-size:9px;letter-spacing:0.28em;text-transform:uppercase;color:#d4bfff;">Request received</p>
+          <h1 style="margin:0;font-size:32px;font-weight:800;color:#ffffff;letter-spacing:-0.025em;line-height:1.1;">We've got you.</h1>
         </td></tr>
 
         <!-- Greeting -->
         <tr><td style="padding-bottom:32px;">
-          <p style="margin:0;font-size:14px;color:rgba(255,255,255,0.55);line-height:1.7;">Hi ${name}, your masterclass slot is confirmed. See the details below.</p>
+          <p style="margin:0;font-size:14px;color:rgba(255,255,255,0.55);line-height:1.7;">Hi ${name}, we've received your booking request for the slot below. Our team will reach out to confirm your slot and share payment details for the ₹179 session fee.</p>
         </td></tr>
 
         <!-- Details card -->
@@ -66,16 +66,11 @@ function confirmedHtml(name: string, date: string, start: string, end: string): 
               <p style="margin:0;font-size:14px;color:rgba(255,255,255,0.85);font-weight:600;">${STUDIO_ADDRESS}</p>
             </td></tr>
             <tr><td style="padding:20px 0 0;">
-              <p style="margin:0 0 3px;font-family:monospace;font-size:8px;letter-spacing:0.22em;text-transform:uppercase;color:rgba(212,191,255,0.4);">Cost</p>
-              <p style="margin:0;font-size:14px;color:#d4bfff;font-weight:600;">Free</p>
+              <p style="margin:0 0 3px;font-family:monospace;font-size:8px;letter-spacing:0.22em;text-transform:uppercase;color:rgba(212,191,255,0.4);">Session fee</p>
+              <p style="margin:0;font-size:14px;color:#d4bfff;font-weight:600;">₹179</p>
+              <p style="margin:4px 0 0;font-family:monospace;font-size:8px;color:rgba(212,191,255,0.35);letter-spacing:0.1em;">Credited toward course fee on enrollment</p>
             </td></tr>
           </table>
-        </td></tr>
-
-        <!-- What to bring -->
-        <tr><td style="padding:32px 0 0;">
-          <p style="margin:0 0 12px;font-family:monospace;font-size:8px;letter-spacing:0.22em;text-transform:uppercase;color:rgba(212,191,255,0.4);">What to bring</p>
-          <p style="margin:0;font-size:14px;color:rgba(255,255,255,0.5);line-height:1.7;">Nothing. Just show up. We have the gear, the space, and the plan. Wear something you can move in.</p>
         </td></tr>
 
         <!-- Footer -->
@@ -164,7 +159,7 @@ serve(async (req) => {
   const isWaitlisted = status === 'waitlisted'
   const subject = isWaitlisted
     ? `You're on the waitlist — GCI Masterclass`
-    : `You're in — GCI Masterclass, ${fmtDate(date)}`
+    : `Booking received — GCI Masterclass, ${fmtDate(date)}`
   const html = isWaitlisted
     ? waitlistedHtml(name, date, startTime, endTime)
     : confirmedHtml(name, date, startTime, endTime)

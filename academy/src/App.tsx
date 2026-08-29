@@ -11,8 +11,11 @@ import PaymentPlans from './components/PaymentPlans'
 import Curriculum from './components/Curriculum'
 import FAQ from './components/FAQ'
 import Footer from './components/Footer'
+import StudioPage from './pages/StudioPage'
 
 export default function App() {
+  if (window.location.pathname === '/studio') return <StudioPage />
+
   return (
     <div className="public-site grain min-h-screen bg-[#050505] text-white relative">
       <CustomCursor />
