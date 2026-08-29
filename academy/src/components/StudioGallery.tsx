@@ -14,6 +14,8 @@ function resetTilt(e: MouseEvent<HTMLDivElement>) {
   e.currentTarget.style.transform = 'none'
 }
 
+const TILE_HEIGHT = 'clamp(220px, 38vw, 480px)'
+
 function ImageTile({ item, isFeatured }: { item: GalleryItem; isFeatured?: boolean }) {
   return (
     <div
@@ -23,6 +25,8 @@ function ImageTile({ item, isFeatured }: { item: GalleryItem; isFeatured?: boole
         position: 'relative',
         background: '#0f0d18',
         lineHeight: 0,
+        overflow: 'hidden',
+        height: TILE_HEIGHT,
         transition: 'transform 0.18s ease',
         transformStyle: 'preserve-3d',
       }}
@@ -34,7 +38,9 @@ function ImageTile({ item, isFeatured }: { item: GalleryItem; isFeatured?: boole
         style={{
           display: 'block',
           width: '100%',
-          height: 'auto',
+          height: '100%',
+          objectFit: 'cover',
+          objectPosition: 'center',
           filter: 'grayscale(100%) contrast(1.3) brightness(0.85)',
           transition: 'filter 0.5s',
         }}
@@ -58,14 +64,14 @@ function ImageTile({ item, isFeatured }: { item: GalleryItem; isFeatured?: boole
 
 function VideoTile({ item }: { item: GalleryItem }) {
   return (
-    <div style={{ position: 'relative', lineHeight: 0, background: '#0f0d18' }}>
+    <div style={{ position: 'relative', lineHeight: 0, background: '#0f0d18', overflow: 'hidden', height: TILE_HEIGHT }}>
       <video
         src={item.src}
         autoPlay
         muted
         loop
         playsInline
-        style={{ display: 'block', width: '100%', height: 'auto' }}
+        style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
       />
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(212,191,255,0.04)', pointerEvents: 'none' }} />
     </div>
