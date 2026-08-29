@@ -2,8 +2,8 @@ import { motion } from 'motion/react'
 import type { GalleryItem } from '../admin/settings'
 
 const STUDIO_MEDIA: GalleryItem[] = [
-  { type: 'video', src: '/studio/studio-v1.mov', alt: 'GCI Studio' },
-  { type: 'video', src: '/studio/studio-v2.mov', alt: 'The studio space' },
+  { type: 'video', src: '/studio/studio-v1.mov', alt: 'GCI Studio — Pioneer XDJ-RX3' },
+  { type: 'video', src: '/studio/studio-v2.mov', alt: 'GCI Studio — The booth' },
 ]
 
 export default function StudioPage() {
@@ -13,7 +13,7 @@ export default function StudioPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#050505', color: 'white', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', background: '#050505', color: 'white' }}>
 
       {/* Top bar */}
       <div style={{
@@ -49,117 +49,167 @@ export default function StudioPage() {
         </a>
       </div>
 
-      {/* Header — above the diptych */}
+      {/* Header */}
       <motion.div
-        initial={{ opacity: 0, y: 14 }}
+        initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-        style={{ paddingTop: '100px', paddingBottom: '32px', paddingLeft: '24px', paddingRight: '24px' }}
+        transition={{ duration: 0.55, ease: 'easeOut' }}
+        style={{ paddingTop: '110px', paddingBottom: '40px', paddingLeft: '24px', paddingRight: '24px' }}
       >
-        <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(212,191,255,0.35)', letterSpacing: '0.3em', textTransform: 'uppercase', marginBottom: '12px' }}>
-          GCI Studio · 11th Floor, Capital Tower, Sector 20, Gurugram
-        </p>
-        <h1 style={{
-          fontSize: 'clamp(3.5rem, 9vw, 8rem)', fontWeight: 800,
-          lineHeight: 0.88, letterSpacing: '-0.04em',
-          fontFamily: "'Plus Jakarta Sans', sans-serif",
-          margin: 0,
+        <p style={{
+          fontFamily: "'Space Mono', monospace", fontSize: '9px',
+          color: 'rgba(212,191,255,0.35)', letterSpacing: '0.3em',
+          textTransform: 'uppercase', marginBottom: '14px',
         }}>
-          The<br /><span style={{ WebkitTextStroke: '2px #d4bfff', WebkitTextFillColor: 'transparent' }}>Studio.</span>
-        </h1>
+          GCI Studio · Sector 20, Gurugram
+        </p>
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px' }}>
+          <h1 style={{
+            fontSize: 'clamp(3.8rem, 10vw, 9rem)', fontWeight: 800,
+            lineHeight: 0.88, letterSpacing: '-0.04em',
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            margin: 0,
+          }}>
+            The<br /><span style={{ WebkitTextStroke: '2px #d4bfff', WebkitTextFillColor: 'transparent' }}>Studio.</span>
+          </h1>
+          <div style={{ paddingBottom: '8px' }}>
+            <p style={{
+              fontFamily: "'Space Mono', monospace", fontSize: '8px',
+              color: 'rgba(212,191,255,0.25)', letterSpacing: '0.18em',
+              textTransform: 'uppercase', margin: '0 0 4px',
+            }}>Equipment</p>
+            <p style={{
+              fontFamily: "'Space Mono', monospace", fontSize: '10px',
+              color: 'rgba(255,255,255,0.45)', letterSpacing: '0.06em',
+              lineHeight: 1.8, margin: 0,
+            }}>
+              Pioneer XDJ-RX3<br />
+              Sennheiser HD 25 Plus<br />
+              Rekordbox
+            </p>
+          </div>
+        </div>
       </motion.div>
 
-      {/* Full-bleed diptych */}
+      {/* Video 01 — full bleed */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.7, delay: 0.15 }}
-        style={{ position: 'relative', width: '100%', flex: 1 }}
+        transition={{ duration: 0.7, delay: 0.1 }}
+        style={{ position: 'relative', lineHeight: 0 }}
       >
-        <style>{`
-          .diptych {
-            display: flex;
-            height: 65vh;
-            gap: 2px;
-            min-height: 320px;
-          }
-          .diptych-panel {
-            position: relative;
-            overflow: hidden;
-            flex: 1;
-          }
-          .diptych-panel:first-child { flex: 1.35; }
-          .diptych-panel video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-          }
-          .diptych-label {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            font-family: 'Space Mono', monospace;
-            font-size: 8px;
-            letter-spacing: 0.28em;
-            text-transform: uppercase;
-            color: rgba(212,191,255,0.35);
-            pointer-events: none;
-          }
-          .diptych-index {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            font-family: 'Space Mono', monospace;
-            font-size: 10px;
-            letter-spacing: 0.18em;
-            color: rgba(212,191,255,0.18);
-            pointer-events: none;
-          }
-          @media (max-width: 600px) {
-            .diptych { flex-direction: column; height: auto; }
-            .diptych-panel { flex: none !important; height: 50vw; min-height: 200px; }
-          }
-        `}</style>
+        <video
+          src={STUDIO_MEDIA[0].src}
+          autoPlay
+          muted
+          loop
+          playsInline
+          style={{ display: 'block', width: '100%', height: 'auto' }}
+        />
+        {/* Large index number bleeding over the frame */}
+        <div aria-hidden style={{
+          position: 'absolute', top: '20px', left: '24px',
+          fontFamily: "'Space Mono', monospace",
+          fontSize: 'clamp(48px, 8vw, 96px)',
+          fontWeight: 700,
+          color: 'rgba(212,191,255,0.15)',
+          lineHeight: 1,
+          letterSpacing: '-0.04em',
+          pointerEvents: 'none',
+        }}>
+          01
+        </div>
+        <div aria-hidden style={{
+          position: 'absolute', bottom: '20px', right: '24px',
+          fontFamily: "'Space Mono', monospace", fontSize: '8px',
+          letterSpacing: '0.22em', textTransform: 'uppercase',
+          color: 'rgba(212,191,255,0.3)', pointerEvents: 'none',
+        }}>
+          Pioneer XDJ-RX3
+        </div>
+      </motion.div>
 
-        <div className="diptych">
-          {STUDIO_MEDIA.map((item, i) => (
-            <div key={i} className="diptych-panel">
-              <video src={item.src} autoPlay muted loop playsInline />
-              {/* Lavender tint overlay — lifts on hover */}
-              <div style={{
-                position: 'absolute', inset: 0,
-                background: 'rgba(212,191,255,0.04)',
-                transition: 'background 0.4s',
-                pointerEvents: 'none',
-              }} />
-              <div className="diptych-index">0{i + 1}</div>
-              <div className="diptych-label">
-                {i === 0 ? 'Pioneer XDJ-RX3' : 'Sennheiser HD 25 Plus'}
-              </div>
-            </div>
+      {/* Inter-panel strip */}
+      <div style={{
+        padding: '28px 24px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        borderTop: '1px solid rgba(212,191,255,0.06)',
+        borderBottom: '1px solid rgba(212,191,255,0.06)',
+      }}>
+        <span style={{
+          fontFamily: "'Space Mono', monospace", fontSize: '8px',
+          letterSpacing: '0.28em', textTransform: 'uppercase',
+          color: 'rgba(212,191,255,0.2)',
+        }}>
+          11th Floor · Capital Tower · Sector 20
+        </span>
+        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+          {[...Array(8)].map((_, i) => (
+            <div key={i} style={{
+              width: '2px',
+              height: `${6 + Math.sin(i * 1.3) * 5}px`,
+              background: 'rgba(212,191,255,0.25)',
+              borderRadius: '1px',
+            }} />
           ))}
         </div>
+        <span style={{
+          fontFamily: "'Space Mono', monospace", fontSize: '8px',
+          letterSpacing: '0.28em', textTransform: 'uppercase',
+          color: 'rgba(212,191,255,0.2)',
+        }}>
+          Gurugram
+        </span>
+      </div>
 
-        {/* Lavender separator between panels (visual only, via gap bg) */}
+      {/* Video 02 — inset, offset right */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.25 }}
+        style={{ padding: '0 0 0 clamp(40px, 8vw, 120px)', position: 'relative', lineHeight: 0 }}
+      >
+        <video
+          src={STUDIO_MEDIA[1].src}
+          autoPlay
+          muted
+          loop
+          playsInline
+          style={{ display: 'block', width: '100%', height: 'auto' }}
+        />
         <div aria-hidden style={{
-          position: 'absolute',
-          top: 0, bottom: 0,
-          left: '57.4%', // aligns with the 2px gap between flex items
-          width: '2px',
-          background: 'rgba(212,191,255,0.25)',
+          position: 'absolute', top: '20px', left: 'calc(clamp(40px, 8vw, 120px) + 24px)',
+          fontFamily: "'Space Mono', monospace",
+          fontSize: 'clamp(48px, 8vw, 96px)',
+          fontWeight: 700,
+          color: 'rgba(212,191,255,0.15)',
+          lineHeight: 1,
+          letterSpacing: '-0.04em',
           pointerEvents: 'none',
-        }} />
+        }}>
+          02
+        </div>
+        <div aria-hidden style={{
+          position: 'absolute', bottom: '20px', right: '24px',
+          fontFamily: "'Space Mono', monospace", fontSize: '8px',
+          letterSpacing: '0.22em', textTransform: 'uppercase',
+          color: 'rgba(212,191,255,0.3)', pointerEvents: 'none',
+        }}>
+          Sennheiser HD 25 Plus
+        </div>
       </motion.div>
 
       {/* Footer strip */}
       <div style={{
         borderTop: '1px solid rgba(212,191,255,0.07)',
-        padding: '20px 24px',
+        padding: '24px 24px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px',
       }}>
-        <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(255,255,255,0.15)', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
-          Pioneer XDJ-RX3 · Sennheiser HD 25 Plus · Rekordbox
+        <span style={{
+          fontFamily: "'Space Mono', monospace", fontSize: '8px',
+          color: 'rgba(255,255,255,0.12)', letterSpacing: '0.18em', textTransform: 'uppercase',
+        }}>
+          GCI Music Academy · Gurugram
         </span>
         <a href="/#masterclass" style={{
           fontFamily: "'Space Mono', monospace", fontSize: '9px',
