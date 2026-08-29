@@ -113,6 +113,7 @@ type Stage = 'pick' | 'form' | 'success' | 'waitlisted'
 export default function SessionPicker() {
   const { masterclass } = loadSettings()
   const {
+    fee = '179',
     scheduleOpenTime = '10:00',
     scheduleCloseTime = '22:00',
     slotMinutes = 30,
@@ -263,8 +264,13 @@ export default function SessionPicker() {
         <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.65 }}>
           {isWait
             ? "This slot just filled up. You're on the waitlist. We'll reach out if a spot opens."
-            : 'Confirmation details are on their way to your email. See you in the studio.'}
+            : "We've received your request. Our team will reach out to confirm your slot and share payment details."}
         </p>
+        {!isWait && (
+          <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(212,191,255,0.4)', letterSpacing: '0.12em', marginTop: '10px' }}>
+            ₹{fee} is credited toward the course fee if you enroll.
+          </p>
+        )}
       </motion.div>
     )
   }
@@ -485,7 +491,7 @@ export default function SessionPicker() {
                     transition: 'opacity 0.15s',
                   }}
                 >
-                  {submitting ? 'Booking…' : 'Confirm booking · free'}
+                  {submitting ? 'Booking…' : `Confirm booking · ₹${fee}`}
                 </button>
               </form>
             </div>

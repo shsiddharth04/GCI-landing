@@ -20,6 +20,7 @@ export interface PaymentPlan {
 
 export interface CourseSettings {
   fee: string
+  originalFee: string
   currency: string
   batchStartDate: string
   batchEndDate: string
@@ -35,6 +36,7 @@ export interface CourseSettings {
 }
 
 export interface MasterclassSettings {
+  fee: string
   date: string
   time: string
   duration: string
@@ -91,6 +93,7 @@ export interface AcademySettings {
 export const DEFAULT_SETTINGS: AcademySettings = {
   course: {
     fee: '22200',
+    originalFee: '37000',
     currency: 'INR',
     batchStartDate: '',
     batchEndDate: '',
@@ -118,6 +121,7 @@ export const DEFAULT_SETTINGS: AcademySettings = {
     ],
   },
   masterclass: {
+    fee: '179',
     date: '',
     time: '',
     duration: '',
