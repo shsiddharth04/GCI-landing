@@ -99,7 +99,7 @@ export const DEFAULT_SETTINGS: AcademySettings = {
     batchEndDate: '',
     schedule: '',
     format: 'in-studio',
-    equipmentUsed: 'Pioneer XDJ-RX3, Sennheiser HD 25 Plus, Studio Monitors, Rekordbox',
+    equipmentUsed: 'Pioneer XDJ-RX3, Sennheiser HD 25 Plus, Rekordbox',
     emiAvailable: false,
     emiDetails: '',
     seatCap: 3,

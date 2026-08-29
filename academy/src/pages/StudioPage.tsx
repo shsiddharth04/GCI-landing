@@ -135,7 +135,7 @@ export default function StudioPage() {
             The<br /><span style={{ color: '#d4bfff' }}>Studio.</span>
           </h1>
           <p style={{ marginTop: '24px', fontSize: '13px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.7, maxWidth: '480px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-            11th Floor, Capital Tower, Next To CDS Tower, Sector 20, Gurugram. Pioneer XDJ-RX3, Sennheiser HD 25 Plus, studio monitors — the real gear, in a real room.
+            11th Floor, Capital Tower, Next To CDS Tower, Sector 20, Gurugram. Pioneer XDJ-RX3, Sennheiser HD 25 Plus, Rekordbox. The real gear, in a real room.
           </p>
         </motion.div>
       </div>
