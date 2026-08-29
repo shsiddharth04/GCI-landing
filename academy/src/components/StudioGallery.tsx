@@ -3,7 +3,7 @@ import { motion } from 'motion/react'
 import { loadSettings } from '../admin/settings'
 import { fadeUp, fadeIn, viewportOnce } from '../lib/motion'
 import type { GalleryItem } from '../admin/settings'
-import type { MouseEvent, TouchEvent } from 'react'
+import type { MouseEvent } from 'react'
 
 function FilmItem({ item, index }: { item: GalleryItem; index: number }) {
   const num = String(index + 1).padStart(2, '0')
@@ -82,7 +82,7 @@ export default function StudioGallery() {
 
   if (!studioGallery || studioGallery.length === 0) return null
 
-  // Mouse drag scroll
+  // Mouse drag scroll (desktop only — touch uses native scroll)
   function onMouseDown(e: MouseEvent<HTMLDivElement>) {
     const el = trackRef.current
     if (!el) return
@@ -99,20 +99,6 @@ export default function StudioGallery() {
   function onMouseUp() {
     dragState.current.active = false
     if (trackRef.current) trackRef.current.style.cursor = 'grab'
-  }
-
-  // Touch scroll (native, just remove default prevention)
-  function onTouchStart(e: TouchEvent<HTMLDivElement>) {
-    const el = trackRef.current
-    if (!el) return
-    dragState.current = { active: true, startX: e.touches[0].pageX - el.offsetLeft, scrollLeft: el.scrollLeft }
-  }
-  function onTouchMove(e: TouchEvent<HTMLDivElement>) {
-    if (!dragState.current.active) return
-    const el = trackRef.current
-    if (!el) return
-    const x = e.touches[0].pageX - el.offsetLeft
-    el.scrollLeft = dragState.current.scrollLeft - (x - dragState.current.startX)
   }
 
   return (
@@ -168,23 +154,27 @@ export default function StudioGallery() {
           onMouseMove={onMouseMove}
           onMouseUp={onMouseUp}
           onMouseLeave={onMouseUp}
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={() => { dragState.current.active = false }}
           style={{
             display: 'flex',
             gap: '2px',
-            height: 'clamp(340px, 62vh, 680px)',
+            // vw-based height so items are proportional to screen width on all devices.
+            // At 390px mobile: ~187px tall, landscape videos ~332px wide — fits neatly.
+            // At 1440px desktop: capped at 600px, landscape videos ~1067px — good scroll.
+            height: 'clamp(180px, 48vw, 600px)',
             overflowX: 'auto',
             overflowY: 'hidden',
             cursor: 'grab',
+            // Padding-left only; right handled by spacer to avoid Safari scroll-width bug.
             paddingLeft: '24px',
-            paddingRight: '24px',
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            WebkitOverflowScrolling: 'touch' as any,
           }}
         >
           {studioGallery.map((item, i) => (
             <FilmItem key={i} item={item} index={i} />
           ))}
+          {/* Trailing spacer — prevents right-padding being eaten on iOS */}
+          <div style={{ flexShrink: 0, width: '24px' }} />
         </div>
 
         {/* Bottom edge rule */}

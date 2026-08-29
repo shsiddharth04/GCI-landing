@@ -56,17 +56,24 @@ export default function Curriculum() {
         >
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(212,191,255,0.5), transparent)' }} />
 
-          {/* Vertical track line — set programme / running order marker */}
-          <div aria-hidden style={{
-            position: 'absolute', left: '63px', top: 0, bottom: 0, width: '1px', zIndex: 1,
+          {/* Vertical track line */}
+          <style>{`.curriculum-track { left: 63px; } @media (max-width: 479px) { .curriculum-track { left: 37px; } }`}</style>
+          <div aria-hidden className="curriculum-track" style={{
+            position: 'absolute', top: 0, bottom: 0, width: '1px', zIndex: 1,
             background: 'linear-gradient(to bottom, transparent 0%, rgba(212,191,255,0.35) 6%, rgba(212,191,255,0.35) 94%, transparent 100%)',
             pointerEvents: 'none',
           }} />
 
+          <style>{`
+            @media (max-width: 479px) {
+              .curriculum-row { padding: 18px 16px !important; gap: 14px !important; }
+            }
+          `}</style>
           {modules.map((mod, i) => (
             <motion.div
               key={mod.id}
               variants={fadeUp}
+              className="curriculum-row"
               style={{
                 display: 'flex', gap: '24px', padding: '24px 32px',
                 borderBottom: i < modules.length - 1 ? '1px solid rgba(212,191,255,0.07)' : 'none',
