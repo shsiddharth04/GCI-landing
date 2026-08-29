@@ -205,8 +205,11 @@ export function loadSettings(): AcademySettings {
         return m
       })(),
       hero: { ...structuredClone(DEFAULT_SETTINGS).hero, ...stored.hero },
-      studioGallery: (stored.studioGallery ?? structuredClone(DEFAULT_SETTINGS).studioGallery)
-        .filter((g: GalleryItem) => !['/studio-1.jpg', '/studio-2.jpg', '/studio-3.jpg', '/studio-4.jpg', '/masterclass.mov'].includes(g.src)),
+      studioGallery: (() => {
+        const OLD = ['/studio-1.jpg', '/studio-2.jpg', '/studio-3.jpg', '/studio-4.jpg', '/masterclass.mov']
+        const filtered = (stored.studioGallery ?? []).filter((g: GalleryItem) => !OLD.includes(g.src))
+        return filtered.length > 0 ? filtered : structuredClone(DEFAULT_SETTINGS).studioGallery
+      })(),
       // curriculum and instructors from storage override defaults entirely
       curriculum: stored.curriculum ?? structuredClone(DEFAULT_SETTINGS).curriculum,
       instructors: stored.instructors ?? structuredClone(DEFAULT_SETTINGS).instructors,
