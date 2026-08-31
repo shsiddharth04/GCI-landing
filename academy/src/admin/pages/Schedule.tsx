@@ -42,13 +42,13 @@ function generateRecurring(from: string, to: string, days: number[]): string[] {
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
-    open:        'bg-emerald-500/12 text-emerald-400/80',
-    full:        'bg-amber-500/12 text-amber-400/80',
-    rescheduled: 'bg-[#d4bfff]/12 text-[#d4bfff]/80',
-    cancelled:   'bg-red-500/10 text-red-400/60',
+    open:        'bg-emerald-50 text-emerald-700',
+    full:        'bg-amber-50 text-amber-700',
+    rescheduled: 'bg-[#EDE6FF] text-[#6B40A8]',
+    cancelled:   'bg-red-50 text-red-600',
   }
   return (
-    <span className={`font-mono text-[9px] tracking-widest uppercase px-2 py-0.5 ${map[status] ?? 'bg-white/6 text-white/35'}`}>
+    <span className={`font-mono text-[9px] tracking-widest uppercase px-2 py-0.5 ${map[status] ?? 'bg-[#F0EAFF] text-[#8B73B3]'}`}>
       {status}
     </span>
   )
@@ -56,12 +56,12 @@ function StatusBadge({ status }: { status: string }) {
 
 function RegBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
-    confirmed:  'text-emerald-400/70',
-    waitlisted: 'text-amber-400/70',
-    cancelled:  'text-red-400/50',
+    confirmed:  'text-emerald-600',
+    waitlisted: 'text-amber-600',
+    cancelled:  'text-red-500',
   }
   return (
-    <span className={`font-mono text-[8px] tracking-widest uppercase ${map[status] ?? 'text-white/30'}`}>
+    <span className={`font-mono text-[8px] tracking-widest uppercase ${map[status] ?? 'text-[#B5A3D4]'}`}>
       {status}
     </span>
   )
@@ -69,20 +69,20 @@ function RegBadge({ status }: { status: string }) {
 
 // ── Shared field styles ───────────────────────────────────────────────────────
 
-const labelCls = 'text-[10px] text-white/30 font-mono tracking-widest uppercase mb-1.5 block'
-const inputCls = 'bg-[#0d0d0d] border border-white/10 hover:border-white/20 focus:border-[#d4bfff]/40 text-white/80 text-sm px-3 py-2.5 w-full outline-none transition-colors'
+const labelCls = 'text-[10px] text-[#8B73B3] font-mono tracking-widest uppercase mb-1.5 block'
+const inputCls = 'bg-[#F9F6FF] border border-[#D4C6EF] hover:border-[#9C7CE0] focus:border-[#9C7CE0] text-[#190F30] text-sm px-3 py-2.5 w-full outline-none transition-colors'
 
 // ── Capacity bar ──────────────────────────────────────────────────────────────
 
 function CapacityBar({ booked, cap }: { booked: number; cap: number }) {
   const pct = Math.min(100, Math.round((booked / cap) * 100))
-  const color = pct >= 100 ? 'bg-amber-400/60' : pct >= 75 ? 'bg-[#d4bfff]/60' : 'bg-emerald-400/50'
+  const color = pct >= 100 ? 'bg-amber-400' : pct >= 75 ? 'bg-[#9C7CE0]' : 'bg-emerald-400'
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 h-1 bg-white/8 overflow-hidden">
+      <div className="flex-1 h-1 bg-[#E3D9F7] overflow-hidden">
         <div className={`h-full transition-all ${color}`} style={{ width: `${pct}%` }} />
       </div>
-      <span className="font-mono text-[10px] text-white/40 shrink-0">{booked}/{cap}</span>
+      <span className="font-mono text-[10px] text-[#B5A3D4] shrink-0">{booked}/{cap}</span>
     </div>
   )
 }
@@ -108,9 +108,10 @@ function DayPicker({ selected, onChange }: { selected: number[]; onChange: (d: n
           onClick={() => toggle(value)}
           className={`h-9 w-9 text-xs font-mono font-bold transition-colors ${
             selected.includes(value)
-              ? 'bg-[#d4bfff] text-[#050505]'
-              : 'bg-[#0d0d0d] border border-white/10 text-white/40 hover:border-white/25 hover:text-white/70'
+              ? 'bg-[#6B40A8] text-white'
+              : 'bg-white text-[#8B73B3] hover:text-[#6B40A8] hover:bg-[#EDE6FF]'
           }`}
+          style={{ border: selected.includes(value) ? 'none' : '1px solid #D4C6EF' }}
         >
           {label}
         </button>
@@ -202,13 +203,13 @@ function SingleForm({
         </div>
       </div>
 
-      {error && <p className="text-xs text-red-400 font-mono">{error}</p>}
+      {error && <p className="text-xs text-red-500 font-mono">{error}</p>}
 
       <div className="flex gap-3 pt-1">
-        <button type="submit" disabled={saving} className="bg-[#d4bfff] text-[#050505] text-xs font-bold font-mono tracking-widest uppercase px-5 py-2.5 disabled:opacity-50 hover:bg-white transition-colors">
+        <button type="submit" disabled={saving} className="bg-[#6B40A8] hover:bg-[#5C358A] text-white text-xs font-bold font-mono tracking-widest uppercase px-5 py-2.5 disabled:opacity-50 transition-colors">
           {saving ? 'Creating…' : 'Create session'}
         </button>
-        <button type="button" onClick={onCancel} className="text-xs text-white/30 hover:text-white/60 px-3 transition-colors">Cancel</button>
+        <button type="button" onClick={onCancel} className="text-xs text-[#8B73B3] hover:text-[#6B40A8] px-3 transition-colors">Cancel</button>
       </div>
     </form>
   )
@@ -276,8 +277,8 @@ function RecurringForm({
   if (done) {
     return (
       <div className="py-8 text-center">
-        <div className="text-2xl font-bold text-[#d4bfff] mb-2">{preview.length}</div>
-        <div className="text-sm text-white/50">Sessions created successfully.</div>
+        <div className="text-2xl font-bold text-[#6B40A8] mb-2">{preview.length}</div>
+        <div className="text-sm text-[#8B73B3]">Sessions created successfully.</div>
       </div>
     )
   }
@@ -301,7 +302,7 @@ function RecurringForm({
         <div className="col-span-2">
           <label className={labelCls}>Which days</label>
           <DayPicker selected={days} onChange={setDays} />
-          {days.length === 0 && <p className="text-[10px] text-white/25 mt-1.5 font-mono">Select one or more days of the week</p>}
+          {days.length === 0 && <p className="text-[10px] text-[#C4B4E4] mt-1.5 font-mono">Select one or more days of the week</p>}
         </div>
         <div>
           <label className={labelCls}>From date</label>
@@ -331,25 +332,25 @@ function RecurringForm({
 
       {/* Preview */}
       {preview.length > 0 && (
-        <div className="border border-white/8 bg-[#0d0d0d]">
-          <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/6">
-            <span className="text-[10px] font-mono text-white/35 tracking-widest uppercase">Preview</span>
-            <span className="text-[10px] font-mono text-[#d4bfff]">{preview.length} session{preview.length !== 1 ? 's' : ''}</span>
+        <div className="bg-[#F9F6FF]" style={{ border: '1px solid #E3D9F7' }}>
+          <div className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: '1px solid #E3D9F7' }}>
+            <span className="text-[10px] font-mono text-[#B5A3D4] tracking-widest uppercase">Preview</span>
+            <span className="text-[10px] font-mono text-[#7548B8]">{preview.length} session{preview.length !== 1 ? 's' : ''}</span>
           </div>
           <div className="max-h-48 overflow-y-auto">
             {preview.slice(0, 30).map((d, i) => (
-              <div key={d} className="flex items-center justify-between px-4 py-2 border-b border-white/4 last:border-0">
+              <div key={d} className="flex items-center justify-between px-4 py-2" style={{ borderBottom: '1px solid #F0EAFF' }}>
                 <div className="flex items-center gap-3">
-                  <span className="font-mono text-[10px] text-white/25 w-5 text-right">{i + 1}</span>
-                  <span className="text-sm text-white/70">{fmtDate(d)}</span>
+                  <span className="font-mono text-[10px] text-[#C4B4E4] w-5 text-right">{i + 1}</span>
+                  <span className="text-sm text-[#190F30]">{fmtDate(d)}</span>
                 </div>
                 {startTime && endTime && (
-                  <span className="font-mono text-[10px] text-white/35">{fmtTime(startTime)} – {fmtTime(endTime)}</span>
+                  <span className="font-mono text-[10px] text-[#B5A3D4]">{fmtTime(startTime)} – {fmtTime(endTime)}</span>
                 )}
               </div>
             ))}
             {preview.length > 30 && (
-              <div className="px-4 py-2 text-[10px] font-mono text-white/25 text-center">
+              <div className="px-4 py-2 text-[10px] font-mono text-[#C4B4E4] text-center">
                 +{preview.length - 30} more
               </div>
             )}
@@ -358,19 +359,19 @@ function RecurringForm({
       )}
 
       {preview.length === 0 && days.length > 0 && fromDate && toDate && (
-        <p className="text-xs text-white/30 font-mono">No matching dates in that range.</p>
+        <p className="text-xs text-[#B5A3D4] font-mono">No matching dates in that range.</p>
       )}
 
-      {error && <p className="text-xs text-red-400 font-mono">{error}</p>}
+      {error && <p className="text-xs text-red-500 font-mono">{error}</p>}
 
       {progress && (
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-white/50">Creating sessions…</span>
-            <span className="font-mono text-xs text-[#d4bfff]">{progress.done} / {progress.total}</span>
+            <span className="text-xs text-[#8B73B3]">Creating sessions…</span>
+            <span className="font-mono text-xs text-[#7548B8]">{progress.done} / {progress.total}</span>
           </div>
-          <div className="h-1 bg-white/8">
-            <div className="h-full bg-[#d4bfff] transition-all" style={{ width: `${Math.round((progress.done / progress.total) * 100)}%` }} />
+          <div className="h-1 bg-[#E3D9F7]">
+            <div className="h-full bg-[#6B40A8] transition-all" style={{ width: `${Math.round((progress.done / progress.total) * 100)}%` }} />
           </div>
         </div>
       )}
@@ -380,11 +381,11 @@ function RecurringForm({
           type="button"
           disabled={preview.length === 0 || creating}
           onClick={handleCreate}
-          className="bg-[#d4bfff] text-[#050505] text-xs font-bold font-mono tracking-widest uppercase px-5 py-2.5 disabled:opacity-40 hover:bg-white transition-colors"
+          className="bg-[#6B40A8] hover:bg-[#5C358A] text-white text-xs font-bold font-mono tracking-widest uppercase px-5 py-2.5 disabled:opacity-40 transition-colors"
         >
           {creating ? `Creating ${progress?.done ?? 0} of ${progress?.total}…` : `Create ${preview.length || 0} session${preview.length !== 1 ? 's' : ''}`}
         </button>
-        <button type="button" onClick={onCancel} className="text-xs text-white/30 hover:text-white/60 px-3 transition-colors">Cancel</button>
+        <button type="button" onClick={onCancel} className="text-xs text-[#8B73B3] hover:text-[#6B40A8] px-3 transition-colors">Cancel</button>
       </div>
     </div>
   )
@@ -407,16 +408,16 @@ function CreatePanel({
 
   if (instructors.length === 0) {
     return (
-      <div className="mb-6 border border-amber-500/20 bg-amber-500/8 p-4 text-sm text-amber-400/80">
+      <div className="mb-6 border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
         No instructors found. Run the SQL migration first — it seeds Divith automatically.
       </div>
     )
   }
 
   return (
-    <div className="mb-6 bg-[#0f0d18] border border-white/8">
+    <div className="mb-6 bg-white" style={{ border: '1px solid #E3D9F7' }}>
       {/* Tab bar */}
-      <div className="flex border-b border-white/8">
+      <div className="flex" style={{ borderBottom: '1px solid #E3D9F7' }}>
         {([['single', 'One-off', Calendar], ['recurring', 'Recurring', Repeat]] as const).map(([t, label, Icon]) => (
           <button
             key={t}
@@ -424,8 +425,8 @@ function CreatePanel({
             onClick={() => setTab(t)}
             className={`flex items-center gap-2 px-5 py-3 text-xs font-mono tracking-widest uppercase transition-colors ${
               tab === t
-                ? 'border-b-2 border-[#d4bfff] text-[#d4bfff] -mb-px'
-                : 'text-white/35 hover:text-white/60'
+                ? 'border-b-2 border-[#6B40A8] text-[#6B40A8] -mb-px'
+                : 'text-[#B5A3D4] hover:text-[#7548B8]'
             }`}
           >
             <Icon size={12} />
@@ -469,8 +470,8 @@ function RescheduleForm({ session, onDone, onCancel }: { session: Session; onDon
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-4 p-4 bg-[#0a0810] border border-white/8">
-      <p className="text-[10px] font-mono text-white/30 tracking-widest uppercase mb-3">New date & time</p>
+    <form onSubmit={handleSubmit} className="mt-4 p-4 bg-[#F9F6FF]" style={{ border: '1px solid #E3D9F7' }}>
+      <p className="text-[10px] font-mono text-[#B5A3D4] tracking-widest uppercase mb-3">New date & time</p>
       <div className="grid grid-cols-3 gap-3">
         <div>
           <label className={labelCls}>Date</label>
@@ -485,12 +486,12 @@ function RescheduleForm({ session, onDone, onCancel }: { session: Session; onDon
           <TimePicker value={endTime} onChange={setEndTime} />
         </div>
       </div>
-      {error && <p className="mt-2 text-xs text-red-400 font-mono">{error}</p>}
+      {error && <p className="mt-2 text-xs text-red-500 font-mono">{error}</p>}
       <div className="flex gap-3 mt-4">
-        <button type="submit" disabled={saving} className="bg-[#d4bfff] text-[#050505] text-xs font-bold font-mono tracking-widest uppercase px-4 py-2 disabled:opacity-50">
+        <button type="submit" disabled={saving} className="bg-[#6B40A8] hover:bg-[#5C358A] text-white text-xs font-bold font-mono tracking-widest uppercase px-4 py-2 disabled:opacity-50 transition-colors">
           {saving ? 'Saving…' : 'Confirm reschedule'}
         </button>
-        <button type="button" onClick={onCancel} className="text-xs text-white/30 hover:text-white/60 px-2">Cancel</button>
+        <button type="button" onClick={onCancel} className="text-xs text-[#8B73B3] hover:text-[#6B40A8] px-2 transition-colors">Cancel</button>
       </div>
     </form>
   )
@@ -526,7 +527,7 @@ function SessionRow({ session, allSessions, onRefresh, onRemove }: { session: Se
     setCancelling(true)
     try {
       await cancelSession(session.id)
-      onRemove() // remove from list immediately — no refetch needed
+      onRemove()
     } catch {
       setCancelling(false)
       setConfirmCancel(false)
@@ -558,52 +559,52 @@ function SessionRow({ session, allSessions, onRefresh, onRemove }: { session: Se
   const typeBadge = session.session_type === 'masterclass' ? 'Masterclass' : 'Course'
 
   return (
-    <div className="border border-white/6 bg-[#0d0d0d]">
+    <div className="bg-white" style={{ border: '1px solid #E3D9F7' }}>
       {/* Row header */}
       <div
-        className="flex items-center gap-4 px-5 py-4 cursor-pointer hover:bg-white/[0.015] transition-colors select-none"
+        className="flex items-center gap-4 px-5 py-4 cursor-pointer hover:bg-[#F9F6FF] transition-colors select-none"
         onClick={toggle}
       >
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2.5 flex-wrap mb-1">
-            <span className="text-sm font-semibold text-white/85">{fmtDate(session.session_date)}</span>
-            <span className="font-mono text-[10px] text-white/30">{fmtTime(session.start_time.slice(0,5))} – {fmtTime(session.end_time.slice(0,5))}</span>
+            <span className="text-sm font-semibold text-[#190F30]">{fmtDate(session.session_date)}</span>
+            <span className="font-mono text-[10px] text-[#B5A3D4]">{fmtTime(session.start_time.slice(0,5))} – {fmtTime(session.end_time.slice(0,5))}</span>
             <StatusBadge status={session.status} />
-            <span className="font-mono text-[9px] text-[#d4bfff]/45 tracking-widest uppercase">{typeBadge}</span>
+            <span className="font-mono text-[9px] text-[#9C7CE0] tracking-widest uppercase">{typeBadge}</span>
           </div>
           <div className="flex items-center gap-3">
             <CapacityBar booked={session.seats_booked} cap={session.capacity} />
-            <span className="text-[10px] text-white/25 truncate max-w-48">{session.location}</span>
+            <span className="text-[10px] text-[#C4B4E4] truncate max-w-48">{session.location}</span>
           </div>
         </div>
-        <div className="text-white/20 shrink-0 text-xs font-mono">
+        <div className="text-[#C4B4E4] shrink-0 text-xs font-mono">
           {seatsLeft === 0 ? 'full' : `${seatsLeft} left`}
         </div>
       </div>
 
       {/* Expanded content */}
       {expanded && (
-        <div className="border-t border-white/6 px-5 py-4 space-y-4">
+        <div className="px-5 py-4 space-y-4" style={{ borderTop: '1px solid #F0EAFF' }}>
 
           {/* Actions bar */}
           <div className="flex items-center gap-4 flex-wrap">
             <button onClick={() => setShowReschedule(v => !v)}
-              className="text-[10px] font-mono tracking-widest uppercase text-white/40 hover:text-[#d4bfff] transition-colors">
+              className="text-[10px] font-mono tracking-widest uppercase text-[#8B73B3] hover:text-[#6B40A8] transition-colors">
               {showReschedule ? 'Cancel' : 'Reschedule'}
             </button>
             {!confirmCancel ? (
               <button onClick={() => setConfirmCancel(true)}
-                className="text-[10px] font-mono tracking-widest uppercase text-white/25 hover:text-red-400 transition-colors flex items-center gap-1.5">
+                className="text-[10px] font-mono tracking-widest uppercase text-[#C4B4E4] hover:text-red-500 transition-colors flex items-center gap-1.5">
                 <Trash2 size={10} /> Cancel session
               </button>
             ) : (
               <span className="flex items-center gap-2">
-                <span className="text-[10px] text-red-400/80 font-mono">Cancel this session?</span>
+                <span className="text-[10px] text-red-500 font-mono">Cancel this session?</span>
                 <button onClick={handleCancel} disabled={cancelling}
-                  className="text-[10px] font-mono font-bold tracking-widest uppercase text-red-400 hover:text-red-300 disabled:opacity-50">
+                  className="text-[10px] font-mono font-bold tracking-widest uppercase text-red-500 hover:text-red-700 disabled:opacity-50">
                   {cancelling ? 'Cancelling…' : 'Confirm'}
                 </button>
-                <button onClick={() => setConfirmCancel(false)} className="text-[10px] font-mono text-white/25 hover:text-white/50">No</button>
+                <button onClick={() => setConfirmCancel(false)} className="text-[10px] font-mono text-[#C4B4E4] hover:text-[#8B73B3]">No</button>
               </span>
             )}
           </div>
@@ -619,25 +620,25 @@ function SessionRow({ session, allSessions, onRefresh, onRemove }: { session: Se
           {/* Registrations */}
           <div>
             <div className="flex items-center justify-between mb-2.5">
-              <span className="text-[10px] font-mono text-white/25 tracking-widest uppercase">
+              <span className="text-[10px] font-mono text-[#B5A3D4] tracking-widest uppercase">
                 Registrations ({regs.length})
               </span>
-              <button onClick={loadRegs} className="text-white/20 hover:text-white/50 transition-colors">
+              <button onClick={loadRegs} className="text-[#C4B4E4] hover:text-[#7548B8] transition-colors">
                 <RefreshCw size={11} className={loadingRegs ? 'animate-spin' : ''} />
               </button>
             </div>
 
-            {loadingRegs && <p className="text-xs text-white/25 font-mono">Loading…</p>}
-            {!loadingRegs && regs.length === 0 && <p className="text-xs text-white/20 font-mono">No registrations yet.</p>}
+            {loadingRegs && <p className="text-xs text-[#B5A3D4] font-mono">Loading…</p>}
+            {!loadingRegs && regs.length === 0 && <p className="text-xs text-[#C4B4E4] font-mono">No registrations yet.</p>}
 
             {regs.length > 0 && (
               <div className="space-y-0">
                 {regs.map(r => (
-                  <div key={r.id} className="flex items-center gap-3 py-2.5 border-b border-white/4 last:border-0 flex-wrap">
-                    <UserCheck size={12} className="text-white/20 shrink-0" />
+                  <div key={r.id} className="flex items-center gap-3 py-2.5 flex-wrap" style={{ borderBottom: '1px solid #F0EAFF' }}>
+                    <UserCheck size={12} className="text-[#C4B4E4] shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <span className="text-sm text-white/75 font-medium">{r.name}</span>
-                      <span className="text-xs text-white/30 ml-2 font-mono">{r.phone}</span>
+                      <span className="text-sm text-[#190F30] font-medium">{r.name}</span>
+                      <span className="text-xs text-[#B5A3D4] ml-2 font-mono">{r.phone}</span>
                     </div>
                     <RegBadge status={r.status} />
 
@@ -647,7 +648,7 @@ function SessionRow({ session, allSessions, onRefresh, onRemove }: { session: Se
                         <select
                           value={reassignTarget[r.id] ?? ''}
                           onChange={e => setReassignTarget(prev => ({ ...prev, [r.id]: e.target.value }))}
-                          className="bg-[#0a0a0a] border border-white/10 text-white/45 text-xs px-2 py-1 outline-none"
+                          className="bg-[#F9F6FF] border border-[#D4C6EF] text-[#190F30] text-xs px-2 py-1 outline-none"
                         >
                           <option value="">Move to…</option>
                           {others.map(s => (
@@ -660,7 +661,7 @@ function SessionRow({ session, allSessions, onRefresh, onRemove }: { session: Se
                           onClick={() => handleReassign(r.id, forceIds.has(r.id))}
                           disabled={!reassignTarget[r.id] || reassigning === r.id}
                           className={`text-[10px] font-mono tracking-widest uppercase disabled:opacity-30 transition-colors ${
-                            forceIds.has(r.id) ? 'text-amber-400 hover:text-amber-300' : 'text-[#d4bfff]/60 hover:text-[#d4bfff]'
+                            forceIds.has(r.id) ? 'text-amber-600 hover:text-amber-700' : 'text-[#7548B8] hover:text-[#6B40A8]'
                           }`}
                         >
                           {reassigning === r.id ? '…' : forceIds.has(r.id) ? 'Force move' : 'Move'}
@@ -671,7 +672,7 @@ function SessionRow({ session, allSessions, onRefresh, onRemove }: { session: Se
                 ))}
 
                 {reassignError && (
-                  <div className="flex items-center gap-2 mt-2 text-xs text-amber-400/70 font-mono">
+                  <div className="flex items-center gap-2 mt-2 text-xs text-amber-600 font-mono">
                     <AlertCircle size={11} />
                     {reassignError} — click "Force move" to override capacity
                   </div>
@@ -776,16 +777,18 @@ function MasterclassSlotsPanel() {
       {/* Date nav */}
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => { const d = new Date(date + 'T00:00:00'); d.setDate(d.getDate() - 1); setDate(d.toISOString().slice(0, 10)) }}
-          className="w-8 h-8 flex items-center justify-center text-white/30 hover:text-white/70 border border-white/8 hover:border-white/20 transition-colors text-sm">‹</button>
+          className="w-8 h-8 flex items-center justify-center text-[#8B73B3] hover:text-[#6B40A8] hover:bg-[#EDE6FF] transition-colors text-sm bg-white"
+          style={{ border: '1px solid #D4C6EF' }}>‹</button>
         <div className="w-48">
           <DatePicker value={date} onChange={setDate} placeholder="Pick date" />
         </div>
         <button onClick={() => { const d = new Date(date + 'T00:00:00'); d.setDate(d.getDate() + 1); setDate(d.toISOString().slice(0, 10)) }}
-          className="w-8 h-8 flex items-center justify-center text-white/30 hover:text-white/70 border border-white/8 hover:border-white/20 transition-colors text-sm">›</button>
-        <button onClick={() => load(date)} className="text-white/20 hover:text-white/50 transition-colors ml-1">
+          className="w-8 h-8 flex items-center justify-center text-[#8B73B3] hover:text-[#6B40A8] hover:bg-[#EDE6FF] transition-colors text-sm bg-white"
+          style={{ border: '1px solid #D4C6EF' }}>›</button>
+        <button onClick={() => load(date)} className="text-[#C4B4E4] hover:text-[#7548B8] transition-colors ml-1">
           <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
         </button>
-        <span className="text-[10px] font-mono text-white/20 ml-auto">{open} – {close} · {mins} min slots · cap {cap}</span>
+        <span className="text-[10px] font-mono text-[#C4B4E4] ml-auto">{open} – {close} · {mins} min slots · cap {cap}</span>
       </div>
 
       {/* Slot grid */}
@@ -797,42 +800,43 @@ function MasterclassSlotsPanel() {
           const isExp = expanded === s.start
           const isSaving = saving === s.start
 
-          const stateColor = {
-            'available':       'border-white/8',
-            'manually-blocked':'border-red-500/20 bg-red-500/5',
-            'class-blocked':   'border-amber-500/15 bg-amber-500/5',
-            'forced-open':     'border-emerald-500/20 bg-emerald-500/5',
-          }[state]
+          const stateStyle: Record<string, { border: string; background: string }> = {
+            'available':       { border: '1px solid #E3D9F7', background: 'white' },
+            'manually-blocked':{ border: '1px solid #fca5a5', background: '#fef2f2' },
+            'class-blocked':   { border: '1px solid #fcd34d', background: '#fffbeb' },
+            'forced-open':     { border: '1px solid #6ee7b7', background: '#f0fdf4' },
+          }
+          const ss = stateStyle[state] ?? stateStyle['available']
 
           return (
-            <div key={s.start} className={`border transition-colors ${stateColor}`}>
+            <div key={s.start} className="transition-colors" style={ss}>
               <div className="flex items-center gap-4 px-4 py-3">
                 {/* Time */}
                 <div className="w-28 shrink-0">
-                  <span className="font-mono text-sm text-white/75">{fmt12(s.start)}</span>
-                  <span className="font-mono text-[9px] text-white/20 ml-1.5">–{fmt12(s.end)}</span>
+                  <span className="font-mono text-sm text-[#190F30]">{fmt12(s.start)}</span>
+                  <span className="font-mono text-[9px] text-[#C4B4E4] ml-1.5">–{fmt12(s.end)}</span>
                 </div>
 
                 {/* Booking count */}
                 <div className="flex items-center gap-1.5">
                   <div className="flex gap-0.5">
                     {Array.from({ length: cap }).map((_, i) => (
-                      <div key={i} className={`w-2 h-2 ${i < booked ? 'bg-[#d4bfff]' : 'bg-white/10'}`} />
+                      <div key={i} className={`w-2 h-2 ${i < booked ? 'bg-[#6B40A8]' : 'bg-[#E3D9F7]'}`} />
                     ))}
                   </div>
-                  <span className="font-mono text-[9px] text-white/30">{booked}/{cap}</span>
+                  <span className="font-mono text-[9px] text-[#B5A3D4]">{booked}/{cap}</span>
                 </div>
 
                 {/* State badge */}
                 <div className="flex-1">
                   {state === 'manually-blocked' && (
-                    <span className="font-mono text-[8px] text-red-400/70 tracking-widest uppercase">Blocked</span>
+                    <span className="font-mono text-[8px] text-red-500 tracking-widest uppercase">Blocked</span>
                   )}
                   {state === 'class-blocked' && (
-                    <span className="font-mono text-[8px] text-amber-400/60 tracking-widest uppercase">Course class</span>
+                    <span className="font-mono text-[8px] text-amber-600 tracking-widest uppercase">Course class</span>
                   )}
                   {state === 'forced-open' && (
-                    <span className="font-mono text-[8px] text-emerald-400/60 tracking-widest uppercase">Force-open</span>
+                    <span className="font-mono text-[8px] text-emerald-600 tracking-widest uppercase">Force-open</span>
                   )}
                 </div>
 
@@ -840,7 +844,7 @@ function MasterclassSlotsPanel() {
                 <div className="flex items-center gap-2 shrink-0">
                   {bks.length > 0 && (
                     <button onClick={() => setExpanded(isExp ? null : s.start)}
-                      className="font-mono text-[9px] text-[#d4bfff]/50 hover:text-[#d4bfff] tracking-widest uppercase transition-colors">
+                      className="font-mono text-[9px] text-[#7548B8] hover:text-[#6B40A8] tracking-widest uppercase transition-colors">
                       {bks.length} booked {isExp ? '▲' : '▼'}
                     </button>
                   )}
@@ -849,7 +853,7 @@ function MasterclassSlotsPanel() {
                     <button
                       onClick={() => blockSlot(s)}
                       disabled={isSaving}
-                      className="flex items-center gap-1 font-mono text-[9px] text-white/25 hover:text-red-400/70 tracking-widest uppercase transition-colors disabled:opacity-40"
+                      className="flex items-center gap-1 font-mono text-[9px] text-[#C4B4E4] hover:text-red-500 tracking-widest uppercase transition-colors disabled:opacity-40"
                     >
                       <Lock size={9} />
                       {isSaving ? '…' : 'Block'}
@@ -860,7 +864,7 @@ function MasterclassSlotsPanel() {
                     <button
                       onClick={() => unblockSlot(s)}
                       disabled={isSaving}
-                      className="flex items-center gap-1 font-mono text-[9px] text-white/25 hover:text-emerald-400/70 tracking-widest uppercase transition-colors disabled:opacity-40"
+                      className="flex items-center gap-1 font-mono text-[9px] text-[#C4B4E4] hover:text-emerald-600 tracking-widest uppercase transition-colors disabled:opacity-40"
                     >
                       <Unlock size={9} />
                       {isSaving ? '…' : 'Unblock'}
@@ -871,7 +875,7 @@ function MasterclassSlotsPanel() {
                     <button
                       onClick={() => forceOpenSlot(s)}
                       disabled={isSaving}
-                      className="flex items-center gap-1 font-mono text-[9px] text-white/25 hover:text-[#d4bfff]/60 tracking-widest uppercase transition-colors disabled:opacity-40"
+                      className="flex items-center gap-1 font-mono text-[9px] text-[#C4B4E4] hover:text-[#7548B8] tracking-widest uppercase transition-colors disabled:opacity-40"
                     >
                       <Unlock size={9} />
                       {isSaving ? '…' : 'Force open'}
@@ -882,14 +886,14 @@ function MasterclassSlotsPanel() {
 
               {/* Expanded bookings */}
               {isExp && bks.length > 0 && (
-                <div className="border-t border-white/6 px-4 py-3 space-y-2">
+                <div className="px-4 py-3 space-y-2" style={{ borderTop: '1px solid #F0EAFF' }}>
                   {bks.map(b => (
                     <div key={b.id} className="flex items-center gap-3 text-sm">
-                      <UserCheck size={11} className="text-white/20 shrink-0" />
-                      <span className="text-white/70 font-medium">{b.name}</span>
-                      <span className="font-mono text-[10px] text-white/30">{b.phone}</span>
-                      <span className="font-mono text-[10px] text-white/20">{b.email}</span>
-                      <span className={`font-mono text-[8px] tracking-widest uppercase ml-auto ${b.status === 'confirmed' ? 'text-emerald-400/60' : 'text-amber-400/60'}`}>
+                      <UserCheck size={11} className="text-[#C4B4E4] shrink-0" />
+                      <span className="text-[#190F30] font-medium">{b.name}</span>
+                      <span className="font-mono text-[10px] text-[#B5A3D4]">{b.phone}</span>
+                      <span className="font-mono text-[10px] text-[#C4B4E4]">{b.email}</span>
+                      <span className={`font-mono text-[8px] tracking-widest uppercase ml-auto ${b.status === 'confirmed' ? 'text-emerald-600' : 'text-amber-600'}`}>
                         {b.status}
                       </span>
                     </div>
@@ -933,26 +937,20 @@ export default function Schedule() {
 
   const filtered = typeFilter === 'all' ? sessions : sessions.filter(s => s.session_type === typeFilter)
 
-  const counts = {
-    total: sessions.length,
-    open: sessions.filter(s => s.status === 'open').length,
-    full: sessions.filter(s => s.status === 'full').length,
-  }
-
   return (
     <div className="p-8 max-w-4xl">
 
       {/* Header */}
       <div className="flex items-start justify-between mb-5">
-        <h1 className="text-xl font-semibold">Schedule</h1>
+        <h1 className="text-xl font-semibold text-[#190F30]">Schedule</h1>
         {tab === 'sessions' && (
           <div className="flex items-center gap-3">
-            <button onClick={load} className="text-white/20 hover:text-white/50 transition-colors p-1">
+            <button onClick={load} className="text-[#C4B4E4] hover:text-[#7548B8] transition-colors p-1">
               <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
             </button>
             <button
               onClick={() => setShowCreate(v => !v)}
-              className="flex items-center gap-2 bg-[#d4bfff] text-[#050505] text-xs font-bold font-mono tracking-widest uppercase px-4 py-2.5 hover:bg-white transition-colors"
+              className="flex items-center gap-2 bg-[#6B40A8] hover:bg-[#5C358A] text-white text-xs font-bold font-mono tracking-widest uppercase px-4 py-2.5 transition-colors"
             >
               <Plus size={13} />
               New session
@@ -962,7 +960,7 @@ export default function Schedule() {
       </div>
 
       {/* Top tabs */}
-      <div className="flex border-b border-white/8 mb-6">
+      <div className="flex mb-6" style={{ borderBottom: '1px solid #E3D9F7' }}>
         {([
           ['slots',    'Masterclass slots', LayoutGrid],
           ['sessions', 'Course sessions',   Calendar],
@@ -972,8 +970,8 @@ export default function Schedule() {
             onClick={() => setTab(t)}
             className={`flex items-center gap-2 px-5 py-3 text-xs font-mono tracking-widest uppercase transition-colors -mb-px ${
               tab === t
-                ? 'border-b-2 border-[#d4bfff] text-[#d4bfff]'
-                : 'text-white/30 hover:text-white/60'
+                ? 'border-b-2 border-[#6B40A8] text-[#6B40A8]'
+                : 'text-[#B5A3D4] hover:text-[#7548B8]'
             }`}
           >
             <Icon size={12} />
@@ -1002,8 +1000,8 @@ export default function Schedule() {
               <button
                 key={t}
                 onClick={() => setTypeFilter(t)}
-                className={`text-[10px] font-mono tracking-widest uppercase px-4 py-2 transition-colors ${
-                  typeFilter === t ? 'bg-[#d4bfff]/12 text-[#d4bfff]' : 'text-white/30 hover:text-white/55'
+                className={`text-[10px] font-mono tracking-widest uppercase px-4 py-2 transition-colors rounded ${
+                  typeFilter === t ? 'bg-[#EDE6FF] text-[#6B40A8]' : 'text-[#B5A3D4] hover:text-[#7548B8]'
                 }`}
               >
                 {t === 'all' ? 'All' : t === 'masterclass' ? 'Masterclass' : 'Course'}
@@ -1012,13 +1010,13 @@ export default function Schedule() {
           </div>
 
           {error && (
-            <div className="mb-4 bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">{error}</div>
+            <div className="mb-4 bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">{error}</div>
           )}
 
           {!loading && filtered.length === 0 && !error && (
             <div className="py-20 text-center">
-              <p className="text-white/20 text-sm font-mono">No sessions yet.</p>
-              <button onClick={() => setShowCreate(true)} className="mt-3 text-[#d4bfff]/60 hover:text-[#d4bfff] text-xs font-mono transition-colors">
+              <p className="text-[#C4B4E4] text-sm font-mono">No sessions yet.</p>
+              <button onClick={() => setShowCreate(true)} className="mt-3 text-[#7548B8] hover:text-[#6B40A8] text-xs font-mono transition-colors">
                 + Create your first session
               </button>
             </div>

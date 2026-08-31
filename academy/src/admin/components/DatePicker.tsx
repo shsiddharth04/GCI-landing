@@ -33,7 +33,6 @@ export default function DatePicker({ value, onChange, placeholder = 'Pick a date
     return () => document.removeEventListener('mousedown', handler)
   }, [open])
 
-  // Sync view to value when it changes externally
   useEffect(() => {
     if (value) {
       const d = new Date(value + 'T00:00:00')
@@ -66,25 +65,25 @@ export default function DatePicker({ value, onChange, placeholder = 'Pick a date
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
-        className={`w-full flex items-center gap-2 bg-[#0d0d0d] border px-3 py-2.5 text-sm transition-colors text-left ${
-          open ? 'border-[#d4bfff]/50' : 'border-white/10 hover:border-white/25'
+        className={`w-full flex items-center gap-2 bg-[#F9F6FF] px-3 py-2.5 text-sm transition-colors text-left ${
+          open ? 'border border-[#9C7CE0]' : 'border border-[#D4C6EF] hover:border-[#9C7CE0]'
         }`}
       >
-        <CalendarDays size={13} className={value ? 'text-[#d4bfff]/60' : 'text-white/20'} />
-        <span className={value ? 'text-white/80' : 'text-white/30'}>{display || placeholder}</span>
+        <CalendarDays size={13} className={value ? 'text-[#7548B8]' : 'text-[#C4B4E4]'} />
+        <span className={value ? 'text-[#190F30]' : 'text-[#C4B4E4]'}>{display || placeholder}</span>
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-1 z-50 bg-[#111] border border-white/12 shadow-2xl" style={{ minWidth: '252px' }}>
+        <div className="absolute top-full left-0 mt-1 z-50 bg-white shadow-lg" style={{ minWidth: '252px', border: '1px solid #E3D9F7' }}>
           {/* Header */}
           <div className="flex items-center justify-between px-3 pt-3 pb-2">
-            <button type="button" onClick={prevMonth} className="w-7 h-7 flex items-center justify-center text-white/40 hover:text-white/80 hover:bg-white/5 transition-colors">
+            <button type="button" onClick={prevMonth} className="w-7 h-7 flex items-center justify-center text-[#8B73B3] hover:text-[#6B40A8] hover:bg-[#EDE6FF] transition-colors">
               <ChevronLeft size={14} />
             </button>
-            <span className="text-xs font-mono font-medium text-white/70 tracking-widest uppercase">
+            <span className="text-xs font-mono font-medium text-[#190F30] tracking-widest uppercase">
               {MONTHS[view.month]} {view.year}
             </span>
-            <button type="button" onClick={nextMonth} className="w-7 h-7 flex items-center justify-center text-white/40 hover:text-white/80 hover:bg-white/5 transition-colors">
+            <button type="button" onClick={nextMonth} className="w-7 h-7 flex items-center justify-center text-[#8B73B3] hover:text-[#6B40A8] hover:bg-[#EDE6FF] transition-colors">
               <ChevronRight size={14} />
             </button>
           </div>
@@ -92,7 +91,7 @@ export default function DatePicker({ value, onChange, placeholder = 'Pick a date
           {/* Day names */}
           <div className="grid grid-cols-7 px-2 pb-1">
             {DAY_LABELS.map(d => (
-              <div key={d} className="text-center text-[9px] font-mono text-white/22 py-1">{d}</div>
+              <div key={d} className="text-center text-[9px] font-mono text-[#C4B4E4] py-1">{d}</div>
             ))}
           </div>
 
@@ -113,12 +112,12 @@ export default function DatePicker({ value, onChange, placeholder = 'Pick a date
                   onClick={() => selectDay(day)}
                   className={`h-8 w-full text-xs transition-colors font-mono ${
                     isSelected
-                      ? 'bg-[#d4bfff] text-[#050505] font-bold'
+                      ? 'bg-[#6B40A8] text-white font-bold'
                       : isToday
-                        ? 'ring-1 ring-[#d4bfff]/50 text-[#d4bfff]'
+                        ? 'ring-1 ring-[#9C7CE0] text-[#6B40A8]'
                         : isPast
-                          ? 'text-white/15 cursor-not-allowed'
-                          : 'text-white/55 hover:bg-white/8 hover:text-white'
+                          ? 'text-[#D4C6EF] cursor-not-allowed'
+                          : 'text-[#3D2570] hover:bg-[#EDE6FF]'
                   }`}
                 >
                   {day}

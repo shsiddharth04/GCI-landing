@@ -21,15 +21,12 @@ export interface PaymentPlan {
 export interface CourseSettings {
   fee: string
   originalFee: string
-  currency: string
-  batchStartDate: string
-  batchEndDate: string
   schedule: string
   format: 'in-studio' | 'hybrid' | ''
   equipmentUsed: string
   emiAvailable: boolean
   emiDetails: string
-  seatCap: number
+  seatCap: number       // batch size
   isActive: boolean
   refundPolicy: string
   paymentPlans: PaymentPlan[]
@@ -37,23 +34,17 @@ export interface CourseSettings {
 
 export interface MasterclassSettings {
   fee: string
-  date: string
-  time: string
-  duration: string
   studioName: string
   studioAddress: string
   mapEmbedUrl: string
-  seatCap: number
   isActive: boolean
-  cadence: 'one-off' | 'recurring' | ''
-  recurringSchedule: string
   whatsInside: string
-  // Slot schedule config
+  // Slot schedule
   scheduleOpenTime: string   // '10:00' — first slot starts here
   scheduleCloseTime: string  // '22:00' — last slot must end by here
-  slotMinutes: number        // 30
-  slotCapacity: number       // 3 per slot
-  scheduleDaysAhead: number  // how many days ahead to show (14)
+  slotMinutes: number        // slot duration in minutes
+  slotCapacity: number       // max bookings per slot
+  scheduleDaysAhead: number  // how many days ahead to show
 }
 
 export interface Instructor {
@@ -94,9 +85,6 @@ export const DEFAULT_SETTINGS: AcademySettings = {
   course: {
     fee: '22200',
     originalFee: '37000',
-    currency: 'INR',
-    batchStartDate: '',
-    batchEndDate: '',
     schedule: '',
     format: 'in-studio',
     equipmentUsed: 'Pioneer XDJ-RX3, Sennheiser HD 25 Plus, Rekordbox',
@@ -122,16 +110,10 @@ export const DEFAULT_SETTINGS: AcademySettings = {
   },
   masterclass: {
     fee: '179',
-    date: '',
-    time: '',
-    duration: '',
     studioName: 'GCI Studio, Gurugram',
     studioAddress: '11th Floor, Capital Tower, Next To CDS Tower, Sector 20, Gurugram',
     mapEmbedUrl: '',
-    seatCap: 0,
     isActive: true,
-    cadence: 'one-off',
-    recurringSchedule: '',
     whatsInside: 'A hands-on session inside GCI Studio, Gurugram. Get behind the Pioneer XDJ-RX3, understand signal flow, and feel what DJing actually requires. Zero commitment. No payment, no prerequisites. Just show up.',
     scheduleOpenTime: '10:00',
     scheduleCloseTime: '22:00',
@@ -208,7 +190,14 @@ export function loadSettings(): AcademySettings {
       })(),
       masterclass: (() => {
         const m = { ...structuredClone(DEFAULT_SETTINGS).masterclass, ...stored.masterclass }
-        if (m.slotCapacity === 3) m.slotCapacity = 1 // migrate from old default
+        if (m.slotCapacity === 3) m.slotCapacity = 1
+        // Drop stale fields from old schema (harmless if absent)
+        delete (m as Record<string, unknown>).date
+        delete (m as Record<string, unknown>).time
+        delete (m as Record<string, unknown>).duration
+        delete (m as Record<string, unknown>).cadence
+        delete (m as Record<string, unknown>).recurringSchedule
+        delete (m as Record<string, unknown>).seatCap
         return m
       })(),
       hero: { ...structuredClone(DEFAULT_SETTINGS).hero, ...stored.hero },
@@ -238,15 +227,13 @@ export function useSettings() {
 export function completionScore(s: AcademySettings): { filled: number; total: number; missing: string[] } {
   const missing: string[] = []
   if (!s.course.fee) missing.push('Course fee')
-  if (!s.course.batchStartDate) missing.push('Batch start date')
   if (!s.course.format) missing.push('Course format')
-  if (!s.course.seatCap) missing.push('Course seat cap')
-  if (!s.masterclass.date) missing.push('Masterclass date')
-  if (!s.masterclass.time) missing.push('Masterclass time')
+  if (!s.course.seatCap) missing.push('Batch size')
+  if (!s.course.schedule) missing.push('Course schedule')
+  if (!s.masterclass.fee) missing.push('Masterclass fee')
   if (!s.masterclass.studioAddress) missing.push('Studio address')
-  if (!s.masterclass.seatCap) missing.push('Masterclass seat cap')
   if (s.curriculum.length === 0) missing.push('Curriculum modules')
   if (s.instructors.length === 0) missing.push('Instructors')
-  const total = 10
+  const total = 8
   return { filled: total - missing.length, total, missing }
 }
