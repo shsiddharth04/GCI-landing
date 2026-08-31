@@ -228,6 +228,25 @@ export async function fetchMasterclassBookings(fromDate?: string): Promise<Maste
   return (data ?? []) as MasterclassBooking[]
 }
 
+// ── Course callbacks ──────────────────────────────────────────────────────────
+
+export interface CourseCallback {
+  id: string
+  name: string
+  phone: string
+  is_masters_union: boolean
+  created_at: string
+}
+
+export async function fetchCourseCallbacks(): Promise<CourseCallback[]> {
+  const { data, error } = await supabase
+    .from('course_callbacks')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as CourseCallback[]
+}
+
 // ── Admin queries (require service_role key in prod; anon key if RLS permits) ─
 
 export async function fetchAllSessions(): Promise<Session[]> {
