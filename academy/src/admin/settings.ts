@@ -104,11 +104,11 @@ export const DEFAULT_SETTINGS: AcademySettings = {
     emiDetails: '',
     seatCap: 3,
     isActive: true,
-    refundPolicy: '₹2,000 is required to confirm your seat and is non-refundable. 50% of the remaining fee is due after your first session. The balance is due before your 5th session.',
+    refundPolicy: '₹2,000 is required to confirm your seat and is non-refundable. 50% of the remaining fee is due before your first session. The balance is due before your 5th session.',
     paymentPlans: [
       {
         label: '3-part instalment',
-        dueSchedule: '₹2,000 now to book your seat. 50% of the remaining fee after your first session. The other 50% before your 5th session.',
+        dueSchedule: '₹2,000 now to book your seat. 50% of the remaining fee before your first session. The other 50% before your 5th session.',
         note: 'The ₹2,000 seat deposit is non-refundable.',
         isHighlighted: true,
       },
@@ -198,7 +198,14 @@ export function loadSettings(): AcademySettings {
     return {
       ...structuredClone(DEFAULT_SETTINGS),
       ...stored,
-      course: { ...structuredClone(DEFAULT_SETTINGS).course, ...stored.course },
+      course: (() => {
+        const c = { ...structuredClone(DEFAULT_SETTINGS).course, ...stored.course }
+        // Migrate old payment text: "after your first session" → "before your first session"
+        const fix = (s: string) => s.replace('after your first session', 'before your first session')
+        if (c.refundPolicy) c.refundPolicy = fix(c.refundPolicy)
+        if (c.paymentPlans) c.paymentPlans = c.paymentPlans.map((p: PaymentPlan) => ({ ...p, dueSchedule: fix(p.dueSchedule) }))
+        return c
+      })(),
       masterclass: (() => {
         const m = { ...structuredClone(DEFAULT_SETTINGS).masterclass, ...stored.masterclass }
         if (m.slotCapacity === 3) m.slotCapacity = 1 // migrate from old default
