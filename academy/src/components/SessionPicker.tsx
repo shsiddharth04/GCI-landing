@@ -331,18 +331,18 @@ export default function SessionPicker() {
                 padding: '8px 12px',
                 minWidth: '52px',
                 flexShrink: 0,
-                background: isActive ? '#d4bfff' : 'rgba(5,5,5,0.6)',
-                border: isActive ? 'none' : hasSlots ? '1px solid rgba(212,191,255,0.18)' : '1px solid rgba(255,255,255,0.06)',
+                background: isActive ? '#050505' : 'rgba(5,5,5,0.6)',
+                border: isActive ? '1.5px solid rgba(212,191,255,0.5)' : hasSlots ? '1px solid rgba(212,191,255,0.18)' : '1px solid rgba(255,255,255,0.06)',
                 cursor: 'pointer',
                 opacity: !hasSlots && !isActive ? 0.4 : 1,
                 transition: 'all 0.15s',
                 gap: '2px',
               }}
             >
-              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '7px', letterSpacing: '0.14em', color: isActive ? 'rgba(5,5,5,0.55)' : 'rgba(212,191,255,0.5)', textTransform: 'uppercase' }}>
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '7px', letterSpacing: '0.14em', color: isActive ? 'rgba(212,191,255,0.6)' : 'rgba(212,191,255,0.5)', textTransform: 'uppercase' }}>
                 {top}
               </span>
-              <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '12px', fontWeight: 700, color: isActive ? '#050505' : hasSlots ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.3)', lineHeight: 1.1 }}>
+              <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '12px', fontWeight: 700, color: isActive ? '#d4bfff' : hasSlots ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.3)', lineHeight: 1.1 }}>
                 {bottom}
               </span>
             </button>
@@ -378,16 +378,17 @@ export default function SessionPicker() {
                 const isClassBlock = isC1 || isC2
 
                 // Slot style by state
-                let slotBg = 'rgba(5,5,5,0.6)'
-                let slotBorder = '1px solid rgba(212,191,255,0.18)'
+                // Note: section bg is #d4bfff (lavender), so all slot bgs must be dark enough to contrast
+                let slotBg = 'rgba(5,5,5,0.62)'
+                let slotBorder = '1px solid rgba(212,191,255,0.28)'
                 let slotCursor = 'pointer'
                 let slotOpacity = 1
 
-                if (isSelected) { slotBg = '#d4bfff'; slotBorder = 'none' }
-                else if (isManualBlock) { slotBg = 'rgba(255,255,255,0.01)'; slotBorder = '1px solid rgba(255,255,255,0.04)'; slotOpacity = 0.25; slotCursor = 'default' }
-                else if (isC1) { slotBg = 'rgba(255,165,40,0.06)'; slotBorder = '1px solid rgba(255,165,40,0.2)'; slotCursor = 'default' }
-                else if (isC2) { slotBg = 'rgba(45,212,191,0.06)'; slotBorder = '1px solid rgba(45,212,191,0.2)'; slotCursor = 'default' }
-                else if (isFull) { slotBg = 'rgba(5,5,5,0.4)'; slotBorder = '1px solid rgba(255,255,255,0.07)'; slotCursor = 'default' }
+                if (isSelected) { slotBg = '#050505'; slotBorder = '1.5px solid rgba(212,191,255,0.65)' }
+                else if (isManualBlock) { slotBg = 'rgba(5,5,5,0.25)'; slotBorder = '1px solid rgba(5,5,5,0.12)'; slotOpacity = 0.4; slotCursor = 'default' }
+                else if (isC1) { slotBg = 'rgba(5,5,5,0.62)'; slotBorder = '1.5px solid rgba(255,165,40,0.55)'; slotCursor = 'default' }
+                else if (isC2) { slotBg = 'rgba(5,5,5,0.62)'; slotBorder = '1.5px solid rgba(45,212,191,0.55)'; slotCursor = 'default' }
+                else if (isFull) { slotBg = 'rgba(5,5,5,0.35)'; slotBorder = '1px solid rgba(255,255,255,0.08)'; slotCursor = 'default' }
 
                 return (
                   <button
@@ -406,8 +407,8 @@ export default function SessionPicker() {
                       transition: 'all 0.12s',
                       gap: '3px',
                     }}
-                    onMouseEnter={e => { if (isAvailable && !isSelected) (e.currentTarget as HTMLElement).style.borderColor = 'rgba(212,191,255,0.45)' }}
-                    onMouseLeave={e => { if (isAvailable && !isSelected) (e.currentTarget as HTMLElement).style.borderColor = 'rgba(212,191,255,0.18)' }}
+                    onMouseEnter={e => { if (isAvailable && !isSelected) (e.currentTarget as HTMLElement).style.borderColor = 'rgba(212,191,255,0.7)' }}
+                    onMouseLeave={e => { if (isAvailable && !isSelected) (e.currentTarget as HTMLElement).style.borderColor = 'rgba(212,191,255,0.28)' }}
                   >
                     <span style={{
                       fontFamily: "'Space Mono', monospace",
@@ -415,9 +416,9 @@ export default function SessionPicker() {
                       fontWeight: 700,
                       letterSpacing: '-0.01em',
                       color: isSelected
-                        ? '#050505'
-                        : isC1 ? 'rgba(255,165,40,0.7)'
-                        : isC2 ? 'rgba(45,212,191,0.7)'
+                        ? '#d4bfff'
+                        : isC1 ? 'rgba(255,165,40,0.8)'
+                        : isC2 ? 'rgba(45,212,191,0.8)'
                         : isFull ? 'rgba(255,255,255,0.25)'
                         : 'rgba(255,255,255,0.85)',
                     }}>
@@ -429,12 +430,12 @@ export default function SessionPicker() {
                       letterSpacing: '0.06em',
                       textTransform: 'uppercase',
                       color: isSelected
-                        ? 'rgba(5,5,5,0.5)'
-                        : isC1 ? 'rgba(255,165,40,0.55)'
-                        : isC2 ? 'rgba(45,212,191,0.55)'
+                        ? 'rgba(212,191,255,0.55)'
+                        : isC1 ? 'rgba(255,165,40,0.65)'
+                        : isC2 ? 'rgba(45,212,191,0.65)'
                         : isFull ? 'rgba(255,80,80,0.5)'
                         : left <= 1 ? '#ffcc80'
-                        : 'rgba(212,191,255,0.4)',
+                        : 'rgba(212,191,255,0.45)',
                     }}>
                       {isC1 ? 'C1 · class'
                         : isC2 ? 'C2 · class'
