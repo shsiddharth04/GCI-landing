@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, RefreshCw, UserCheck, AlertCircle, Trash2, Calendar, Repeat, Lock, Unlock, LayoutGrid } from 'lucide-react'
+import { Plus, RefreshCw, UserCheck, AlertCircle, Trash2, Calendar, Repeat, Lock, Unlock, LayoutGrid, BookOpen } from 'lucide-react'
 import {
   fetchAllSessions, fetchSessionRegistrations, createSession,
   rescheduleSession, reassignRegistration, fetchInstructors, cancelSession,
   fetchMasterclassSlotData, upsertSlotOverride, deleteSlotOverride, fetchMasterclassBookings,
+  fetchCourseClassBlocks, addCourseClassBlock, deleteCourseClassBlock,
 } from '../../lib/db'
-import type { Session, Registration, Instructor, SlotOverride, MasterclassBooking } from '../../lib/db'
+import type { Session, Registration, Instructor, SlotOverride, MasterclassBooking, BlockedWindow, CourseClassBlock } from '../../lib/db'
 import DatePicker from '../components/DatePicker'
 import TimePicker from '../components/TimePicker'
 import { loadSettings } from '../settings'
@@ -713,7 +714,7 @@ function MasterclassSlotsPanel() {
   const todayStr = new Date().toISOString().slice(0, 10)
   const [date, setDate] = useState(todayStr)
   const [counts, setCounts]     = useState<Record<string, number>>({})
-  const [blocked, setBlocked]   = useState<{ start_time: string; end_time: string }[]>([])
+  const [blocked, setBlocked]   = useState<BlockedWindow[]>([])
   const [overrides, setOverrides] = useState<SlotOverride[]>([])
   const [bookings, setBookings] = useState<MasterclassBooking[]>([])
   const [loading, setLoading]   = useState(false)
@@ -730,7 +731,7 @@ function MasterclassSlotsPanel() {
         fetchMasterclassBookings(d),
       ])
       setCounts(slotData.counts)
-      setBlocked(slotData.blocked.filter(b => b.session_date === d).map(b => ({ start_time: b.start_time.slice(0, 5), end_time: b.end_time.slice(0, 5) })))
+      setBlocked(slotData.blocked.filter(b => b.session_date === d))
       setOverrides(slotData.overrides)
       setBookings(bks.filter(b => b.slot_date === d))
     } catch { /* silent */ } finally { setLoading(false) }
@@ -739,12 +740,17 @@ function MasterclassSlotsPanel() {
   useEffect(() => { load(date) }, [date])
 
   function getOverride(start: string) { return overrides.find(o => o.slot_date === date && o.slot_start.slice(0, 5) === start) }
-  function isClassBlocked(start: string, end: string) { return blocked.some(b => b.start_time < end && b.end_time > start) }
+  function getClassBlock(start: string, end: string) {
+    return blocked.find(b => b.start_time.slice(0, 5) < end && b.end_time.slice(0, 5) > start)
+  }
 
   function slotState(s: { start: string; end: string }) {
     const ov = getOverride(s.start)
     if (ov?.override === 'blocked') return 'manually-blocked'
-    if (!ov && isClassBlocked(s.start, s.end)) return 'class-blocked'
+    if (!ov) {
+      const w = getClassBlock(s.start, s.end)
+      if (w) return w.cohort === 'C1' ? 'class-c1' : w.cohort === 'C2' ? 'class-c2' : 'class-blocked'
+    }
     if (ov?.override === 'open') return 'forced-open'
     return 'available'
   }
@@ -801,10 +807,12 @@ function MasterclassSlotsPanel() {
           const isSaving = saving === s.start
 
           const stateStyle: Record<string, { border: string; background: string }> = {
-            'available':       { border: '1px solid #E3D9F7', background: 'white' },
-            'manually-blocked':{ border: '1px solid #fca5a5', background: '#fef2f2' },
-            'class-blocked':   { border: '1px solid #fcd34d', background: '#fffbeb' },
-            'forced-open':     { border: '1px solid #6ee7b7', background: '#f0fdf4' },
+            'available':        { border: '1px solid #E3D9F7', background: 'white' },
+            'manually-blocked': { border: '1px solid #fca5a5', background: '#fef2f2' },
+            'class-blocked':    { border: '1px solid #fcd34d', background: '#fffbeb' },
+            'class-c1':         { border: '1px solid #fbbf24', background: '#fffbeb' },
+            'class-c2':         { border: '1px solid #2dd4bf', background: '#f0fdfa' },
+            'forced-open':      { border: '1px solid #6ee7b7', background: '#f0fdf4' },
           }
           const ss = stateStyle[state] ?? stateStyle['available']
 
@@ -834,6 +842,12 @@ function MasterclassSlotsPanel() {
                   )}
                   {state === 'class-blocked' && (
                     <span className="font-mono text-[8px] text-amber-600 tracking-widest uppercase">Course class</span>
+                  )}
+                  {state === 'class-c1' && (
+                    <span className="font-mono text-[8px] text-amber-700 tracking-widest uppercase">Cohort 1 · Class</span>
+                  )}
+                  {state === 'class-c2' && (
+                    <span className="font-mono text-[8px] text-teal-600 tracking-widest uppercase">Cohort 2 · Class</span>
                   )}
                   {state === 'forced-open' && (
                     <span className="font-mono text-[8px] text-emerald-600 tracking-widest uppercase">Force-open</span>
@@ -871,7 +885,7 @@ function MasterclassSlotsPanel() {
                     </button>
                   )}
 
-                  {state === 'class-blocked' && (
+                  {(state === 'class-blocked' || state === 'class-c1' || state === 'class-c2') && (
                     <button
                       onClick={() => forceOpenSlot(s)}
                       disabled={isSaving}
@@ -908,10 +922,186 @@ function MasterclassSlotsPanel() {
   )
 }
 
+// ── Course blocks panel (C1/C2 FOMO slot blocking) ───────────────────────────
+
+function CourseBlocksPanel() {
+  const today = new Date().toISOString().slice(0, 10)
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(); d.setDate(d.getDate() + i)
+    return d.toISOString().slice(0, 10)
+  })
+
+  const [selectedDate, setSelectedDate] = useState(today)
+  const [blocks, setBlocks] = useState<CourseClassBlock[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const [startTime, setStartTime] = useState('')
+  const [endTime, setEndTime] = useState('')
+  const [cohort, setCohort] = useState<'C1' | 'C2'>('C1')
+  const [blockLabel, setBlockLabel] = useState('')
+  const [adding, setAdding] = useState(false)
+
+  async function loadBlocks() {
+    setLoading(true); setError(null)
+    try { setBlocks(await fetchCourseClassBlocks(days[0], days[days.length - 1])) }
+    catch (e: unknown) { setError(e instanceof Error ? e.message : 'Failed to load blocks.') }
+    finally { setLoading(false) }
+  }
+
+  useEffect(() => { loadBlocks() }, [])
+
+  async function handleAdd() {
+    if (!startTime || !endTime) { setError('Select start and end times.'); return }
+    if (startTime >= endTime) { setError('End must be after start.'); return }
+    setAdding(true); setError(null)
+    try {
+      await addCourseClassBlock(selectedDate, startTime, endTime, cohort, blockLabel || undefined)
+      await loadBlocks()
+      setStartTime(''); setEndTime(''); setBlockLabel('')
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to add block.')
+    } finally { setAdding(false) }
+  }
+
+  async function handleDelete(id: string) {
+    try { await deleteCourseClassBlock(id); setBlocks(prev => prev.filter(b => b.id !== id)) }
+    catch { setError('Failed to delete block.') }
+  }
+
+  const dayBlocks = blocks.filter(b => b.block_date === selectedDate)
+
+  return (
+    <div>
+      <p className="text-xs text-[#8B73B3] mb-5">
+        Block masterclass slots for course class times. Blocked slots show as <strong>Cohort 1 · class</strong> or <strong>Cohort 2 · class</strong> on the booking page — students see the studio is active.
+      </p>
+
+      {/* Day selector — next 7 days */}
+      <div className="flex gap-1.5 mb-5 flex-wrap">
+        {days.map(d => {
+          const isActive = d === selectedDate
+          const hasBlocks = blocks.some(b => b.block_date === d)
+          const dateObj = new Date(d + 'T00:00:00')
+          const dayLabel = d === today
+            ? 'Today'
+            : dateObj.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })
+          return (
+            <button
+              key={d}
+              onClick={() => setSelectedDate(d)}
+              className={`relative px-3 py-2 text-xs font-mono transition-colors ${
+                isActive ? 'bg-[#6B40A8] text-white' : 'bg-white text-[#8B73B3] hover:text-[#6B40A8]'
+              }`}
+              style={{ border: isActive ? 'none' : '1px solid #D4C6EF' }}
+            >
+              {dayLabel}
+              {hasBlocks && !isActive && (
+                <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-amber-400" />
+              )}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Existing blocks for selected day */}
+      {loading && <p className="text-xs text-[#C4B4E4] font-mono mb-4">Loading…</p>}
+
+      {dayBlocks.length > 0 && (
+        <div className="mb-5 space-y-1.5">
+          {dayBlocks.map(b => (
+            <div key={b.id} className="flex items-center gap-3 bg-white px-4 py-3" style={{ border: '1px solid #E3D9F7' }}>
+              <span className={`text-[10px] font-mono font-bold px-2 py-0.5 border ${
+                b.cohort === 'C1'
+                  ? 'bg-amber-50 text-amber-700 border-amber-200'
+                  : 'bg-teal-50 text-teal-700 border-teal-200'
+              }`}>{b.cohort}</span>
+              <span className="font-mono text-sm text-[#190F30]">
+                {fmt12(b.start_time.slice(0, 5))} – {fmt12(b.end_time.slice(0, 5))}
+              </span>
+              {b.label && <span className="text-xs text-[#8B73B3] flex-1 truncate">{b.label}</span>}
+              <button
+                onClick={() => handleDelete(b.id)}
+                className="ml-auto text-[#C4B4E4] hover:text-red-500 transition-colors"
+              >
+                <Trash2 size={13} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {dayBlocks.length === 0 && !loading && (
+        <p className="text-xs text-[#C4B4E4] mb-5 font-mono">No class blocks on this day.</p>
+      )}
+
+      {/* Add form */}
+      <div className="bg-white p-5 space-y-4" style={{ border: '1px solid #E3D9F7' }}>
+        <p className="text-[10px] font-mono text-[#B5A3D4] uppercase tracking-widest">Add class block</p>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={labelCls}>Start time</label>
+            <TimePicker value={startTime} onChange={setStartTime} placeholder="Start" />
+          </div>
+          <div>
+            <label className={labelCls}>End time</label>
+            <TimePicker value={endTime} onChange={setEndTime} placeholder="End" />
+          </div>
+        </div>
+
+        <div>
+          <label className={labelCls}>Cohort</label>
+          <div className="flex gap-2">
+            {(['C1', 'C2'] as const).map(c => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setCohort(c)}
+                className={`px-5 py-2 text-xs font-mono font-bold transition-colors ${
+                  cohort === c
+                    ? c === 'C1' ? 'bg-amber-500 text-white' : 'bg-teal-500 text-white'
+                    : 'bg-white text-[#8B73B3] hover:text-[#6B40A8]'
+                }`}
+                style={{ border: cohort === c ? 'none' : '1px solid #D4C6EF' }}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className={labelCls}>
+            Label <span className="normal-case text-[#C4B4E4] ml-1">(optional — e.g. "Module 3 · Rekordbox")</span>
+          </label>
+          <input
+            className={inputCls}
+            placeholder="Module 3 · Rekordbox"
+            value={blockLabel}
+            onChange={e => setBlockLabel(e.target.value)}
+          />
+        </div>
+
+        {error && <p className="text-xs text-red-500 font-mono">{error}</p>}
+
+        <button
+          type="button"
+          onClick={handleAdd}
+          disabled={adding}
+          className="bg-[#6B40A8] hover:bg-[#5C358A] text-white text-xs font-bold font-mono tracking-widest uppercase px-5 py-2.5 disabled:opacity-50 transition-colors"
+        >
+          {adding ? 'Adding…' : 'Add block'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function Schedule() {
-  const [tab, setTab] = useState<'sessions' | 'slots'>('slots')
+  const [tab, setTab] = useState<'sessions' | 'slots' | 'blocks'>('slots')
   const [sessions, setSessions] = useState<Session[]>([])
   const [instructors, setInstructors] = useState<Instructor[]>([])
   const [loading, setLoading] = useState(true)
@@ -963,6 +1153,7 @@ export default function Schedule() {
       <div className="flex mb-6" style={{ borderBottom: '1px solid #E3D9F7' }}>
         {([
           ['slots',    'Masterclass slots', LayoutGrid],
+          ['blocks',   'Course blocks',     BookOpen],
           ['sessions', 'Course sessions',   Calendar],
         ] as const).map(([t, label, Icon]) => (
           <button
@@ -982,6 +1173,9 @@ export default function Schedule() {
 
       {/* Masterclass slots tab */}
       {tab === 'slots' && <MasterclassSlotsPanel />}
+
+      {/* Course blocks tab */}
+      {tab === 'blocks' && <CourseBlocksPanel />}
 
       {/* Course sessions tab */}
       {tab === 'sessions' && (

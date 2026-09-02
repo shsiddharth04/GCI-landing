@@ -113,6 +113,17 @@ export interface BlockedWindow {
   session_date: string
   start_time: string
   end_time: string
+  cohort?: 'C1' | 'C2'  // set for course_class_blocks; undefined for session-based blocks
+}
+
+export interface CourseClassBlock {
+  id: string
+  block_date: string
+  start_time: string
+  end_time: string
+  cohort: 'C1' | 'C2'
+  label: string | null
+  created_at: string
 }
 
 export async function fetchMasterclassSlotData(fromDate: string, toDate: string): Promise<{
@@ -120,7 +131,7 @@ export async function fetchMasterclassSlotData(fromDate: string, toDate: string)
   blocked: BlockedWindow[]
   overrides: SlotOverride[]
 }> {
-  const [bookingsRes, blockedRes, overridesRes] = await Promise.all([
+  const [bookingsRes, blockedRes, overridesRes, courseBlocksRes] = await Promise.all([
     supabase
       .from('masterclass_bookings')
       .select('slot_date, slot_start_time, status')
@@ -139,10 +150,15 @@ export async function fetchMasterclassSlotData(fromDate: string, toDate: string)
       .select('*')
       .gte('slot_date', fromDate)
       .lte('slot_date', toDate),
+    supabase
+      .from('course_class_blocks')
+      .select('*')
+      .gte('block_date', fromDate)
+      .lte('block_date', toDate),
   ])
   if (bookingsRes.error) throw bookingsRes.error
   if (blockedRes.error) throw blockedRes.error
-  // overrides failure is non-fatal
+  // overrides and course_class_blocks failures are non-fatal
 
   const counts: SlotCounts = {}
   for (const r of bookingsRes.data ?? []) {
@@ -150,9 +166,28 @@ export async function fetchMasterclassSlotData(fromDate: string, toDate: string)
     counts[key] = (counts[key] ?? 0) + 1
   }
 
+  // Sessions-table course class blocks (no cohort info)
+  const sessionBlocked: BlockedWindow[] = (blockedRes.data ?? []).map(
+    (s: Record<string, string>) => ({
+      session_date: s.session_date,
+      start_time: s.start_time.slice(0, 5),
+      end_time: s.end_time.slice(0, 5),
+    })
+  )
+
+  // course_class_blocks table — carry cohort for FOMO display
+  const courseBlocked: BlockedWindow[] = (courseBlocksRes.data ?? []).map(
+    (b: Record<string, string>) => ({
+      session_date: b.block_date,
+      start_time: b.start_time.slice(0, 5),
+      end_time: b.end_time.slice(0, 5),
+      cohort: b.cohort as 'C1' | 'C2',
+    })
+  )
+
   return {
     counts,
-    blocked: (blockedRes.data ?? []) as BlockedWindow[],
+    blocked: [...sessionBlocked, ...courseBlocked],
     overrides: (overridesRes.data ?? []) as SlotOverride[],
   }
 }
@@ -330,4 +365,39 @@ export async function fetchInstructors(): Promise<Instructor[]> {
     .order('created_at', { ascending: true })
   if (error) throw error
   return (data ?? []) as Instructor[]
+}
+
+// ── Course class blocks (blocks masterclass slots with cohort FOMO) ───────────
+
+export async function fetchCourseClassBlocks(fromDate: string, toDate: string): Promise<CourseClassBlock[]> {
+  const { data, error } = await supabase
+    .from('course_class_blocks')
+    .select('*')
+    .gte('block_date', fromDate)
+    .lte('block_date', toDate)
+    .order('block_date')
+    .order('start_time')
+  if (error) throw error
+  return (data ?? []) as CourseClassBlock[]
+}
+
+export async function addCourseClassBlock(
+  date: string,
+  startTime: string,
+  endTime: string,
+  cohort: 'C1' | 'C2',
+  label?: string
+): Promise<CourseClassBlock> {
+  const { data, error } = await supabase
+    .from('course_class_blocks')
+    .insert({ block_date: date, start_time: startTime, end_time: endTime, cohort, label: label ?? null })
+    .select()
+    .single()
+  if (error) throw error
+  return data as CourseClassBlock
+}
+
+export async function deleteCourseClassBlock(id: string): Promise<void> {
+  const { error } = await supabase.from('course_class_blocks').delete().eq('id', id)
+  if (error) throw error
 }
