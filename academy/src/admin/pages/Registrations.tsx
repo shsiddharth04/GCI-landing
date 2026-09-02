@@ -31,9 +31,9 @@ function downloadCSV(rows: RegistrationRow[]) {
 }
 
 const statusColors: Record<string, string> = {
-  confirmed:  'bg-green-500/10 text-green-400/80',
-  waitlisted: 'bg-amber-500/10 text-amber-400/80',
-  cancelled:  'bg-red-500/10 text-red-400/60',
+  confirmed:  'bg-emerald-50 text-emerald-700',
+  waitlisted: 'bg-amber-50 text-amber-700',
+  cancelled:  'bg-red-50 text-red-600',
 }
 
 export default function Registrations() {
@@ -75,8 +75,8 @@ export default function Registrations() {
     <div className="p-8 max-w-5xl">
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-xl font-semibold">Registrations</h1>
-          <p className="text-sm text-white/40 mt-0.5">
+          <h1 className="text-xl font-semibold text-[#190F30]">Registrations</h1>
+          <p className="text-sm text-[#B5A3D4] mt-0.5">
             {lastFetched
               ? `${rows.length} entries · ${lastFetched.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`
               : 'Loading…'}
@@ -86,7 +86,8 @@ export default function Registrations() {
           {rows.length > 0 && (
             <button
               onClick={() => downloadCSV(rows)}
-              className="flex items-center gap-2 text-xs border border-white/10 hover:border-white/20 text-white/50 hover:text-white/80 px-3 py-2 rounded-lg transition-colors"
+              className="flex items-center gap-2 text-xs text-[#8B73B3] hover:text-[#6B40A8] px-3 py-2 rounded-lg transition-colors bg-white"
+              style={{ border: '1px solid #D4C6EF' }}
             >
               <Download size={13} />
               Export CSV
@@ -95,7 +96,8 @@ export default function Registrations() {
           <button
             onClick={fetchRows}
             disabled={loading}
-            className="flex items-center gap-2 text-xs border border-white/10 hover:border-white/20 text-white/50 hover:text-white/80 px-3 py-2 rounded-lg transition-colors disabled:opacity-40"
+            className="flex items-center gap-2 text-xs text-[#8B73B3] hover:text-[#6B40A8] px-3 py-2 rounded-lg transition-colors disabled:opacity-40 bg-white"
+            style={{ border: '1px solid #D4C6EF' }}
           >
             <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
             Refresh
@@ -104,52 +106,52 @@ export default function Registrations() {
       </div>
 
       {error && (
-        <div className="mt-4 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-sm text-red-400">
+        <div className="mt-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-600">
           {error}
         </div>
       )}
 
       {!loading && rows.length === 0 && !error && (
-        <div className="mt-8 text-center py-16 text-white/25 text-sm">No registrations yet.</div>
+        <div className="mt-8 text-center py-16 text-[#B5A3D4] text-sm">No registrations yet.</div>
       )}
 
       {rows.length > 0 && (
-        <div className="mt-4 bg-[#141414] border border-white/8 overflow-hidden">
+        <div className="mt-4 bg-white overflow-hidden rounded-xl" style={{ border: '1px solid #E3D9F7' }}>
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/6">
-                <th className="text-left text-xs font-medium text-white/30 font-mono px-5 py-3.5">#</th>
-                <th className="text-left text-xs font-medium text-white/30 font-mono px-4 py-3.5">Name</th>
-                <th className="text-left text-xs font-medium text-white/30 font-mono px-4 py-3.5">Phone</th>
-                <th className="text-left text-xs font-medium text-white/30 font-mono px-4 py-3.5">Session</th>
-                <th className="text-left text-xs font-medium text-white/30 font-mono px-4 py-3.5">Status</th>
-                <th className="text-left text-xs font-medium text-white/30 font-mono px-4 py-3.5">Registered</th>
+              <tr style={{ borderBottom: '1px solid #F0EAFF' }}>
+                <th className="text-left text-xs font-medium text-[#C4B4E4] font-mono px-5 py-3.5">#</th>
+                <th className="text-left text-xs font-medium text-[#C4B4E4] font-mono px-4 py-3.5">Name</th>
+                <th className="text-left text-xs font-medium text-[#C4B4E4] font-mono px-4 py-3.5">Phone</th>
+                <th className="text-left text-xs font-medium text-[#C4B4E4] font-mono px-4 py-3.5">Session</th>
+                <th className="text-left text-xs font-medium text-[#C4B4E4] font-mono px-4 py-3.5">Status</th>
+                <th className="text-left text-xs font-medium text-[#C4B4E4] font-mono px-4 py-3.5">Registered</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((r, i) => (
-                <tr key={r.id} className="border-b border-white/4 last:border-0 hover:bg-white/[0.02] transition-colors">
-                  <td className="px-5 py-3.5 font-mono text-xs text-white/25">{i + 1}</td>
+                <tr key={r.id} className="hover:bg-[#F9F6FF] transition-colors" style={i < rows.length - 1 ? { borderBottom: '1px solid #F0EAFF' } : {}}>
+                  <td className="px-5 py-3.5 font-mono text-xs text-[#C4B4E4]">{i + 1}</td>
                   <td className="px-4 py-3.5">
-                    <div className="font-medium text-white/80">{r.name}</div>
-                    <div className="text-xs text-white/30">{r.email}</div>
+                    <div className="font-medium text-[#190F30]">{r.name}</div>
+                    <div className="text-xs text-[#9980BF]">{r.email}</div>
                   </td>
-                  <td className="px-4 py-3.5 font-mono text-xs text-white/45">{r.phone}</td>
-                  <td className="px-4 py-3.5 text-xs text-white/40">
+                  <td className="px-4 py-3.5 font-mono text-xs text-[#8B73B3]">{r.phone}</td>
+                  <td className="px-4 py-3.5 text-xs text-[#8B73B3]">
                     {r.session_date
                       ? <>
                           <div>{new Date(r.session_date + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</div>
-                          <div className="text-white/25 font-mono">{r.session_type}</div>
+                          <div className="text-[#B5A3D4] font-mono">{r.session_type}</div>
                         </>
-                      : <span className="text-white/20">—</span>
+                      : <span className="text-[#C4B4E4]">—</span>
                     }
                   </td>
                   <td className="px-4 py-3.5">
-                    <span className={`text-xs font-mono px-2 py-0.5 ${statusColors[r.status] ?? 'text-white/30'}`}>
+                    <span className={`text-xs font-mono px-2 py-0.5 rounded ${statusColors[r.status] ?? 'bg-[#F0EAFF] text-[#8B73B3]'}`}>
                       {r.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3.5 text-xs text-white/35 font-mono">
+                  <td className="px-4 py-3.5 text-xs text-[#B5A3D4] font-mono">
                     {new Date(r.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </td>
                 </tr>

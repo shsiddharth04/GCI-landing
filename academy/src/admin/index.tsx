@@ -9,6 +9,9 @@ import CurriculumEditor from './pages/CurriculumEditor'
 import InstructorEditor from './pages/InstructorEditor'
 import Registrations from './pages/Registrations'
 import Schedule from './pages/Schedule'
+import Students from './pages/Students'
+import ResourcesAdmin from './pages/ResourcesAdmin'
+import AnnouncementsAdmin from './pages/AnnouncementsAdmin'
 
 export default function AdminApp() {
   const [authed, setAuthed] = useState(sessionStorage.getItem('admin_authed') === '1')
@@ -27,6 +30,9 @@ export default function AdminApp() {
         <Route path="curriculum" element={<CurriculumEditor />} />
         <Route path="instructors" element={<InstructorEditor />} />
         <Route path="registrations" element={<Registrations />} />
+        <Route path="students" element={<Students />} />
+        <Route path="resources" element={<ResourcesAdmin />} />
+        <Route path="announcements" element={<AnnouncementsAdmin />} />
       </Routes>
     </AdminLayout>
   )

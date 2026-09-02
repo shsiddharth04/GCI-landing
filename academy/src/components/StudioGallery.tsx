@@ -1,147 +1,209 @@
+import { useRef } from 'react'
 import { motion } from 'motion/react'
 import { loadSettings } from '../admin/settings'
 import { fadeUp, fadeIn, viewportOnce } from '../lib/motion'
 import type { GalleryItem } from '../admin/settings'
 import type { MouseEvent } from 'react'
 
-function tilt(e: MouseEvent<HTMLDivElement>, strength = 6) {
-  const rect = e.currentTarget.getBoundingClientRect()
-  const x = (e.clientX - rect.left) / rect.width - 0.5
-  const y = (e.clientY - rect.top) / rect.height - 0.5
-  e.currentTarget.style.transform = `perspective(900px) rotateY(${x * strength}deg) rotateX(${-y * strength}deg) scale(1.01)`
-}
-function resetTilt(e: MouseEvent<HTMLDivElement>) {
-  e.currentTarget.style.transform = 'none'
-}
-
-const TILE_HEIGHT = 'clamp(220px, 38vw, 480px)'
-
-function ImageTile({ item, isFeatured }: { item: GalleryItem; isFeatured?: boolean }) {
+function FilmItem({ item, index }: { item: GalleryItem; index: number }) {
+  const num = String(index + 1).padStart(2, '0')
   return (
     <div
-      onMouseMove={tilt}
-      onMouseLeave={resetTilt}
       style={{
         position: 'relative',
-        background: '#0f0d18',
-        lineHeight: 0,
+        height: '100%',
+        flexShrink: 0,
         overflow: 'hidden',
-        height: TILE_HEIGHT,
-        transition: 'transform 0.18s ease',
-        transformStyle: 'preserve-3d',
+        background: '#0a0a0a',
       }}
     >
-      <img
-        src={item.src}
-        alt={item.alt}
-        loading="lazy"
-        style={{
-          display: 'block',
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          objectPosition: 'center',
-          filter: 'grayscale(100%) contrast(1.3) brightness(0.85)',
-          transition: 'filter 0.5s',
-        }}
-        onMouseEnter={e => { (e.currentTarget as HTMLImageElement).style.filter = 'grayscale(0%) contrast(1.1) brightness(1.0)' }}
-        onMouseLeave={e => { (e.currentTarget as HTMLImageElement).style.filter = 'grayscale(100%) contrast(1.3) brightness(0.85)' }}
-      />
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(212,191,255,0.06)', pointerEvents: 'none' }} />
-      {isFeatured && (
-        <div aria-hidden style={{
-          position: 'absolute', bottom: '16px', left: '16px',
-          fontFamily: "'Space Mono', monospace", fontSize: '56px', fontWeight: 700,
-          color: '#d4bfff', opacity: 0.4, lineHeight: 1,
-          userSelect: 'none', pointerEvents: 'none',
-        }}>
-          01
-        </div>
+      {item.type === 'video' ? (
+        <video
+          src={item.src}
+          autoPlay
+          muted
+          loop
+          playsInline
+          style={{ display: 'block', height: '100%', width: 'auto', maxWidth: 'none' }}
+        />
+      ) : (
+        <img
+          src={item.src}
+          alt={item.alt}
+          loading="lazy"
+          style={{
+            display: 'block',
+            height: '100%',
+            width: 'auto',
+            maxWidth: 'none',
+            filter: 'grayscale(90%) contrast(1.2) brightness(0.9)',
+            transition: 'filter 0.4s',
+          }}
+          onMouseEnter={e => { (e.currentTarget as HTMLImageElement).style.filter = 'grayscale(0%) contrast(1.05) brightness(1.0)' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLImageElement).style.filter = 'grayscale(90%) contrast(1.2) brightness(0.9)' }}
+        />
       )}
-    </div>
-  )
-}
 
-function VideoTile({ item }: { item: GalleryItem }) {
-  return (
-    <div style={{ position: 'relative', lineHeight: 0, background: '#0f0d18', overflow: 'hidden', height: TILE_HEIGHT }}>
-      <video
-        src={item.src}
-        autoPlay
-        muted
-        loop
-        playsInline
-        style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
-      />
+      {/* lavender tint overlay */}
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(212,191,255,0.04)', pointerEvents: 'none' }} />
+
+      {/* index label — bottom left */}
+      <div aria-hidden style={{
+        position: 'absolute', bottom: '12px', left: '14px',
+        fontFamily: "'Space Mono', monospace", fontSize: '9px',
+        letterSpacing: '0.2em', color: 'rgba(212,191,255,0.3)',
+        pointerEvents: 'none',
+      }}>
+        {num}
+      </div>
+
+      {/* top-right sprocket holes as decorative detail */}
+      <div aria-hidden style={{
+        position: 'absolute', top: '10px', right: '14px',
+        display: 'flex', flexDirection: 'column', gap: '5px',
+        pointerEvents: 'none',
+      }}>
+        {[0, 1, 2].map(k => (
+          <div key={k} style={{
+            width: '5px', height: '4px',
+            border: '1px solid rgba(212,191,255,0.18)',
+            borderRadius: '1px',
+          }} />
+        ))}
+      </div>
     </div>
   )
-}
-
-function Tile({ item, isFeatured }: { item: GalleryItem; isFeatured?: boolean }) {
-  return item.type === 'video'
-    ? <VideoTile item={item} />
-    : <ImageTile item={item} isFeatured={isFeatured} />
 }
 
 export default function StudioGallery() {
   const { studioGallery } = loadSettings()
+  const trackRef = useRef<HTMLDivElement>(null)
+  const dragState = useRef({ active: false, startX: 0, scrollLeft: 0 })
 
   if (!studioGallery || studioGallery.length === 0) return null
 
+  // Mouse drag scroll (desktop only — touch uses native scroll)
+  function onMouseDown(e: MouseEvent<HTMLDivElement>) {
+    const el = trackRef.current
+    if (!el) return
+    dragState.current = { active: true, startX: e.pageX - el.offsetLeft, scrollLeft: el.scrollLeft }
+    el.style.cursor = 'grabbing'
+  }
+  function onMouseMove(e: MouseEvent<HTMLDivElement>) {
+    if (!dragState.current.active) return
+    const el = trackRef.current
+    if (!el) return
+    const x = e.pageX - el.offsetLeft
+    el.scrollLeft = dragState.current.scrollLeft - (x - dragState.current.startX)
+  }
+  function onMouseUp() {
+    dragState.current.active = false
+    if (trackRef.current) trackRef.current.style.cursor = 'grab'
+  }
+
   return (
-    <section style={{ background: '#050505' }}>
+    <section style={{ background: '#050505', userSelect: 'none' }}>
       <style>{`
-        .gallery-masonry {
-          columns: 2;
-          column-gap: 2px;
-        }
-        .gallery-item {
-          break-inside: avoid;
-          margin-bottom: 2px;
-          display: block;
-        }
-        @media (max-width: 479px) {
-          .gallery-masonry { columns: 1; }
-        }
+        .filmstrip-track::-webkit-scrollbar { display: none; }
+        .filmstrip-track { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
 
-      <div style={{ padding: 'clamp(48px, 8vw, 80px) 24px 32px', maxWidth: '1152px', margin: '0 auto' }}>
+      {/* Section header */}
+      <div style={{ padding: 'clamp(48px, 8vw, 80px) 24px 28px', maxWidth: '1152px', margin: '0 auto' }}>
         <motion.div initial="hidden" whileInView="visible" viewport={viewportOnce} variants={fadeUp}>
-          <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(212,191,255,0.4)', letterSpacing: '0.28em', textTransform: 'uppercase', marginBottom: '14px' }}>
+          <p style={{
+            fontFamily: "'Space Mono', monospace", fontSize: '9px',
+            color: 'rgba(212,191,255,0.4)', letterSpacing: '0.28em',
+            textTransform: 'uppercase', marginBottom: '14px',
+          }}>
             From our sessions
           </p>
-          <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', fontWeight: 800, lineHeight: 1.1, letterSpacing: '-0.025em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-            What a session<br />actually looks like.
-          </h2>
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+            <h2 style={{
+              fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', fontWeight: 800,
+              lineHeight: 1.1, letterSpacing: '-0.025em',
+              fontFamily: "'Plus Jakarta Sans', sans-serif", margin: 0,
+            }}>
+              What a session<br />actually looks like.
+            </h2>
+            <p style={{
+              fontFamily: "'Space Mono', monospace", fontSize: '8px',
+              color: 'rgba(212,191,255,0.25)', letterSpacing: '0.18em',
+              textTransform: 'uppercase', margin: 0,
+            }}>
+              Drag to explore
+            </p>
+          </div>
         </motion.div>
       </div>
 
+      {/* Filmstrip */}
       <motion.div
         initial="hidden"
         whileInView="visible"
         viewport={viewportOnce}
         variants={fadeIn}
-        style={{ maxWidth: '1152px', margin: '0 auto', padding: '0 24px clamp(48px, 8vw, 80px)' }}
       >
-        <div className="gallery-masonry">
-          {studioGallery.map((item, i) => (
-            <div key={i} className="gallery-item">
-              <Tile item={item} isFeatured={i === 0} />
-            </div>
-          ))}
-        </div>
-        <div style={{ marginTop: '20px', textAlign: 'right' }}>
-          <a href="/studio" style={{
-            fontFamily: "'Space Mono', monospace", fontSize: '9px', letterSpacing: '0.22em',
-            textTransform: 'uppercase', color: 'rgba(212,191,255,0.45)',
-            textDecoration: 'none', transition: 'color 0.2s',
+        {/* Top edge rule */}
+        <div style={{ height: '1px', background: 'rgba(212,191,255,0.06)' }} />
+
+        <div
+          ref={trackRef}
+          className="filmstrip-track"
+          onMouseDown={onMouseDown}
+          onMouseMove={onMouseMove}
+          onMouseUp={onMouseUp}
+          onMouseLeave={onMouseUp}
+          style={{
+            display: 'flex',
+            gap: '2px',
+            // vw-based height so items are proportional to screen width on all devices.
+            // At 390px mobile: ~187px tall, landscape videos ~332px wide — fits neatly.
+            // At 1440px desktop: capped at 600px, landscape videos ~1067px — good scroll.
+            height: 'clamp(180px, 48vw, 600px)',
+            overflowX: 'auto',
+            overflowY: 'hidden',
+            cursor: 'grab',
+            // Padding-left only; right handled by spacer to avoid Safari scroll-width bug.
+            paddingLeft: '24px',
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            WebkitOverflowScrolling: 'touch' as any,
           }}
-            onMouseEnter={e => (e.currentTarget.style.color = '#d4bfff')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(212,191,255,0.45)')}
-          >Studio tour &rarr;</a>
+        >
+          {studioGallery.map((item, i) => (
+            <FilmItem key={i} item={item} index={i} />
+          ))}
+          {/* Trailing spacer — prevents right-padding being eaten on iOS */}
+          <div style={{ flexShrink: 0, width: '24px' }} />
         </div>
+
+        {/* Bottom edge rule */}
+        <div style={{ height: '1px', background: 'rgba(212,191,255,0.06)' }} />
       </motion.div>
+
+      {/* Footer */}
+      <div style={{
+        padding: '16px 24px',
+        maxWidth: '1152px', margin: '0 auto',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      }}>
+        <span style={{
+          fontFamily: "'Space Mono', monospace", fontSize: '8px',
+          color: 'rgba(255,255,255,0.1)', letterSpacing: '0.18em', textTransform: 'uppercase',
+        }}>
+          {studioGallery.length} frames
+        </span>
+        <a href="/studio" style={{
+          fontFamily: "'Space Mono', monospace", fontSize: '9px', letterSpacing: '0.22em',
+          textTransform: 'uppercase', color: 'rgba(212,191,255,0.45)',
+          textDecoration: 'none', transition: 'color 0.2s',
+        }}
+          onMouseEnter={e => (e.currentTarget.style.color = '#d4bfff')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(212,191,255,0.45)')}
+        >
+          Studio tour &rarr;
+        </a>
+      </div>
     </section>
   )
 }

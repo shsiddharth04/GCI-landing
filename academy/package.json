@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port=3002 --host=0.0.0.0",
+    "dev:portal": "vite --config vite.config.portal.ts --port=5174 --host=0.0.0.0",
     "build": "vite build",
+    "build:portal": "vite build --config vite.config.portal.ts",
     "preview": "vite preview",
     "lint": "tsc --noEmit"
   },

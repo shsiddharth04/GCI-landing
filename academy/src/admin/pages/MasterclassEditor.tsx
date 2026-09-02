@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { loadSettings, saveSettings, MasterclassSettings } from '../settings'
+import { loadSettings, saveSettings } from '../settings'
+import type { MasterclassSettings } from '../settings'
 import { useToast } from '../components/Toast'
 
-const FIELD_LABEL = 'text-xs font-medium text-white/50 mb-1.5 block'
-const INPUT = 'w-full bg-[#0a0a0a] border border-white/10 focus:border-[#E8DEFA]/40 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 outline-none transition-colors'
+const FIELD_LABEL = 'text-xs font-medium text-[#8B73B3] mb-1.5 block'
+const INPUT = 'w-full bg-[#F9F6FF] border border-[#D4C6EF] focus:border-[#9C7CE0] rounded-xl px-4 py-3 text-sm text-[#190F30] placeholder-[#C4B4E4] outline-none transition-colors'
 const TEXTAREA = INPUT + ' resize-none'
 
 export default function MasterclassEditor() {
@@ -22,86 +23,119 @@ export default function MasterclassEditor() {
     showToast('Masterclass settings saved.')
   }
 
+  const slotsPerDay = form.scheduleOpenTime && form.scheduleCloseTime && form.slotMinutes
+    ? Math.floor(
+        (parseInt(form.scheduleCloseTime) * 60 + parseInt(form.scheduleCloseTime.split(':')[1] || '0') -
+         (parseInt(form.scheduleOpenTime) * 60 + parseInt(form.scheduleOpenTime.split(':')[1] || '0'))) / form.slotMinutes
+      )
+    : null
+
   return (
     <div className="p-8 max-w-2xl">
       <ToastEl />
-      <h1 className="text-xl font-semibold mb-1">Masterclass</h1>
-      <p className="text-sm text-white/40 mb-8">Free top-of-funnel event. No payment. Capacity-capped.</p>
+      <h1 className="text-xl font-semibold text-[#190F30] mb-1">Masterclass</h1>
+      <p className="text-sm text-[#8B73B3] mb-8">1-on-1 in-studio sessions. Bookings managed through the slot calendar.</p>
 
       <form onSubmit={handleSave} className="space-y-6">
+
         {/* Status */}
-        <div className="bg-[#141414] border border-white/8 rounded-2xl p-5">
+        <div className="bg-white border border-[#E3D9F7] rounded-2xl p-5">
           <label className="flex items-center gap-3 cursor-pointer">
             <div
               onClick={() => set('isActive', !form.isActive)}
-              className={`w-10 h-5.5 rounded-full relative transition-colors cursor-pointer ${form.isActive ? 'bg-[#E8DEFA]/30' : 'bg-white/10'}`}
+              className={`w-10 h-5.5 rounded-full relative transition-colors cursor-pointer ${form.isActive ? 'bg-[#9C7CE0]/40' : 'bg-[#D4C6EF]'}`}
             >
-              <div className={`absolute top-0.5 w-4.5 h-4.5 rounded-full transition-all ${form.isActive ? 'left-[calc(100%-1.25rem)] bg-[#E8DEFA]' : 'left-0.5 bg-white/30'}`} />
+              <div className={`absolute top-0.5 w-4.5 h-4.5 rounded-full transition-all ${form.isActive ? 'left-[calc(100%-1.25rem)] bg-[#6B40A8]' : 'left-0.5 bg-[#B5A3D4]'}`} />
             </div>
-            <span className="text-sm font-medium">Masterclass is live / accepting registrations</span>
+            <span className="text-sm font-medium text-[#190F30]">Accepting bookings</span>
           </label>
         </div>
 
-        {/* Date & time */}
-        <section className="bg-[#141414] border border-white/8 rounded-2xl p-5 space-y-4">
-          <h2 className="text-xs font-semibold text-white/30 uppercase tracking-widest">Date & time</h2>
+        {/* Fee */}
+        <section className="bg-white border border-[#E3D9F7] rounded-2xl p-5 space-y-4">
+          <h2 className="text-xs font-semibold text-[#7548B8] uppercase tracking-widest">Pricing</h2>
+          <div>
+            <label className={FIELD_LABEL}>Session fee (₹)</label>
+            <input
+              className={INPUT}
+              placeholder="e.g. 179"
+              value={form.fee}
+              onChange={e => set('fee', e.target.value)}
+            />
+            <p className="text-xs text-[#B5A3D4] mt-1.5">Credited toward the course fee on enrollment.</p>
+          </div>
+        </section>
+
+        {/* Slot schedule */}
+        <section className="bg-white border border-[#E3D9F7] rounded-2xl p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-semibold text-[#7548B8] uppercase tracking-widest">Slot schedule</h2>
+            {slotsPerDay !== null && slotsPerDay > 0 && (
+              <span className="text-[10px] font-mono text-[#B5A3D4]">
+                ~{slotsPerDay} slots/day
+              </span>
+            )}
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={FIELD_LABEL}>Date</label>
-              <input
-                type="date"
-                className={INPUT}
-                value={form.date}
-                onChange={e => set('date', e.target.value)}
-              />
-            </div>
-            <div>
-              <label className={FIELD_LABEL}>Time</label>
+              <label className={FIELD_LABEL}>First slot starts</label>
               <input
                 type="time"
                 className={INPUT}
-                value={form.time}
-                onChange={e => set('time', e.target.value)}
+                value={form.scheduleOpenTime}
+                onChange={e => set('scheduleOpenTime', e.target.value)}
+              />
+            </div>
+            <div>
+              <label className={FIELD_LABEL}>Last slot ends by</label>
+              <input
+                type="time"
+                className={INPUT}
+                value={form.scheduleCloseTime}
+                onChange={e => set('scheduleCloseTime', e.target.value)}
               />
             </div>
           </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className={FIELD_LABEL}>Slot duration (minutes)</label>
+              <input
+                type="number"
+                min={15}
+                step={15}
+                className={INPUT}
+                value={form.slotMinutes}
+                onChange={e => set('slotMinutes', Number(e.target.value))}
+              />
+            </div>
+            <div>
+              <label className={FIELD_LABEL}>Max bookings per slot</label>
+              <input
+                type="number"
+                min={1}
+                className={INPUT}
+                value={form.slotCapacity}
+                onChange={e => set('slotCapacity', Number(e.target.value))}
+              />
+              <p className="text-xs text-[#C4B4E4] mt-1.5">Currently 1-on-1 → set to 1.</p>
+            </div>
+          </div>
           <div>
-            <label className={FIELD_LABEL}>Duration</label>
+            <label className={FIELD_LABEL}>Days ahead to show on booking calendar</label>
             <input
+              type="number"
+              min={1}
+              max={60}
               className={INPUT}
-              placeholder="e.g. 2 hours"
-              value={form.duration}
-              onChange={e => set('duration', e.target.value)}
+              value={form.scheduleDaysAhead}
+              onChange={e => set('scheduleDaysAhead', Number(e.target.value))}
             />
           </div>
-          <div>
-            <label className={FIELD_LABEL}>Cadence</label>
-            <select
-              className={INPUT}
-              value={form.cadence}
-              onChange={e => set('cadence', e.target.value as MasterclassSettings['cadence'])}
-            >
-              <option value="">Select cadence</option>
-              <option value="one-off">One-off event</option>
-              <option value="recurring">Recurring on a schedule</option>
-            </select>
-          </div>
-          {form.cadence === 'recurring' && (
-            <div>
-              <label className={FIELD_LABEL}>Recurring schedule</label>
-              <input
-                className={INPUT}
-                placeholder="e.g. Every first Saturday of the month"
-                value={form.recurringSchedule}
-                onChange={e => set('recurringSchedule', e.target.value)}
-              />
-            </div>
-          )}
         </section>
 
         {/* Venue */}
-        <section className="bg-[#141414] border border-white/8 rounded-2xl p-5 space-y-4">
-          <h2 className="text-xs font-semibold text-white/30 uppercase tracking-widest">Venue</h2>
+        <section className="bg-white border border-[#E3D9F7] rounded-2xl p-5 space-y-4">
+          <h2 className="text-xs font-semibold text-[#7548B8] uppercase tracking-widest">Venue</h2>
           <div>
             <label className={FIELD_LABEL}>Studio name</label>
             <input
@@ -129,36 +163,19 @@ export default function MasterclassEditor() {
               value={form.mapEmbedUrl}
               onChange={e => set('mapEmbedUrl', e.target.value)}
             />
-            <p className="text-xs text-white/25 mt-1.5">Get this from Google Maps → Share → Embed a map → copy the src URL.</p>
-          </div>
-        </section>
-
-        {/* Capacity */}
-        <section className="bg-[#141414] border border-white/8 rounded-2xl p-5 space-y-4">
-          <h2 className="text-xs font-semibold text-white/30 uppercase tracking-widest">Capacity</h2>
-          <div>
-            <label className={FIELD_LABEL}>Seat cap (hard limit)</label>
-            <input
-              type="number"
-              min={1}
-              className={INPUT}
-              placeholder="e.g. 30"
-              value={form.seatCap || ''}
-              onChange={e => set('seatCap', Number(e.target.value))}
-            />
-            <p className="text-xs text-white/25 mt-1.5">Registrations beyond this cap go to the waitlist.</p>
+            <p className="text-xs text-[#B5A3D4] mt-1.5">Google Maps → Share → Embed a map → copy the src URL.</p>
           </div>
         </section>
 
         {/* Content */}
-        <section className="bg-[#141414] border border-white/8 rounded-2xl p-5 space-y-4">
-          <h2 className="text-xs font-semibold text-white/30 uppercase tracking-widest">What's inside</h2>
+        <section className="bg-white border border-[#E3D9F7] rounded-2xl p-5 space-y-4">
+          <h2 className="text-xs font-semibold text-[#7548B8] uppercase tracking-widest">What's inside</h2>
           <div>
-            <label className={FIELD_LABEL}>What's covered (shown on the registration page)</label>
+            <label className={FIELD_LABEL}>Description shown on the booking page</label>
             <textarea
               className={TEXTAREA}
               rows={4}
-              placeholder="Bullet points or a paragraph describing what attendees will learn / experience."
+              placeholder="What will the student do in this session?"
               value={form.whatsInside}
               onChange={e => set('whatsInside', e.target.value)}
             />
@@ -167,7 +184,7 @@ export default function MasterclassEditor() {
 
         <button
           type="submit"
-          className="bg-[#E8DEFA] hover:bg-[#d4c8f0] text-[#0a0a0a] font-semibold px-6 py-3 rounded-xl text-sm transition-colors"
+          className="bg-[#6B40A8] hover:bg-[#5C358A] text-white font-semibold px-6 py-3 rounded-xl text-sm transition-colors"
         >
           Save masterclass settings
         </button>

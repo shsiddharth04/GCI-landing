@@ -1,0 +1,7 @@
+{
+  "buildCommand": "npm run build:portal",
+  "outputDirectory": "dist-portal",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index-portal.html" }
+  ]
+}

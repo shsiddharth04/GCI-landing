@@ -27,10 +27,10 @@ function generateSlots(openTime: string, closeTime: string, slotMinutes: number)
   return slots
 }
 
-function isBlockedByClass(start: string, end: string, windows: BlockedWindow[], date: string) {
-  return windows.some(w =>
+function getBlockingWindow(start: string, end: string, windows: BlockedWindow[], date: string) {
+  return windows.find(w =>
     w.session_date === date && w.start_time.slice(0, 5) < end && w.end_time.slice(0, 5) > start
-  )
+  ) ?? null
 }
 
 function getOverride(date: string, start: string, overrides: SlotOverride[]) {
@@ -163,10 +163,17 @@ export default function SessionPicker() {
     if (isPast(date, slot.start)) return 'past'
     const ov = getOverride(date, slot.start, overrides)
     if (ov?.override === 'blocked') return 'blocked'
-    // 'open' override bypasses course-class blocking
-    if (!ov && isBlockedByClass(slot.start, slot.end, blocked, date)) return 'blocked'
+    // 'open' override bypasses course-class blocking; no override → check class blocks
+    if (!ov) {
+      const w = getBlockingWindow(slot.start, slot.end, blocked, date)
+      if (w) {
+        if (w.cohort === 'C1') return 'blocked-c1'
+        if (w.cohort === 'C2') return 'blocked-c2'
+        return 'blocked' // session-table block, no cohort
+      }
+    }
     const booked = counts[slotKey(date, slot.start)] ?? 0
-    if (booked >= slotCapacity) return 'full'
+    if (booked >= (slotCapacity || 3)) return 'full'
     return 'available'
   }
 
@@ -324,18 +331,18 @@ export default function SessionPicker() {
                 padding: '8px 12px',
                 minWidth: '52px',
                 flexShrink: 0,
-                background: isActive ? '#d4bfff' : 'rgba(5,5,5,0.6)',
-                border: isActive ? 'none' : hasSlots ? '1px solid rgba(212,191,255,0.18)' : '1px solid rgba(255,255,255,0.06)',
+                background: isActive ? '#050505' : 'rgba(5,5,5,0.6)',
+                border: isActive ? '1.5px solid rgba(212,191,255,0.5)' : hasSlots ? '1px solid rgba(212,191,255,0.18)' : '1px solid rgba(255,255,255,0.06)',
                 cursor: 'pointer',
                 opacity: !hasSlots && !isActive ? 0.4 : 1,
                 transition: 'all 0.15s',
                 gap: '2px',
               }}
             >
-              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '7px', letterSpacing: '0.14em', color: isActive ? 'rgba(5,5,5,0.55)' : 'rgba(212,191,255,0.5)', textTransform: 'uppercase' }}>
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '7px', letterSpacing: '0.14em', color: isActive ? 'rgba(212,191,255,0.6)' : 'rgba(212,191,255,0.5)', textTransform: 'uppercase' }}>
                 {top}
               </span>
-              <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '12px', fontWeight: 700, color: isActive ? '#050505' : hasSlots ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.3)', lineHeight: 1.1 }}>
+              <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '12px', fontWeight: 700, color: isActive ? '#d4bfff' : hasSlots ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.3)', lineHeight: 1.1 }}>
                 {bottom}
               </span>
             </button>
@@ -361,62 +368,80 @@ export default function SessionPicker() {
               {visibleSlots.map(slot => {
                 const isSelected = selectedSlot?.start === slot.start && stage === 'form'
                 const booked = counts[slotKey(activeDate, slot.start)] ?? 0
-                const left = slotCapacity - booked
-                const full = slot.status === 'full'
-                const blockedSlot = slot.status === 'blocked'
+                const cap = slotCapacity || 3
+                const left = cap - booked
+                const isAvailable = slot.status === 'available'
+                const isFull = slot.status === 'full'
+                const isManualBlock = slot.status === 'blocked'
+                const isC1 = slot.status === 'blocked-c1'
+                const isC2 = slot.status === 'blocked-c2'
+                const isClassBlock = isC1 || isC2
+
+                // Slot style by state
+                // Note: section bg is #d4bfff (lavender), so all slot bgs must be dark enough to contrast
+                let slotBg = 'rgba(5,5,5,0.62)'
+                let slotBorder = '1px solid rgba(212,191,255,0.28)'
+                let slotCursor = 'pointer'
+                let slotOpacity = 1
+
+                if (isSelected) { slotBg = '#050505'; slotBorder = '1.5px solid rgba(212,191,255,0.65)' }
+                else if (isManualBlock) { slotBg = 'rgba(5,5,5,0.25)'; slotBorder = '1px solid rgba(5,5,5,0.12)'; slotOpacity = 0.4; slotCursor = 'default' }
+                else if (isC1) { slotBg = 'rgba(236,72,153,0.1)'; slotBorder = '2px solid rgba(236,72,153,0.8)'; slotCursor = 'default' }
+                else if (isC2) { slotBg = 'rgba(99,102,241,0.1)'; slotBorder = '2px solid rgba(99,102,241,0.8)'; slotCursor = 'default' }
+                else if (isFull) { slotBg = 'rgba(5,5,5,0.5)'; slotBorder = '1px solid rgba(255,80,80,0.25)'; slotCursor = 'default' }
 
                 return (
                   <button
                     key={slot.start}
-                    onClick={() => !blockedSlot && pickSlot(slot)}
-                    disabled={blockedSlot}
+                    onClick={() => { if (isAvailable) pickSlot(slot) }}
+                    disabled={!isAvailable}
                     style={{
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
-                      padding: '10px 8px',
-                      background: isSelected
-                        ? '#d4bfff'
-                        : blockedSlot
-                          ? 'rgba(255,255,255,0.02)'
-                          : 'rgba(5,5,5,0.6)',
-                      border: isSelected
-                        ? 'none'
-                        : blockedSlot
-                          ? '1px solid rgba(255,255,255,0.05)'
-                          : full
-                            ? '1px solid rgba(255,255,255,0.08)'
-                            : '1px solid rgba(212,191,255,0.18)',
-                      cursor: blockedSlot ? 'not-allowed' : 'pointer',
-                      opacity: blockedSlot ? 0.3 : 1,
+                      padding: isClassBlock ? '8px 6px' : '10px 8px',
+                      background: slotBg,
+                      border: slotBorder,
+                      cursor: slotCursor,
+                      opacity: slotOpacity,
                       transition: 'all 0.12s',
                       gap: '3px',
                     }}
-                    onMouseEnter={e => { if (!blockedSlot && !isSelected) (e.currentTarget as HTMLElement).style.borderColor = 'rgba(212,191,255,0.45)' }}
-                    onMouseLeave={e => { if (!blockedSlot && !isSelected) (e.currentTarget as HTMLElement).style.borderColor = full ? 'rgba(255,255,255,0.08)' : 'rgba(212,191,255,0.18)' }}
+                    onMouseEnter={e => { if (isAvailable && !isSelected) (e.currentTarget as HTMLElement).style.borderColor = 'rgba(212,191,255,0.7)' }}
+                    onMouseLeave={e => { if (isAvailable && !isSelected) (e.currentTarget as HTMLElement).style.borderColor = 'rgba(212,191,255,0.28)' }}
                   >
                     <span style={{
                       fontFamily: "'Space Mono', monospace",
                       fontSize: '11px',
                       fontWeight: 700,
-                      color: isSelected ? '#050505' : full ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.85)',
                       letterSpacing: '-0.01em',
+                      color: isSelected
+                        ? '#d4bfff'
+                        : isC1 ? 'rgba(236,72,153,1)'
+                        : isC2 ? 'rgba(99,102,241,1)'
+                        : isFull ? 'rgba(255,255,255,0.4)'
+                        : 'rgba(255,255,255,0.9)',
                     }}>
                       {fmtTime12(slot.start)}
                     </span>
                     <span style={{
                       fontFamily: "'Space Mono', monospace",
                       fontSize: '7px',
-                      letterSpacing: '0.08em',
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
                       color: isSelected
-                        ? 'rgba(5,5,5,0.5)'
-                        : full
-                          ? 'rgba(255,100,80,0.6)'
-                          : left <= 1
-                            ? '#ffcc80'
-                            : 'rgba(212,191,255,0.4)',
+                        ? 'rgba(212,191,255,0.55)'
+                        : isC1 ? 'rgba(236,72,153,0.85)'
+                        : isC2 ? 'rgba(99,102,241,0.85)'
+                        : isFull ? 'rgba(255,80,80,0.85)'
+                        : left <= 1 ? '#ffcc80'
+                        : 'rgba(212,191,255,0.65)',
                     }}>
-                      {full ? 'Full' : left === 1 ? '1 left' : `${left} free`}
+                      {isC1 ? 'C1 · class'
+                        : isC2 ? 'C2 · class'
+                        : isFull ? 'Full'
+                        : left === 1 ? '1 left'
+                        : `${left} free`}
                     </span>
                   </button>
                 )

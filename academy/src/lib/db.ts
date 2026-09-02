@@ -13,6 +13,7 @@ export interface Session {
   instructor_id: string
   session_type: 'masterclass' | 'course_class'
   course_id: string | null
+  cohort: 'C1' | 'C2' | null
   session_date: string
   start_time: string
   end_time: string
@@ -113,6 +114,17 @@ export interface BlockedWindow {
   session_date: string
   start_time: string
   end_time: string
+  cohort?: 'C1' | 'C2'  // set for course_class_blocks; undefined for session-based blocks
+}
+
+export interface CourseClassBlock {
+  id: string
+  block_date: string
+  start_time: string
+  end_time: string
+  cohort: 'C1' | 'C2'
+  label: string | null
+  created_at: string
 }
 
 export async function fetchMasterclassSlotData(fromDate: string, toDate: string): Promise<{
@@ -120,7 +132,7 @@ export async function fetchMasterclassSlotData(fromDate: string, toDate: string)
   blocked: BlockedWindow[]
   overrides: SlotOverride[]
 }> {
-  const [bookingsRes, blockedRes, overridesRes] = await Promise.all([
+  const [bookingsRes, blockedRes, overridesRes, courseBlocksRes] = await Promise.all([
     supabase
       .from('masterclass_bookings')
       .select('slot_date, slot_start_time, status')
@@ -139,10 +151,15 @@ export async function fetchMasterclassSlotData(fromDate: string, toDate: string)
       .select('*')
       .gte('slot_date', fromDate)
       .lte('slot_date', toDate),
+    supabase
+      .from('course_class_blocks')
+      .select('*')
+      .gte('block_date', fromDate)
+      .lte('block_date', toDate),
   ])
   if (bookingsRes.error) throw bookingsRes.error
   if (blockedRes.error) throw blockedRes.error
-  // overrides failure is non-fatal
+  // overrides and course_class_blocks failures are non-fatal
 
   const counts: SlotCounts = {}
   for (const r of bookingsRes.data ?? []) {
@@ -150,9 +167,28 @@ export async function fetchMasterclassSlotData(fromDate: string, toDate: string)
     counts[key] = (counts[key] ?? 0) + 1
   }
 
+  // Sessions-table course class blocks (no cohort info)
+  const sessionBlocked: BlockedWindow[] = (blockedRes.data ?? []).map(
+    (s: Record<string, string>) => ({
+      session_date: s.session_date,
+      start_time: s.start_time.slice(0, 5),
+      end_time: s.end_time.slice(0, 5),
+    })
+  )
+
+  // course_class_blocks table — carry cohort for FOMO display
+  const courseBlocked: BlockedWindow[] = (courseBlocksRes.data ?? []).map(
+    (b: Record<string, string>) => ({
+      session_date: b.block_date,
+      start_time: b.start_time.slice(0, 5),
+      end_time: b.end_time.slice(0, 5),
+      cohort: b.cohort as 'C1' | 'C2',
+    })
+  )
+
   return {
     counts,
-    blocked: (blockedRes.data ?? []) as BlockedWindow[],
+    blocked: [...sessionBlocked, ...courseBlocked],
     overrides: (overridesRes.data ?? []) as SlotOverride[],
   }
 }
@@ -226,6 +262,25 @@ export async function fetchMasterclassBookings(fromDate?: string): Promise<Maste
   const { data, error } = await q
   if (error) throw error
   return (data ?? []) as MasterclassBooking[]
+}
+
+// ── Course callbacks ──────────────────────────────────────────────────────────
+
+export interface CourseCallback {
+  id: string
+  name: string
+  phone: string
+  is_masters_union: boolean
+  created_at: string
+}
+
+export async function fetchCourseCallbacks(): Promise<CourseCallback[]> {
+  const { data, error } = await supabase
+    .from('course_callbacks')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as CourseCallback[]
 }
 
 // ── Admin queries (require service_role key in prod; anon key if RLS permits) ─
@@ -311,4 +366,238 @@ export async function fetchInstructors(): Promise<Instructor[]> {
     .order('created_at', { ascending: true })
   if (error) throw error
   return (data ?? []) as Instructor[]
+}
+
+// ── Course class blocks (blocks masterclass slots with cohort FOMO) ───────────
+
+export async function fetchCourseClassBlocks(fromDate: string, toDate: string): Promise<CourseClassBlock[]> {
+  const { data, error } = await supabase
+    .from('course_class_blocks')
+    .select('*')
+    .gte('block_date', fromDate)
+    .lte('block_date', toDate)
+    .order('block_date')
+    .order('start_time')
+  if (error) throw error
+  return (data ?? []) as CourseClassBlock[]
+}
+
+export async function addCourseClassBlock(
+  date: string,
+  startTime: string,
+  endTime: string,
+  cohort: 'C1' | 'C2',
+  label?: string
+): Promise<CourseClassBlock> {
+  const { data, error } = await supabase
+    .from('course_class_blocks')
+    .insert({ block_date: date, start_time: startTime, end_time: endTime, cohort, label: label ?? null })
+    .select()
+    .single()
+  if (error) throw error
+  return data as CourseClassBlock
+}
+
+export async function deleteCourseClassBlock(id: string): Promise<void> {
+  const { error } = await supabase.from('course_class_blocks').delete().eq('id', id)
+  if (error) throw error
+}
+
+// ── Student portal types ──────────────────────────────────────────────────────
+
+export interface EnrolledStudent {
+  id: string
+  name: string
+  email: string
+  phone: string | null
+  cohort: 'C1' | 'C2'
+  status: 'active' | 'graduated' | 'suspended'
+  user_id: string | null
+  invited_at: string | null
+  enrolled_at: string
+  notes: string | null
+}
+
+export interface StudentResource {
+  id: string
+  title: string
+  description: string | null
+  url: string
+  resource_type: 'pdf' | 'link' | 'video' | 'audio' | 'other' | null
+  cohort: 'C1' | 'C2' | 'all'
+  is_published: boolean
+  file_name: string | null
+  created_at: string
+}
+
+export interface Announcement {
+  id: string
+  title: string
+  body: string
+  cohort: 'C1' | 'C2' | 'all'
+  is_published: boolean
+  published_at: string | null
+  created_at: string
+}
+
+// ── Admin: enrolled students ──────────────────────────────────────────────────
+
+export async function fetchEnrolledStudents(): Promise<EnrolledStudent[]> {
+  const { data, error } = await supabase
+    .from('enrolled_students')
+    .select('*')
+    .order('enrolled_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as EnrolledStudent[]
+}
+
+export async function addEnrolledStudent(
+  name: string, email: string, phone: string, cohort: 'C1' | 'C2'
+): Promise<EnrolledStudent> {
+  const { data, error } = await supabase
+    .from('enrolled_students')
+    .insert({ name, email: email.toLowerCase(), phone: phone || null, cohort })
+    .select()
+    .single()
+  if (error) throw error
+  return data as EnrolledStudent
+}
+
+export async function updateStudentStatus(id: string, status: EnrolledStudent['status']): Promise<void> {
+  const { error } = await supabase.from('enrolled_students').update({ status }).eq('id', id)
+  if (error) throw error
+}
+
+export async function deleteEnrolledStudent(id: string): Promise<void> {
+  const { error } = await supabase.from('enrolled_students').delete().eq('id', id)
+  if (error) throw error
+}
+
+export async function sendStudentInvite(email: string): Promise<{ success: boolean; error?: string }> {
+  const { data, error } = await supabase.functions.invoke('student-auth', {
+    body: { email },
+  })
+  if (error) return { success: false, error: error.message }
+  if (data?.error) return { success: false, error: data.error }
+  return { success: true }
+}
+
+// ── Admin: resources ──────────────────────────────────────────────────────────
+
+export async function fetchAllResources(): Promise<StudentResource[]> {
+  const { data, error } = await supabase
+    .from('student_resources')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as StudentResource[]
+}
+
+export async function addStudentResource(
+  title: string,
+  url: string,
+  cohort: StudentResource['cohort'],
+  resource_type: StudentResource['resource_type'],
+  description?: string
+): Promise<StudentResource> {
+  const { data, error } = await supabase
+    .from('student_resources')
+    .insert({ title, url, cohort, resource_type: resource_type ?? 'link', description: description ?? null })
+    .select()
+    .single()
+  if (error) throw error
+  return data as StudentResource
+}
+
+export async function updateResourcePublished(id: string, is_published: boolean): Promise<void> {
+  const { error } = await supabase.from('student_resources').update({ is_published }).eq('id', id)
+  if (error) throw error
+}
+
+export async function deleteStudentResource(id: string): Promise<void> {
+  const { error } = await supabase.from('student_resources').delete().eq('id', id)
+  if (error) throw error
+}
+
+// ── Admin: announcements ──────────────────────────────────────────────────────
+
+export async function fetchAllAnnouncements(): Promise<Announcement[]> {
+  const { data, error } = await supabase
+    .from('announcements')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as Announcement[]
+}
+
+export async function addAnnouncement(
+  title: string, body: string, cohort: Announcement['cohort']
+): Promise<Announcement> {
+  const { data, error } = await supabase
+    .from('announcements')
+    .insert({ title, body, cohort })
+    .select()
+    .single()
+  if (error) throw error
+  return data as Announcement
+}
+
+export async function publishAnnouncement(id: string, publish: boolean): Promise<void> {
+  const update: Partial<Announcement> = { is_published: publish }
+  if (publish) update.published_at = new Date().toISOString()
+  const { error } = await supabase.from('announcements').update(update).eq('id', id)
+  if (error) throw error
+}
+
+export async function deleteAnnouncement(id: string): Promise<void> {
+  const { error } = await supabase.from('announcements').delete().eq('id', id)
+  if (error) throw error
+}
+
+// ── Portal (authenticated): student's own data ────────────────────────────────
+
+export async function fetchMyEnrollment(): Promise<EnrolledStudent | null> {
+  const { data, error } = await supabase
+    .from('enrolled_students')
+    .select('*')
+    .maybeSingle()
+  if (error) throw error
+  return data as EnrolledStudent | null
+}
+
+export async function fetchMyCourseSchedule(): Promise<Session[]> {
+  const today = new Date().toISOString().slice(0, 10)
+  const { data, error } = await supabase
+    .from('sessions')
+    .select('*, instructors(name)')
+    .eq('session_type', 'course_class')
+    .neq('status', 'cancelled')
+    .gte('session_date', '2020-01-01')
+    .order('session_date', { ascending: true })
+    .order('start_time', { ascending: true })
+  if (error) throw error
+  return (data ?? []).map((s: Record<string, unknown>) => ({
+    ...s,
+    instructor_name: (s.instructors as { name: string } | null)?.name ?? '',
+  })) as Session[]
+}
+
+export async function fetchMyResources(): Promise<StudentResource[]> {
+  const { data, error } = await supabase
+    .from('student_resources')
+    .select('*')
+    .eq('is_published', true)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as StudentResource[]
+}
+
+export async function fetchMyAnnouncements(): Promise<Announcement[]> {
+  const { data, error } = await supabase
+    .from('announcements')
+    .select('*')
+    .eq('is_published', true)
+    .order('published_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as Announcement[]
 }

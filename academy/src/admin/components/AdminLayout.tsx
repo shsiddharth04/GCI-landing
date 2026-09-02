@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, BookOpen, Calendar, Users, GraduationCap, ClipboardList, LogOut, CalendarDays } from 'lucide-react'
+import { LayoutDashboard, BookOpen, Calendar, Users, GraduationCap, ClipboardList, LogOut, CalendarDays, UserCheck, FileText, Bell } from 'lucide-react'
 
 const navItems = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -9,6 +9,9 @@ const navItems = [
   { to: '/admin/curriculum', label: 'Curriculum', icon: BookOpen },
   { to: '/admin/instructors', label: 'Instructors', icon: Users },
   { to: '/admin/registrations', label: 'Registrations', icon: ClipboardList },
+  { to: '/admin/students', label: 'Students', icon: UserCheck },
+  { to: '/admin/resources', label: 'Resources', icon: FileText },
+  { to: '/admin/announcements', label: 'Announcements', icon: Bell },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -21,11 +24,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="min-h-screen bg-[#080808] flex">
-      {/* Sidebar */}
-      <aside className="w-56 shrink-0 bg-[#0d0d0d] border-r border-white/6 flex flex-col">
-        <div className="px-5 py-5 border-b border-white/6">
-          <div className="text-sm font-bold tracking-tight">
+    <div className="min-h-screen flex" style={{ background: '#F3EEFF' }}>
+      {/* Sidebar — stays dark, brand-anchored */}
+      <aside className="w-56 shrink-0 flex flex-col" style={{ background: '#0E0918', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
+        <div className="px-5 py-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="text-sm font-bold tracking-tight text-white">
             GCI <span className="text-[#E8DEFA]">Academy</span>
           </div>
           <div className="text-[10px] text-white/30 font-mono mt-0.5">Admin Console</div>
@@ -40,7 +43,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               className={({ isActive }) =>
                 `flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                   isActive
-                    ? 'bg-[#E8DEFA]/10 text-[#E8DEFA] font-medium'
+                    ? 'bg-[#E8DEFA]/12 text-[#E8DEFA] font-medium'
                     : 'text-white/45 hover:text-white/80 hover:bg-white/5'
                 }`
               }
@@ -51,7 +54,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           ))}
         </nav>
 
-        <div className="p-3 border-t border-white/6">
+        <div className="p-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
           <button
             onClick={handleLogout}
             className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-white/35 hover:text-white/70 hover:bg-white/5 w-full transition-colors"
@@ -62,8 +65,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      {/* Main content */}
-      <main className="flex-1 min-w-0 overflow-y-auto">
+      {/* Main content — light lavender */}
+      <main className="flex-1 min-w-0 overflow-y-auto" style={{ background: '#F3EEFF' }}>
         {children}
       </main>
     </div>

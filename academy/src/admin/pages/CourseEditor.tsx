@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { loadSettings, saveSettings, CourseSettings } from '../settings'
 import { useToast } from '../components/Toast'
 
-const FIELD_LABEL = 'text-xs font-medium text-white/50 mb-1.5 block'
-const INPUT = 'w-full bg-[#0a0a0a] border border-white/10 focus:border-[#E8DEFA]/40 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 outline-none transition-colors'
+const FIELD_LABEL = 'text-xs font-medium text-[#8B73B3] mb-1.5 block'
+const INPUT = 'w-full bg-[#F9F6FF] border border-[#D4C6EF] focus:border-[#9C7CE0] rounded-xl px-4 py-3 text-sm text-[#190F30] placeholder-[#C4B4E4] outline-none transition-colors'
 const TEXTAREA = INPUT + ' resize-none'
 
 export default function CourseEditor() {
@@ -25,54 +25,53 @@ export default function CourseEditor() {
   return (
     <div className="p-8 max-w-2xl">
       <ToastEl />
-      <h1 className="text-xl font-semibold mb-1">Course</h1>
-      <p className="text-sm text-white/40 mb-8">The paid DJ course — the revenue product.</p>
+      <h1 className="text-xl font-semibold text-[#190F30] mb-1">Course</h1>
+      <p className="text-sm text-[#8B73B3] mb-8">The paid DJ course — the revenue product.</p>
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Status */}
-        <div className="bg-[#141414] border border-white/8 rounded-2xl p-5">
+        <div className="bg-white border border-[#E3D9F7] rounded-2xl p-5">
           <label className="flex items-center gap-3 cursor-pointer">
             <div
               onClick={() => set('isActive', !form.isActive)}
-              className={`w-10 h-5.5 rounded-full relative transition-colors cursor-pointer ${form.isActive ? 'bg-[#E8DEFA]/30' : 'bg-white/10'}`}
+              className={`w-10 h-5.5 rounded-full relative transition-colors cursor-pointer ${form.isActive ? 'bg-[#9C7CE0]/40' : 'bg-[#D4C6EF]'}`}
             >
-              <div className={`absolute top-0.5 w-4.5 h-4.5 rounded-full transition-all ${form.isActive ? 'left-[calc(100%-1.25rem)] bg-[#E8DEFA]' : 'left-0.5 bg-white/30'}`} />
+              <div className={`absolute top-0.5 w-4.5 h-4.5 rounded-full transition-all ${form.isActive ? 'left-[calc(100%-1.25rem)] bg-[#6B40A8]' : 'left-0.5 bg-[#B5A3D4]'}`} />
             </div>
-            <span className="text-sm font-medium">Course is active / accepting enrolments</span>
+            <span className="text-sm font-medium text-[#190F30]">Course is active / accepting enrolments</span>
           </label>
         </div>
 
         {/* Pricing */}
-        <section className="bg-[#141414] border border-white/8 rounded-2xl p-5 space-y-4">
-          <h2 className="text-xs font-semibold text-white/30 uppercase tracking-widest">Pricing</h2>
+        <section className="bg-white border border-[#E3D9F7] rounded-2xl p-5 space-y-4">
+          <h2 className="text-xs font-semibold text-[#7548B8] uppercase tracking-widest">Pricing</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={FIELD_LABEL}>Course fee</label>
+              <label className={FIELD_LABEL}>Current fee (₹)</label>
               <input
                 className={INPUT}
-                placeholder="e.g. 12000"
+                placeholder="e.g. 22200"
                 value={form.fee}
                 onChange={e => set('fee', e.target.value)}
               />
             </div>
             <div>
-              <label className={FIELD_LABEL}>Currency</label>
-              <select
+              <label className={FIELD_LABEL}>Original / crossed-out price (₹)</label>
+              <input
                 className={INPUT}
-                value={form.currency}
-                onChange={e => set('currency', e.target.value)}
-              >
-                <option value="INR">INR</option>
-                <option value="USD">USD</option>
-              </select>
+                placeholder="e.g. 37000"
+                value={form.originalFee}
+                onChange={e => set('originalFee', e.target.value)}
+              />
+              <p className="text-xs text-[#B5A3D4] mt-1.5">Shown struck-through alongside current fee.</p>
             </div>
           </div>
-          <label className="flex items-center gap-2 cursor-pointer text-sm text-white/60">
+          <label className="flex items-center gap-2 cursor-pointer text-sm text-[#8B73B3]">
             <input
               type="checkbox"
               checked={form.emiAvailable}
               onChange={e => set('emiAvailable', e.target.checked)}
-              className="accent-[#E8DEFA]"
+              className="accent-[#6B40A8]"
             />
             EMI available
           </label>
@@ -100,38 +99,19 @@ export default function CourseEditor() {
         </section>
 
         {/* Batch */}
-        <section className="bg-[#141414] border border-white/8 rounded-2xl p-5 space-y-4">
-          <h2 className="text-xs font-semibold text-white/30 uppercase tracking-widest">Batch</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={FIELD_LABEL}>Batch start date</label>
-              <input
-                type="date"
-                className={INPUT}
-                value={form.batchStartDate}
-                onChange={e => set('batchStartDate', e.target.value)}
-              />
-            </div>
-            <div>
-              <label className={FIELD_LABEL}>Batch end date</label>
-              <input
-                type="date"
-                className={INPUT}
-                value={form.batchEndDate}
-                onChange={e => set('batchEndDate', e.target.value)}
-              />
-            </div>
-          </div>
+        <section className="bg-white border border-[#E3D9F7] rounded-2xl p-5 space-y-4">
+          <h2 className="text-xs font-semibold text-[#7548B8] uppercase tracking-widest">Batch</h2>
           <div>
-            <label className={FIELD_LABEL}>Seat cap</label>
+            <label className={FIELD_LABEL}>Batch size</label>
             <input
               type="number"
               min={1}
               className={INPUT}
-              placeholder="e.g. 20"
+              placeholder="e.g. 3"
               value={form.seatCap || ''}
               onChange={e => set('seatCap', Number(e.target.value))}
             />
+            <p className="text-xs text-[#B5A3D4] mt-1.5">Maximum students per batch.</p>
           </div>
           <div>
             <label className={FIELD_LABEL}>Schedule description</label>
@@ -145,8 +125,8 @@ export default function CourseEditor() {
         </section>
 
         {/* Format */}
-        <section className="bg-[#141414] border border-white/8 rounded-2xl p-5 space-y-4">
-          <h2 className="text-xs font-semibold text-white/30 uppercase tracking-widest">Format</h2>
+        <section className="bg-white border border-[#E3D9F7] rounded-2xl p-5 space-y-4">
+          <h2 className="text-xs font-semibold text-[#7548B8] uppercase tracking-widest">Format</h2>
           <div>
             <label className={FIELD_LABEL}>Format</label>
             <select
@@ -172,7 +152,7 @@ export default function CourseEditor() {
 
         <button
           type="submit"
-          className="bg-[#E8DEFA] hover:bg-[#d4c8f0] text-[#0a0a0a] font-semibold px-6 py-3 rounded-xl text-sm transition-colors"
+          className="bg-[#6B40A8] hover:bg-[#5C358A] text-white font-semibold px-6 py-3 rounded-xl text-sm transition-colors"
         >
           Save course settings
         </button>

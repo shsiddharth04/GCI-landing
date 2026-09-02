@@ -17,12 +17,12 @@ export function Toast({ message, type = 'success', onDone }: ToastProps) {
 
   return (
     <div
-      className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-medium shadow-xl transition-all duration-300 ${
+      className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium shadow-lg transition-all duration-300 ${
         visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
       } ${
         type === 'success'
-          ? 'bg-[#141414] border-[#E8DEFA]/20 text-[#E8DEFA]'
-          : 'bg-[#141414] border-red-500/30 text-red-400'
+          ? 'bg-[#6B40A8] text-white'
+          : 'bg-red-600 text-white'
       }`}
     >
       {type === 'success' ? <CheckCircle size={16} /> : <XCircle size={16} />}
