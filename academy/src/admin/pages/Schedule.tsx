@@ -134,6 +134,7 @@ function SingleForm({
 }) {
   const [instructorId, setInstructorId] = useState(instructors[0]?.id ?? '')
   const [sessionType, setSessionType] = useState<'masterclass' | 'course_class'>('masterclass')
+  const [cohort, setCohort] = useState<'C1' | 'C2'>('C1')
   const [date, setDate] = useState('')
   const [startTime, setStartTime] = useState('')
   const [endTime, setEndTime] = useState('')
@@ -157,7 +158,8 @@ function SingleForm({
         end_time: endTime,
         location,
         capacity: Math.max(1, parseInt(capacity, 10) || 20),
-      })
+        cohort: sessionType === 'course_class' ? cohort : null,
+      } as Parameters<typeof createSession>[0])
       onCreated()
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to create session.')
@@ -182,6 +184,30 @@ function SingleForm({
             {instructors.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
           </select>
         </div>
+
+        {sessionType === 'course_class' && (
+          <div className="col-span-2">
+            <label className={labelCls}>Cohort</label>
+            <div className="flex gap-2">
+              {(['C1', 'C2'] as const).map(c => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setCohort(c)}
+                  className={`px-5 py-2 text-xs font-mono font-bold transition-colors ${
+                    cohort === c
+                      ? c === 'C1' ? 'bg-pink-600 text-white' : 'bg-indigo-500 text-white'
+                      : 'bg-white text-[#8B73B3] hover:text-[#6B40A8]'
+                  }`}
+                  style={{ border: cohort === c ? 'none' : '1px solid #D4C6EF' }}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div>
           <label className={labelCls}>Date</label>
           <DatePicker value={date} onChange={setDate} minDate={todayStr()} placeholder="Pick a date" />
@@ -229,6 +255,7 @@ function RecurringForm({
 }) {
   const [instructorId, setInstructorId] = useState(instructors[0]?.id ?? '')
   const [sessionType, setSessionType] = useState<'masterclass' | 'course_class'>('masterclass')
+  const [cohort, setCohort] = useState<'C1' | 'C2'>('C1')
   const [days, setDays] = useState<number[]>([])
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
@@ -262,6 +289,7 @@ function RecurringForm({
           end_time: endTime,
           location,
           capacity: Math.max(1, parseInt(capacity, 10) || 20),
+          cohort: sessionType === 'course_class' ? cohort : null,
         })
         succeeded++
         setProgress({ done: succeeded, total: preview.length })
@@ -300,6 +328,29 @@ function RecurringForm({
             {instructors.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
           </select>
         </div>
+        {sessionType === 'course_class' && (
+          <div className="col-span-2">
+            <label className={labelCls}>Cohort</label>
+            <div className="flex gap-2">
+              {(['C1', 'C2'] as const).map(c => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setCohort(c)}
+                  className={`px-5 py-2 text-xs font-mono font-bold transition-colors ${
+                    cohort === c
+                      ? c === 'C1' ? 'bg-pink-600 text-white' : 'bg-indigo-500 text-white'
+                      : 'bg-white text-[#8B73B3] hover:text-[#6B40A8]'
+                  }`}
+                  style={{ border: cohort === c ? 'none' : '1px solid #D4C6EF' }}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="col-span-2">
           <label className={labelCls}>Which days</label>
           <DayPicker selected={days} onChange={setDays} />
@@ -558,6 +609,7 @@ function SessionRow({ session, allSessions, onRefresh, onRemove }: { session: Se
   const seatsLeft = Math.max(0, session.capacity - session.seats_booked)
   const others = allSessions.filter(s => s.id !== session.id && s.session_type === session.session_type)
   const typeBadge = session.session_type === 'masterclass' ? 'Masterclass' : 'Course'
+  const cohortVal = session.cohort
 
   return (
     <div className="bg-white" style={{ border: '1px solid #E3D9F7' }}>
@@ -572,6 +624,11 @@ function SessionRow({ session, allSessions, onRefresh, onRemove }: { session: Se
             <span className="font-mono text-[10px] text-[#B5A3D4]">{fmtTime(session.start_time.slice(0,5))} – {fmtTime(session.end_time.slice(0,5))}</span>
             <StatusBadge status={session.status} />
             <span className="font-mono text-[9px] text-[#9C7CE0] tracking-widest uppercase">{typeBadge}</span>
+            {cohortVal && (
+              <span className={`font-mono text-[9px] tracking-widest uppercase px-1.5 py-0.5 ${cohortVal === 'C1' ? 'bg-pink-50 text-pink-700' : 'bg-indigo-50 text-indigo-600'}`}>
+                {cohortVal}
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-3">
             <CapacityBar booked={session.seats_booked} cap={session.capacity} />
