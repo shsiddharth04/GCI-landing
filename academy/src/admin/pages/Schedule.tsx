@@ -926,7 +926,7 @@ function MasterclassSlotsPanel() {
 
 function CourseBlocksPanel() {
   const today = new Date().toISOString().slice(0, 10)
-  const days = Array.from({ length: 7 }, (_, i) => {
+  const days = Array.from({ length: 14 }, (_, i) => {
     const d = new Date(); d.setDate(d.getDate() + i)
     return d.toISOString().slice(0, 10)
   })
