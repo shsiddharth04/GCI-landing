@@ -386,9 +386,9 @@ export default function SessionPicker() {
 
                 if (isSelected) { slotBg = '#050505'; slotBorder = '1.5px solid rgba(212,191,255,0.65)' }
                 else if (isManualBlock) { slotBg = 'rgba(5,5,5,0.25)'; slotBorder = '1px solid rgba(5,5,5,0.12)'; slotOpacity = 0.4; slotCursor = 'default' }
-                else if (isC1) { slotBg = 'rgba(5,5,5,0.62)'; slotBorder = '1.5px solid rgba(255,165,40,0.55)'; slotCursor = 'default' }
-                else if (isC2) { slotBg = 'rgba(5,5,5,0.62)'; slotBorder = '1.5px solid rgba(45,212,191,0.55)'; slotCursor = 'default' }
-                else if (isFull) { slotBg = 'rgba(5,5,5,0.35)'; slotBorder = '1px solid rgba(255,255,255,0.08)'; slotCursor = 'default' }
+                else if (isC1) { slotBg = 'rgba(236,72,153,0.1)'; slotBorder = '2px solid rgba(236,72,153,0.8)'; slotCursor = 'default' }
+                else if (isC2) { slotBg = 'rgba(99,102,241,0.1)'; slotBorder = '2px solid rgba(99,102,241,0.8)'; slotCursor = 'default' }
+                else if (isFull) { slotBg = 'rgba(5,5,5,0.5)'; slotBorder = '1px solid rgba(255,80,80,0.25)'; slotCursor = 'default' }
 
                 return (
                   <button
@@ -417,10 +417,10 @@ export default function SessionPicker() {
                       letterSpacing: '-0.01em',
                       color: isSelected
                         ? '#d4bfff'
-                        : isC1 ? 'rgba(255,165,40,0.8)'
-                        : isC2 ? 'rgba(45,212,191,0.8)'
-                        : isFull ? 'rgba(255,255,255,0.25)'
-                        : 'rgba(255,255,255,0.85)',
+                        : isC1 ? 'rgba(236,72,153,1)'
+                        : isC2 ? 'rgba(99,102,241,1)'
+                        : isFull ? 'rgba(255,255,255,0.4)'
+                        : 'rgba(255,255,255,0.9)',
                     }}>
                       {fmtTime12(slot.start)}
                     </span>
@@ -431,11 +431,11 @@ export default function SessionPicker() {
                       textTransform: 'uppercase',
                       color: isSelected
                         ? 'rgba(212,191,255,0.55)'
-                        : isC1 ? 'rgba(255,165,40,0.65)'
-                        : isC2 ? 'rgba(45,212,191,0.65)'
-                        : isFull ? 'rgba(255,80,80,0.5)'
+                        : isC1 ? 'rgba(236,72,153,0.85)'
+                        : isC2 ? 'rgba(99,102,241,0.85)'
+                        : isFull ? 'rgba(255,80,80,0.85)'
                         : left <= 1 ? '#ffcc80'
-                        : 'rgba(212,191,255,0.45)',
+                        : 'rgba(212,191,255,0.65)',
                     }}>
                       {isC1 ? 'C1 · class'
                         : isC2 ? 'C2 · class'

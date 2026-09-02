@@ -809,9 +809,9 @@ function MasterclassSlotsPanel() {
           const stateStyle: Record<string, { border: string; background: string }> = {
             'available':        { border: '1px solid #E3D9F7', background: 'white' },
             'manually-blocked': { border: '1px solid #fca5a5', background: '#fef2f2' },
-            'class-blocked':    { border: '1px solid #fcd34d', background: '#fffbeb' },
-            'class-c1':         { border: '1px solid #fbbf24', background: '#fffbeb' },
-            'class-c2':         { border: '1px solid #2dd4bf', background: '#f0fdfa' },
+            'class-blocked':    { border: '1px solid #c4b5fd', background: '#f5f3ff' },
+            'class-c1':         { border: '1px solid #f9a8d4', background: '#fdf2f8' },
+            'class-c2':         { border: '1px solid #a5b4fc', background: '#eef2ff' },
             'forced-open':      { border: '1px solid #6ee7b7', background: '#f0fdf4' },
           }
           const ss = stateStyle[state] ?? stateStyle['available']
@@ -844,10 +844,10 @@ function MasterclassSlotsPanel() {
                     <span className="font-mono text-[8px] text-amber-600 tracking-widest uppercase">Course class</span>
                   )}
                   {state === 'class-c1' && (
-                    <span className="font-mono text-[8px] text-amber-700 tracking-widest uppercase">Cohort 1 · Class</span>
+                    <span className="font-mono text-[8px] text-pink-600 tracking-widest uppercase">Cohort 1 · Class</span>
                   )}
                   {state === 'class-c2' && (
-                    <span className="font-mono text-[8px] text-teal-600 tracking-widest uppercase">Cohort 2 · Class</span>
+                    <span className="font-mono text-[8px] text-indigo-500 tracking-widest uppercase">Cohort 2 · Class</span>
                   )}
                   {state === 'forced-open' && (
                     <span className="font-mono text-[8px] text-emerald-600 tracking-widest uppercase">Force-open</span>
@@ -1013,8 +1013,8 @@ function CourseBlocksPanel() {
             <div key={b.id} className="flex items-center gap-3 bg-white px-4 py-3" style={{ border: '1px solid #E3D9F7' }}>
               <span className={`text-[10px] font-mono font-bold px-2 py-0.5 border ${
                 b.cohort === 'C1'
-                  ? 'bg-amber-50 text-amber-700 border-amber-200'
-                  : 'bg-teal-50 text-teal-700 border-teal-200'
+                  ? 'bg-pink-50 text-pink-700 border-pink-200'
+                  : 'bg-indigo-50 text-indigo-600 border-indigo-200'
               }`}>{b.cohort}</span>
               <span className="font-mono text-sm text-[#190F30]">
                 {fmt12(b.start_time.slice(0, 5))} – {fmt12(b.end_time.slice(0, 5))}
@@ -1060,7 +1060,7 @@ function CourseBlocksPanel() {
                 onClick={() => setCohort(c)}
                 className={`px-5 py-2 text-xs font-mono font-bold transition-colors ${
                   cohort === c
-                    ? c === 'C1' ? 'bg-amber-500 text-white' : 'bg-teal-500 text-white'
+                    ? c === 'C1' ? 'bg-pink-600 text-white' : 'bg-indigo-500 text-white'
                     : 'bg-white text-[#8B73B3] hover:text-[#6B40A8]'
                 }`}
                 style={{ border: cohort === c ? 'none' : '1px solid #D4C6EF' }}
