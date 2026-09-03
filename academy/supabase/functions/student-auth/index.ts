@@ -103,38 +103,32 @@ serve(async (req) => {
     })
   }
 
-  // Use 'invite' for new users (no auth account yet), 'recovery' for existing ones.
-  // Try invite first; fall back to recovery if the auth user already exists.
-  const isExistingUser = !!student.user_id
-  let setupUrl: string | undefined
-  let isReset = isExistingUser
+  const isFirstTime = !student.user_id
 
-  if (!isExistingUser) {
-    const { data: inviteData, error: inviteErr } = await admin.auth.admin.generateLink({
-      type: 'invite',
+  // Ensure auth user exists. createUser is idempotent — ignore "already registered" errors.
+  if (isFirstTime) {
+    await admin.auth.admin.createUser({
       email: email.toLowerCase(),
-      options: { redirectTo: PORTAL_URL },
+      email_confirm: true,
     })
-    if (!inviteErr && inviteData?.properties?.action_link) {
-      setupUrl = inviteData.properties.action_link
-    }
   }
 
-  if (!setupUrl) {
-    // Auth user already exists (or invite failed) — send a password reset link instead
-    isReset = true
-    const { data: recoveryData, error: recoveryErr } = await admin.auth.admin.generateLink({
-      type: 'recovery',
-      email: email.toLowerCase(),
-      options: { redirectTo: PORTAL_URL },
+  // Magic links always work regardless of project invite settings.
+  // The portal detects the token_hash and routes to SetPasswordPage on first use.
+  const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
+    type: 'magiclink',
+    email: email.toLowerCase(),
+    options: { redirectTo: PORTAL_URL },
+  })
+
+  if (linkErr || !linkData?.properties?.action_link) {
+    return new Response(JSON.stringify({ error: 'link_generation_failed', detail: linkErr?.message }), {
+      status: 500, headers: { ...CORS, 'Content-Type': 'application/json' },
     })
-    if (recoveryErr || !recoveryData?.properties?.action_link) {
-      return new Response(JSON.stringify({ error: 'link_generation_failed', detail: recoveryErr?.message }), {
-        status: 500, headers: { ...CORS, 'Content-Type': 'application/json' },
-      })
-    }
-    setupUrl = recoveryData.properties.action_link
   }
+
+  const setupUrl = linkData.properties.action_link
+  const isReset = !isFirstTime
 
   // Send via Resend
   const emailRes = await fetch('https://api.resend.com/emails', {

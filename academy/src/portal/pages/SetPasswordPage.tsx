@@ -26,7 +26,7 @@ export default function SetPasswordPage({
   onComplete,
 }: {
   tokenHash: string
-  tokenType: 'invite' | 'recovery'
+  tokenType: 'invite' | 'recovery' | 'magiclink'
   onComplete: () => void
 }) {
   const [verifying, setVerifying] = useState(true)
@@ -39,9 +39,10 @@ export default function SetPasswordPage({
 
   useEffect(() => {
     async function verify() {
+      const otpType = tokenType === 'recovery' ? 'recovery' : tokenType === 'invite' ? 'invite' : 'magiclink'
       const { error } = await supabase.auth.verifyOtp({
         token_hash: tokenHash,
-        type: tokenType === 'invite' ? 'invite' : 'recovery',
+        type: otpType,
       })
       if (error) {
         setVerifyError('This link has expired or already been used. Request a new one from the login page.')
@@ -69,7 +70,7 @@ export default function SetPasswordPage({
     }
   }
 
-  const isNewAccount = tokenType === 'invite'
+  const isNewAccount = tokenType !== 'recovery'
 
   return (
     <div style={{ minHeight: '100vh', background: '#0a0a0a', display: 'flex', fontFamily: SANS }}>

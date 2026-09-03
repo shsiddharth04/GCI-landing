@@ -40,7 +40,7 @@ export default function PortalRoot() {
   const [accessError, setAccessError] = useState(false)
   const [route, setRoute] = useState<Route>(getRoute())
   const [tokenHash, setTokenHash] = useState<string | null>(null)
-  const [tokenType, setTokenType] = useState<'invite' | 'recovery' | null>(null)
+  const [tokenType, setTokenType] = useState<'invite' | 'recovery' | 'magiclink' | null>(null)
 
   useEffect(() => {
     window.addEventListener('portalroute', () => setRoute(getRoute()))
@@ -57,9 +57,9 @@ export default function PortalRoot() {
     const hash = params.get('token_hash')
     const type = params.get('type')
 
-    if (hash && (type === 'invite' || type === 'recovery')) {
+    if (hash && (type === 'invite' || type === 'recovery' || type === 'magiclink')) {
       setTokenHash(hash)
-      setTokenType(type as 'invite' | 'recovery')
+      setTokenType(type as 'invite' | 'recovery' | 'magiclink')
       // Clean the token from the URL so refreshing doesn't re-trigger
       window.history.replaceState({}, '', window.location.pathname)
       setView('set-password')
@@ -141,7 +141,7 @@ export default function PortalRoot() {
     return (
       <SetPasswordPage
         tokenHash={tokenHash}
-        tokenType={tokenType}
+        tokenType={tokenType as 'invite' | 'recovery' | 'magiclink'}
         onComplete={loadStudent}
       />
     )
