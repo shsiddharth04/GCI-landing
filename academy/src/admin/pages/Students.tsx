@@ -13,24 +13,22 @@ function fmtDate(d: string) {
   return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-const COHORT_CLS: Record<string, string> = {
-  C1: 'bg-pink-50 text-pink-700',
-  C2: 'bg-indigo-50 text-indigo-600',
-  C3: 'bg-amber-50 text-amber-700',
-  C4: 'bg-emerald-50 text-emerald-700',
-  C5: 'bg-sky-50 text-sky-700',
+const COHORT_BG: Record<string, string> = {
+  C1: '#db2777', C2: '#6366f1', C3: '#f59e0b', C4: '#059669', C5: '#0ea5e9',
 }
-const COHORT_ACTIVE: Record<string, string> = {
-  C1: 'bg-pink-600 text-white',
-  C2: 'bg-indigo-500 text-white',
-  C3: 'bg-amber-500 text-white',
-  C4: 'bg-emerald-600 text-white',
-  C5: 'bg-sky-500 text-white',
+const COHORT_BADGE_BG: Record<string, string> = {
+  C1: '#fdf2f8', C2: '#eef2ff', C3: '#fffbeb', C4: '#ecfdf5', C5: '#f0f9ff',
+}
+const COHORT_BADGE_TEXT: Record<string, string> = {
+  C1: '#be185d', C2: '#4338ca', C3: '#b45309', C4: '#065f46', C5: '#0369a1',
 }
 
 function CohortBadge({ cohort }: { cohort: EnrolledStudent['cohort'] }) {
   return (
-    <span className={`font-mono text-[9px] tracking-widest uppercase px-2 py-0.5 ${COHORT_CLS[cohort] ?? 'bg-gray-50 text-gray-600'}`}>
+    <span
+      className="font-mono text-[9px] tracking-widest uppercase px-2 py-0.5"
+      style={{ background: COHORT_BADGE_BG[cohort] ?? '#f9f6ff', color: COHORT_BADGE_TEXT[cohort] ?? '#6B40A8' }}
+    >
       {cohort}
     </span>
   )
@@ -98,10 +96,12 @@ function AddStudentForm({ onCreated }: { onCreated: () => void }) {
                   key={c}
                   type="button"
                   onClick={() => setCohort(c)}
-                  className={`px-4 py-2.5 text-xs font-mono font-bold transition-colors ${
-                    cohort === c ? COHORT_ACTIVE[c] : 'bg-white text-[#8B73B3] hover:text-[#6B40A8]'
-                  }`}
-                  style={{ border: cohort === c ? 'none' : '1px solid #D4C6EF' }}
+                  className="px-4 py-2.5 text-xs font-mono font-bold transition-colors"
+                  style={{
+                    background: cohort === c ? COHORT_BG[c] : 'white',
+                    color: cohort === c ? 'white' : '#8B73B3',
+                    border: cohort === c ? 'none' : '1px solid #D4C6EF',
+                  }}
                 >
                   {c}
                 </button>
