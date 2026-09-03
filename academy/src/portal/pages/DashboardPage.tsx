@@ -25,11 +25,15 @@ function fmtWeekday(d: string) {
   return new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long' })
 }
 
-function CohortBadge({ cohort }: { cohort: 'C1' | 'C2' }) {
-  const color = cohort === 'C1' ? '#f472b6' : '#818cf8'
+const COHORT_COLOR: Record<string, string> = {
+  C1: '#f472b6', C2: '#818cf8', C3: '#fbbf24', C4: '#34d399', C5: '#38bdf8',
+}
+
+function CohortBadge({ cohort }: { cohort: string }) {
+  const color = COHORT_COLOR[cohort] ?? '#E8DEFA'
   return (
     <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', color }}>
-      [{cohort === 'C1' ? 'C1' : 'C2'}]
+      [{cohort}]
     </span>
   )
 }

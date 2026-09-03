@@ -11,6 +11,23 @@ import DatePicker from '../components/DatePicker'
 import TimePicker from '../components/TimePicker'
 import { loadSettings } from '../settings'
 
+// ── Cohort colour maps ────────────────────────────────────────────────────────
+
+const COHORT_ACTIVE_CLS: Record<string, string> = {
+  C1: 'bg-pink-600 text-white',
+  C2: 'bg-indigo-500 text-white',
+  C3: 'bg-amber-500 text-white',
+  C4: 'bg-emerald-600 text-white',
+  C5: 'bg-sky-500 text-white',
+}
+const COHORT_BADGE_CLS: Record<string, string> = {
+  C1: 'bg-pink-50 text-pink-700',
+  C2: 'bg-indigo-50 text-indigo-600',
+  C3: 'bg-amber-50 text-amber-700',
+  C4: 'bg-emerald-50 text-emerald-700',
+  C5: 'bg-sky-50 text-sky-700',
+}
+
 // ── Utilities ─────────────────────────────────────────────────────────────────
 
 function fmtDate(d: string) {
@@ -134,7 +151,7 @@ function SingleForm({
 }) {
   const [instructorId, setInstructorId] = useState(instructors[0]?.id ?? '')
   const [sessionType, setSessionType] = useState<'masterclass' | 'course_class'>('masterclass')
-  const [cohort, setCohort] = useState<'C1' | 'C2'>('C1')
+  const [cohort, setCohort] = useState<'C1' | 'C2' | 'C3' | 'C4' | 'C5'>('C1')
   const [date, setDate] = useState('')
   const [startTime, setStartTime] = useState('')
   const [endTime, setEndTime] = useState('')
@@ -189,14 +206,14 @@ function SingleForm({
           <div className="col-span-2">
             <label className={labelCls}>Cohort</label>
             <div className="flex gap-2">
-              {(['C1', 'C2'] as const).map(c => (
+              {(['C1', 'C2', 'C3', 'C4', 'C5'] as const).map(c => (
                 <button
                   key={c}
                   type="button"
                   onClick={() => setCohort(c)}
-                  className={`px-5 py-2 text-xs font-mono font-bold transition-colors ${
+                  className={`px-4 py-2 text-xs font-mono font-bold transition-colors ${
                     cohort === c
-                      ? c === 'C1' ? 'bg-pink-600 text-white' : 'bg-indigo-500 text-white'
+                      ? COHORT_ACTIVE_CLS[c]
                       : 'bg-white text-[#8B73B3] hover:text-[#6B40A8]'
                   }`}
                   style={{ border: cohort === c ? 'none' : '1px solid #D4C6EF' }}
@@ -255,7 +272,7 @@ function RecurringForm({
 }) {
   const [instructorId, setInstructorId] = useState(instructors[0]?.id ?? '')
   const [sessionType, setSessionType] = useState<'masterclass' | 'course_class'>('masterclass')
-  const [cohort, setCohort] = useState<'C1' | 'C2'>('C1')
+  const [cohort, setCohort] = useState<'C1' | 'C2' | 'C3' | 'C4' | 'C5'>('C1')
   const [days, setDays] = useState<number[]>([])
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
@@ -332,14 +349,14 @@ function RecurringForm({
           <div className="col-span-2">
             <label className={labelCls}>Cohort</label>
             <div className="flex gap-2">
-              {(['C1', 'C2'] as const).map(c => (
+              {(['C1', 'C2', 'C3', 'C4', 'C5'] as const).map(c => (
                 <button
                   key={c}
                   type="button"
                   onClick={() => setCohort(c)}
-                  className={`px-5 py-2 text-xs font-mono font-bold transition-colors ${
+                  className={`px-4 py-2 text-xs font-mono font-bold transition-colors ${
                     cohort === c
-                      ? c === 'C1' ? 'bg-pink-600 text-white' : 'bg-indigo-500 text-white'
+                      ? COHORT_ACTIVE_CLS[c]
                       : 'bg-white text-[#8B73B3] hover:text-[#6B40A8]'
                   }`}
                   style={{ border: cohort === c ? 'none' : '1px solid #D4C6EF' }}
@@ -625,7 +642,7 @@ function SessionRow({ session, allSessions, onRefresh, onRemove }: { session: Se
             <StatusBadge status={session.status} />
             <span className="font-mono text-[9px] text-[#9C7CE0] tracking-widest uppercase">{typeBadge}</span>
             {cohortVal && (
-              <span className={`font-mono text-[9px] tracking-widest uppercase px-1.5 py-0.5 ${cohortVal === 'C1' ? 'bg-pink-50 text-pink-700' : 'bg-indigo-50 text-indigo-600'}`}>
+              <span className={`font-mono text-[9px] tracking-widest uppercase px-1.5 py-0.5 ${COHORT_BADGE_CLS[cohortVal] ?? 'bg-gray-50 text-gray-600'}`}>
                 {cohortVal}
               </span>
             )}
@@ -806,7 +823,7 @@ function MasterclassSlotsPanel() {
     if (ov?.override === 'blocked') return 'manually-blocked'
     if (!ov) {
       const w = getClassBlock(s.start, s.end)
-      if (w) return w.cohort === 'C1' ? 'class-c1' : w.cohort === 'C2' ? 'class-c2' : 'class-blocked'
+      if (w) return w.cohort ? `class-${w.cohort.toLowerCase()}` : 'class-blocked'
     }
     if (ov?.override === 'open') return 'forced-open'
     return 'available'
@@ -869,6 +886,9 @@ function MasterclassSlotsPanel() {
             'class-blocked':    { border: '1px solid #c4b5fd', background: '#f5f3ff' },
             'class-c1':         { border: '1px solid #f9a8d4', background: '#fdf2f8' },
             'class-c2':         { border: '1px solid #a5b4fc', background: '#eef2ff' },
+            'class-c3':         { border: '1px solid #fcd34d', background: '#fffbeb' },
+            'class-c4':         { border: '1px solid #6ee7b7', background: '#f0fdf4' },
+            'class-c5':         { border: '1px solid #7dd3fc', background: '#f0f9ff' },
             'forced-open':      { border: '1px solid #6ee7b7', background: '#f0fdf4' },
           }
           const ss = stateStyle[state] ?? stateStyle['available']
@@ -901,10 +921,19 @@ function MasterclassSlotsPanel() {
                     <span className="font-mono text-[8px] text-amber-600 tracking-widest uppercase">Course class</span>
                   )}
                   {state === 'class-c1' && (
-                    <span className="font-mono text-[8px] text-pink-600 tracking-widest uppercase">Cohort 1 · Class</span>
+                    <span className="font-mono text-[8px] text-pink-600 tracking-widest uppercase">C1 · Class</span>
                   )}
                   {state === 'class-c2' && (
-                    <span className="font-mono text-[8px] text-indigo-500 tracking-widest uppercase">Cohort 2 · Class</span>
+                    <span className="font-mono text-[8px] text-indigo-500 tracking-widest uppercase">C2 · Class</span>
+                  )}
+                  {state === 'class-c3' && (
+                    <span className="font-mono text-[8px] text-amber-600 tracking-widest uppercase">C3 · Class</span>
+                  )}
+                  {state === 'class-c4' && (
+                    <span className="font-mono text-[8px] text-emerald-600 tracking-widest uppercase">C4 · Class</span>
+                  )}
+                  {state === 'class-c5' && (
+                    <span className="font-mono text-[8px] text-sky-500 tracking-widest uppercase">C5 · Class</span>
                   )}
                   {state === 'forced-open' && (
                     <span className="font-mono text-[8px] text-emerald-600 tracking-widest uppercase">Force-open</span>
@@ -942,7 +971,7 @@ function MasterclassSlotsPanel() {
                     </button>
                   )}
 
-                  {(state === 'class-blocked' || state === 'class-c1' || state === 'class-c2') && (
+                  {state.startsWith('class-') && (
                     <button
                       onClick={() => forceOpenSlot(s)}
                       disabled={isSaving}
@@ -995,7 +1024,7 @@ function CourseBlocksPanel() {
 
   const [startTime, setStartTime] = useState('')
   const [endTime, setEndTime] = useState('')
-  const [cohort, setCohort] = useState<'C1' | 'C2'>('C1')
+  const [cohort, setCohort] = useState<'C1' | 'C2' | 'C3' | 'C4' | 'C5'>('C1')
   const [blockLabel, setBlockLabel] = useState('')
   const [adding, setAdding] = useState(false)
 
@@ -1068,11 +1097,7 @@ function CourseBlocksPanel() {
         <div className="mb-5 space-y-1.5">
           {dayBlocks.map(b => (
             <div key={b.id} className="flex items-center gap-3 bg-white px-4 py-3" style={{ border: '1px solid #E3D9F7' }}>
-              <span className={`text-[10px] font-mono font-bold px-2 py-0.5 border ${
-                b.cohort === 'C1'
-                  ? 'bg-pink-50 text-pink-700 border-pink-200'
-                  : 'bg-indigo-50 text-indigo-600 border-indigo-200'
-              }`}>{b.cohort}</span>
+              <span className={`text-[10px] font-mono font-bold px-2 py-0.5 border border-transparent ${COHORT_BADGE_CLS[b.cohort] ?? 'bg-gray-50 text-gray-600'}`}>{b.cohort}</span>
               <span className="font-mono text-sm text-[#190F30]">
                 {fmt12(b.start_time.slice(0, 5))} – {fmt12(b.end_time.slice(0, 5))}
               </span>

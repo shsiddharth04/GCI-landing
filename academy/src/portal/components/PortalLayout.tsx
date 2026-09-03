@@ -13,20 +13,18 @@ const NAV = [
   { route: 'announcements' as Route, label: 'Announcements',  icon: Bell },
 ]
 
-function CohortDot({ cohort }: { cohort: 'C1' | 'C2' }) {
+const COHORT_COLOR: Record<string, string> = {
+  C1: '#f472b6', C2: '#818cf8', C3: '#fbbf24', C4: '#34d399', C5: '#38bdf8',
+}
+
+function CohortDot({ cohort }: { cohort: string }) {
+  const color = COHORT_COLOR[cohort] ?? '#E8DEFA'
+  const num = cohort.replace('C', '')
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      <div style={{
-        width: 6, height: 6, borderRadius: '50%',
-        background: cohort === 'C1' ? '#f472b6' : '#818cf8',
-        flexShrink: 0,
-      }} />
-      <span style={{
-        fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em',
-        textTransform: 'uppercase',
-        color: cohort === 'C1' ? '#f472b6' : '#818cf8',
-      }}>
-        Cohort {cohort === 'C1' ? '1' : '2'}
+      <div style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0 }} />
+      <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color }}>
+        Cohort {num}
       </span>
     </div>
   )

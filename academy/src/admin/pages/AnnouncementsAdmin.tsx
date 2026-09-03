@@ -8,9 +8,25 @@ import type { Announcement } from '../../lib/db'
 const labelCls = 'text-[10px] text-[#8B73B3] font-mono tracking-widest uppercase mb-1.5 block'
 const inputCls = 'bg-[#F9F6FF] border border-[#D4C6EF] hover:border-[#9C7CE0] focus:border-[#9C7CE0] text-[#190F30] text-sm px-3 py-2.5 w-full outline-none transition-colors'
 
+const COHORT_CLS: Record<string, string> = {
+  C1: 'bg-pink-50 text-pink-700',
+  C2: 'bg-indigo-50 text-indigo-600',
+  C3: 'bg-amber-50 text-amber-700',
+  C4: 'bg-emerald-50 text-emerald-700',
+  C5: 'bg-sky-50 text-sky-700',
+  all: 'bg-[#EDE6FF] text-[#6B40A8]',
+}
+const COHORT_ACTIVE: Record<string, string> = {
+  C1: 'bg-pink-600 text-white',
+  C2: 'bg-indigo-500 text-white',
+  C3: 'bg-amber-500 text-white',
+  C4: 'bg-emerald-600 text-white',
+  C5: 'bg-sky-500 text-white',
+  all: 'bg-[#6B40A8] text-white',
+}
+
 function CohortBadge({ cohort }: { cohort: Announcement['cohort'] }) {
-  const map = { C1: 'bg-pink-50 text-pink-700', C2: 'bg-indigo-50 text-indigo-600', all: 'bg-[#EDE6FF] text-[#6B40A8]' }
-  return <span className={`font-mono text-[9px] tracking-widest uppercase px-2 py-0.5 ${map[cohort]}`}>{cohort === 'all' ? 'All' : cohort}</span>
+  return <span className={`font-mono text-[9px] tracking-widest uppercase px-2 py-0.5 ${COHORT_CLS[cohort] ?? 'bg-gray-50 text-gray-600'}`}>{cohort === 'all' ? 'All' : cohort}</span>
 }
 
 function fmtDate(d: string) {
@@ -63,19 +79,17 @@ function AddAnnouncementForm({ onCreated }: { onCreated: () => void }) {
         <div>
           <label className={labelCls}>Cohort</label>
           <div className="flex gap-1.5">
-            {(['C1', 'C2', 'all'] as const).map(c => (
+            {(['C1', 'C2', 'C3', 'C4', 'C5', 'all'] as const).map(c => (
               <button
                 key={c}
                 type="button"
                 onClick={() => setCohort(c)}
-                className={`px-4 py-2 text-xs font-mono font-bold transition-colors ${
-                  cohort === c
-                    ? c === 'C1' ? 'bg-pink-600 text-white' : c === 'C2' ? 'bg-indigo-500 text-white' : 'bg-[#6B40A8] text-white'
-                    : 'bg-white text-[#8B73B3] hover:text-[#6B40A8]'
+                className={`px-3 py-2 text-xs font-mono font-bold transition-colors ${
+                  cohort === c ? COHORT_ACTIVE[c] : 'bg-white text-[#8B73B3] hover:text-[#6B40A8]'
                 }`}
                 style={{ border: cohort === c ? 'none' : '1px solid #D4C6EF' }}
               >
-                {c === 'all' ? 'All cohorts' : c}
+                {c === 'all' ? 'All' : c}
               </button>
             ))}
           </div>

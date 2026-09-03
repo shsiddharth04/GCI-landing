@@ -157,7 +157,7 @@ export default function SchedulePage({ student }: { student: EnrolledStudent }) 
           Schedule
         </div>
         <h1 style={{ fontFamily: SANS, fontSize: 36, fontWeight: 700, color: '#E8DEFA', letterSpacing: '-0.02em', margin: '0 0 20px' }}>
-          Cohort {student.cohort === 'C1' ? '1' : '2'} · Course Sessions
+          Cohort {student.cohort.replace('C', '')} · Course Sessions
         </h1>
 
         {/* Progress */}
