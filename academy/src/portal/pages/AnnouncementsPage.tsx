@@ -11,8 +11,12 @@ function fmtDate(d: string) {
   }).toUpperCase()
 }
 
+const COHORT_COLOR: Record<string, string> = {
+  C1: '#f472b6', C2: '#818cf8', C3: '#fbbf24', C4: '#34d399', C5: '#38bdf8',
+}
+
 function CohortTag({ cohort }: { cohort: Announcement['cohort'] }) {
-  const color = cohort === 'C1' ? '#f472b6' : cohort === 'C2' ? '#818cf8' : 'rgba(232,222,250,0.4)'
+  const color = cohort === 'all' ? 'rgba(232,222,250,0.4)' : (COHORT_COLOR[cohort] ?? 'rgba(232,222,250,0.4)')
   return (
     <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.12em', color }}>
       [{cohort === 'all' ? 'ALL' : cohort}]
