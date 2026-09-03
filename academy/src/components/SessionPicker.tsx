@@ -167,8 +167,7 @@ export default function SessionPicker() {
     if (!ov) {
       const w = getBlockingWindow(slot.start, slot.end, blocked, date)
       if (w) {
-        if (w.cohort === 'C1') return 'blocked-c1'
-        if (w.cohort === 'C2') return 'blocked-c2'
+        if (w.cohort) return `blocked-${w.cohort.toLowerCase()}`
         return 'blocked' // session-table block, no cohort
       }
     }
@@ -373,9 +372,12 @@ export default function SessionPicker() {
                 const isAvailable = slot.status === 'available'
                 const isFull = slot.status === 'full'
                 const isManualBlock = slot.status === 'blocked'
-                const isC1 = slot.status === 'blocked-c1'
-                const isC2 = slot.status === 'blocked-c2'
-                const isClassBlock = isC1 || isC2
+                const isClassBlock = slot.status.startsWith('blocked-c')
+                const blockCohort = isClassBlock ? slot.status.replace('blocked-', '').toUpperCase() : null
+                const COHORT_RGBA: Record<string, string> = {
+                  C1: '236,72,153', C2: '99,102,241', C3: '245,158,11', C4: '16,185,129', C5: '14,165,233',
+                }
+                const cohortRgb = blockCohort ? (COHORT_RGBA[blockCohort] ?? '99,102,241') : null
 
                 // Slot style by state
                 // Note: section bg is #d4bfff (lavender), so all slot bgs must be dark enough to contrast
@@ -386,8 +388,7 @@ export default function SessionPicker() {
 
                 if (isSelected) { slotBg = '#050505'; slotBorder = '1.5px solid rgba(212,191,255,0.65)' }
                 else if (isManualBlock) { slotBg = 'rgba(5,5,5,0.25)'; slotBorder = '1px solid rgba(5,5,5,0.12)'; slotOpacity = 0.4; slotCursor = 'default' }
-                else if (isC1) { slotBg = 'rgba(236,72,153,0.1)'; slotBorder = '2px solid rgba(236,72,153,0.8)'; slotCursor = 'default' }
-                else if (isC2) { slotBg = 'rgba(99,102,241,0.1)'; slotBorder = '2px solid rgba(99,102,241,0.8)'; slotCursor = 'default' }
+                else if (isClassBlock && cohortRgb) { slotBg = `rgba(${cohortRgb},0.1)`; slotBorder = `2px solid rgba(${cohortRgb},0.8)`; slotCursor = 'default' }
                 else if (isFull) { slotBg = 'rgba(5,5,5,0.5)'; slotBorder = '1px solid rgba(255,80,80,0.25)'; slotCursor = 'default' }
 
                 return (
@@ -417,8 +418,7 @@ export default function SessionPicker() {
                       letterSpacing: '-0.01em',
                       color: isSelected
                         ? '#d4bfff'
-                        : isC1 ? 'rgba(236,72,153,1)'
-                        : isC2 ? 'rgba(99,102,241,1)'
+                        : isClassBlock && cohortRgb ? `rgba(${cohortRgb},1)`
                         : isFull ? 'rgba(255,255,255,0.4)'
                         : 'rgba(255,255,255,0.9)',
                     }}>
@@ -431,14 +431,12 @@ export default function SessionPicker() {
                       textTransform: 'uppercase',
                       color: isSelected
                         ? 'rgba(212,191,255,0.55)'
-                        : isC1 ? 'rgba(236,72,153,0.85)'
-                        : isC2 ? 'rgba(99,102,241,0.85)'
+                        : isClassBlock && cohortRgb ? `rgba(${cohortRgb},0.85)`
                         : isFull ? 'rgba(255,80,80,0.85)'
                         : left <= 1 ? '#ffcc80'
                         : 'rgba(212,191,255,0.65)',
                     }}>
-                      {isC1 ? 'C1 · class'
-                        : isC2 ? 'C2 · class'
+                      {isClassBlock && blockCohort ? `${blockCohort} · class`
                         : isFull ? 'Full'
                         : left === 1 ? '1 left'
                         : `${left} free`}

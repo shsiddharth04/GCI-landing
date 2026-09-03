@@ -13,11 +13,24 @@ function fmtDate(d: string) {
   return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-function CohortBadge({ cohort }: { cohort: 'C1' | 'C2' }) {
+const COHORT_CLS: Record<string, string> = {
+  C1: 'bg-pink-50 text-pink-700',
+  C2: 'bg-indigo-50 text-indigo-600',
+  C3: 'bg-amber-50 text-amber-700',
+  C4: 'bg-emerald-50 text-emerald-700',
+  C5: 'bg-sky-50 text-sky-700',
+}
+const COHORT_ACTIVE: Record<string, string> = {
+  C1: 'bg-pink-600 text-white',
+  C2: 'bg-indigo-500 text-white',
+  C3: 'bg-amber-500 text-white',
+  C4: 'bg-emerald-600 text-white',
+  C5: 'bg-sky-500 text-white',
+}
+
+function CohortBadge({ cohort }: { cohort: EnrolledStudent['cohort'] }) {
   return (
-    <span className={`font-mono text-[9px] tracking-widest uppercase px-2 py-0.5 ${
-      cohort === 'C1' ? 'bg-pink-50 text-pink-700' : 'bg-indigo-50 text-indigo-600'
-    }`}>
+    <span className={`font-mono text-[9px] tracking-widest uppercase px-2 py-0.5 ${COHORT_CLS[cohort] ?? 'bg-gray-50 text-gray-600'}`}>
       {cohort}
     </span>
   )
@@ -40,7 +53,7 @@ function AddStudentForm({ onCreated }: { onCreated: () => void }) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
-  const [cohort, setCohort] = useState<'C1' | 'C2'>('C1')
+  const [cohort, setCohort] = useState<EnrolledStudent['cohort']>('C1')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -80,15 +93,13 @@ function AddStudentForm({ onCreated }: { onCreated: () => void }) {
           <div>
             <label className={labelCls}>Cohort</label>
             <div className="flex gap-2 pt-0.5">
-              {(['C1', 'C2'] as const).map(c => (
+              {(['C1', 'C2', 'C3', 'C4', 'C5'] as const).map(c => (
                 <button
                   key={c}
                   type="button"
                   onClick={() => setCohort(c)}
-                  className={`px-5 py-2.5 text-xs font-mono font-bold transition-colors ${
-                    cohort === c
-                      ? c === 'C1' ? 'bg-pink-600 text-white' : 'bg-indigo-500 text-white'
-                      : 'bg-white text-[#8B73B3] hover:text-[#6B40A8]'
+                  className={`px-4 py-2.5 text-xs font-mono font-bold transition-colors ${
+                    cohort === c ? COHORT_ACTIVE[c] : 'bg-white text-[#8B73B3] hover:text-[#6B40A8]'
                   }`}
                   style={{ border: cohort === c ? 'none' : '1px solid #D4C6EF' }}
                 >
