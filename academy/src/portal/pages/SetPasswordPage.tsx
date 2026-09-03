@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 
 const MONO = "'JetBrains Mono', 'Space Mono', monospace"
@@ -21,57 +21,36 @@ function WaveformBars() {
 }
 
 export default function SetPasswordPage({
-  tokenHash,
-  tokenType,
+  isReset,
   onComplete,
 }: {
-  tokenHash: string
-  tokenType: 'invite' | 'recovery' | 'magiclink'
+  isReset: boolean
   onComplete: () => void
 }) {
-  const [verifying, setVerifying] = useState(true)
-  const [verifyError, setVerifyError] = useState<string | null>(null)
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [saving, setSaving] = useState(false)
-  const [saveError, setSaveError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
-
-  useEffect(() => {
-    async function verify() {
-      if (tokenHash) {
-        // PKCE flow: verify token from URL query param
-        const otpType = tokenType === 'recovery' ? 'recovery' : tokenType === 'invite' ? 'invite' : 'magiclink'
-        const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: otpType })
-        if (error) {
-          setVerifyError('This link has expired or already been used. Request a new one from the login page.')
-          setVerifying(false)
-          return
-        }
-      }
-      // Session already live (implicit flow) or just established above — link user_id
-      await supabase.rpc('link_my_enrollment')
-      setVerifying(false)
-    }
-    verify()
-  }, [tokenHash, tokenType])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (password.length < 8) { setSaveError('Password must be at least 8 characters.'); return }
-    if (password !== confirm) { setSaveError('Passwords don\'t match.'); return }
-    setSaving(true); setSaveError(null)
+    if (password.length < 8) { setError('Password must be at least 8 characters.'); return }
+    if (password !== confirm) { setError("Passwords don't match."); return }
+    setSaving(true); setError(null)
 
-    const { error } = await supabase.auth.updateUser({ password })
-    if (error) {
-      setSaveError(error.message ?? 'Failed to set password. Try again.')
+    const { error: updateErr } = await supabase.auth.updateUser({ password })
+    if (updateErr) {
+      setError(updateErr.message ?? 'Failed to set password. Try again.')
       setSaving(false)
-    } else {
-      onComplete()
+      return
     }
-  }
 
-  const isNewAccount = tokenType !== 'recovery'
+    // Mark password as set — this flips has_set_password = true so they won't
+    // be re-routed here on the next session load
+    await supabase.rpc('mark_password_set')
+    onComplete()
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: '#0a0a0a', display: 'flex', fontFamily: SANS }}>
@@ -106,7 +85,7 @@ export default function SetPasswordPage({
               fontWeight: 700, color: '#E8DEFA',
               lineHeight: 1.1, letterSpacing: '-0.025em', margin: 0,
             }}>
-              {isNewAccount ? 'One step to get in.' : 'Set a new password.'}
+              {isReset ? 'Set a new password.' : 'One step to get in.'}
             </h1>
           </div>
         </div>
@@ -122,107 +101,84 @@ export default function SetPasswordPage({
       }}>
         <div style={{ maxWidth: 340 }}>
           <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.35)', marginBottom: 32 }}>
-            {isNewAccount ? '[ Create account ]' : '[ Reset password ]'}
+            {isReset ? '[ Reset password ]' : '[ Create account ]'}
           </div>
 
-          {verifying ? (
-            <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end', height: 28 }}>
-              {[1, 2, 3, 4, 5].map(i => (
-                <div key={i} className="eq-bar" style={{
-                  width: 3, height: '100%', background: '#E8DEFA', borderRadius: 1,
-                  animationDelay: `${i * 0.12}s`,
-                }} />
-              ))}
-            </div>
-          ) : verifyError ? (
-            <div>
-              <div style={{ fontFamily: MONO, fontSize: 11, color: 'rgba(244,114,182,0.85)', lineHeight: 1.7, marginBottom: 24 }}>
-                {verifyError}
-              </div>
-              <a
-                href="/"
-                style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.4)', textDecoration: 'none' }}
-              >
-                ← Back to login
-              </a>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit}>
-              <div style={{ marginBottom: 24 }}>
-                <label style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.4)', display: 'block', marginBottom: 10 }}>
-                  {isNewAccount ? 'Choose a password' : 'New password'}
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={e => { setPassword(e.target.value); setSaveError(null) }}
-                    placeholder="At least 8 characters"
-                    required
-                    style={{
-                      width: '100%', background: 'transparent', border: 'none',
-                      borderBottom: '1px solid rgba(232,222,250,0.2)',
-                      padding: '10px 32px 10px 0', fontSize: 16,
-                      color: '#E8DEFA', fontFamily: SANS, outline: 'none',
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(v => !v)}
-                    style={{
-                      position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)',
-                      background: 'none', border: 'none', cursor: 'pointer',
-                      fontFamily: MONO, fontSize: 9, letterSpacing: '0.1em',
-                      color: 'rgba(232,222,250,0.3)', padding: 0,
-                    }}
-                  >
-                    {showPassword ? 'HIDE' : 'SHOW'}
-                  </button>
-                </div>
-              </div>
-
-              <div style={{ marginBottom: 8 }}>
-                <label style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.4)', display: 'block', marginBottom: 10 }}>
-                  Confirm password
-                </label>
+          <form onSubmit={handleSubmit}>
+            <div style={{ marginBottom: 24 }}>
+              <label style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.4)', display: 'block', marginBottom: 10 }}>
+                {isReset ? 'New password' : 'Choose a password'}
+              </label>
+              <div style={{ position: 'relative' }}>
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  value={confirm}
-                  onChange={e => { setConfirm(e.target.value); setSaveError(null) }}
-                  placeholder="Same password again"
+                  value={password}
+                  onChange={e => { setPassword(e.target.value); setError(null) }}
+                  placeholder="At least 8 characters"
                   required
                   style={{
                     width: '100%', background: 'transparent', border: 'none',
-                    borderBottom: `1px solid ${saveError ? 'rgba(244,114,182,0.6)' : 'rgba(232,222,250,0.2)'}`,
-                    padding: '10px 0', fontSize: 16,
+                    borderBottom: '1px solid rgba(232,222,250,0.2)',
+                    padding: '10px 32px 10px 0', fontSize: 16,
                     color: '#E8DEFA', fontFamily: SANS, outline: 'none',
                   }}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(v => !v)}
+                  style={{
+                    position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    fontFamily: MONO, fontSize: 9, letterSpacing: '0.1em',
+                    color: 'rgba(232,222,250,0.3)', padding: 0,
+                  }}
+                >
+                  {showPassword ? 'HIDE' : 'SHOW'}
+                </button>
               </div>
+            </div>
 
-              {saveError && (
-                <div style={{ fontFamily: MONO, fontSize: 11, color: 'rgba(244,114,182,0.85)', marginTop: 8, lineHeight: 1.5 }}>
-                  {saveError}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={saving || !password || !confirm}
+            <div style={{ marginBottom: 8 }}>
+              <label style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.4)', display: 'block', marginBottom: 10 }}>
+                Confirm password
+              </label>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={confirm}
+                onChange={e => { setConfirm(e.target.value); setError(null) }}
+                placeholder="Same password again"
+                required
                 style={{
-                  marginTop: 32, width: '100%',
-                  background: saving ? 'rgba(232,222,250,0.7)' : '#E8DEFA',
-                  color: '#0a0a0a', border: 'none', padding: '14px 24px',
-                  fontFamily: MONO, fontSize: 11, fontWeight: 700, letterSpacing: '0.12em',
-                  textTransform: 'uppercase', cursor: saving ? 'default' : 'pointer',
-                  opacity: (saving || !password || !confirm) ? 0.6 : 1,
-                  transition: 'opacity 100ms',
+                  width: '100%', background: 'transparent', border: 'none',
+                  borderBottom: `1px solid ${error ? 'rgba(244,114,182,0.6)' : 'rgba(232,222,250,0.2)'}`,
+                  padding: '10px 0', fontSize: 16,
+                  color: '#E8DEFA', fontFamily: SANS, outline: 'none',
                 }}
-              >
-                {saving ? 'Setting up…' : isNewAccount ? 'Create account →' : 'Set password →'}
-              </button>
-            </form>
-          )}
+              />
+            </div>
+
+            {error && (
+              <div style={{ fontFamily: MONO, fontSize: 11, color: 'rgba(244,114,182,0.85)', marginTop: 8, lineHeight: 1.5 }}>
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={saving || !password || !confirm}
+              style={{
+                marginTop: 32, width: '100%',
+                background: saving ? 'rgba(232,222,250,0.7)' : '#E8DEFA',
+                color: '#0a0a0a', border: 'none', padding: '14px 24px',
+                fontFamily: MONO, fontSize: 11, fontWeight: 700, letterSpacing: '0.12em',
+                textTransform: 'uppercase', cursor: saving ? 'default' : 'pointer',
+                opacity: (saving || !password || !confirm) ? 0.6 : 1,
+                transition: 'opacity 100ms',
+              }}
+            >
+              {saving ? 'Setting up…' : isReset ? 'Set password →' : 'Create account →'}
+            </button>
+          </form>
         </div>
       </div>
 

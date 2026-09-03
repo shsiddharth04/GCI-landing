@@ -416,6 +416,7 @@ export interface EnrolledStudent {
   invited_at: string | null
   enrolled_at: string
   notes: string | null
+  has_set_password: boolean
 }
 
 export interface StudentResource {

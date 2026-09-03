@@ -39,99 +39,99 @@ export default function PortalRoot() {
   const [student, setStudent] = useState<EnrolledStudent | null>(null)
   const [accessError, setAccessError] = useState(false)
   const [route, setRoute] = useState<Route>(getRoute())
-  const [tokenHash, setTokenHash] = useState<string | null>(null)
-  const [tokenType, setTokenType] = useState<'invite' | 'recovery' | 'magiclink' | null>(null)
+  const [isReset, setIsReset] = useState(false)
 
   useEffect(() => {
-    window.addEventListener('portalroute', () => setRoute(getRoute()))
-    window.addEventListener('popstate', () => setRoute(getRoute()))
+    const onRoute = () => setRoute(getRoute())
+    window.addEventListener('portalroute', onRoute)
+    window.addEventListener('popstate', onRoute)
     return () => {
-      window.removeEventListener('portalroute', () => setRoute(getRoute()))
-      window.removeEventListener('popstate', () => setRoute(getRoute()))
+      window.removeEventListener('portalroute', onRoute)
+      window.removeEventListener('popstate', onRoute)
     }
   }, [])
 
   useEffect(() => {
-    // PKCE flow: token arrives as ?token_hash=xxx&type=xxx in query string
-    const searchParams = new URLSearchParams(window.location.search)
-    const qTokenHash = searchParams.get('token_hash')
-    const qType = searchParams.get('type')
-
-    if (qTokenHash && (qType === 'invite' || qType === 'recovery' || qType === 'magiclink')) {
-      setTokenHash(qTokenHash)
-      setTokenType(qType as 'invite' | 'recovery' | 'magiclink')
-      window.history.replaceState({}, '', window.location.pathname)
-      setView('set-password')
-      return
-    }
-
-    // Implicit flow: Supabase processes the magic link server-side and redirects
-    // with #access_token=xxx in the fragment. The client auto-consumes it and
-    // logs the user in — we intercept here before getSession() sees the session.
-    const hashStr = window.location.hash.slice(1)
-    const hashParams = new URLSearchParams(hashStr)
-    const hashType = hashParams.get('type')
-
-    if (hashParams.get('access_token') && hashType === 'magiclink') {
-      // Session is already established — skip verifyOtp, just set the password
-      window.history.replaceState({}, '', window.location.pathname)
-      setTokenHash('')       // empty = tell SetPasswordPage to skip verifyOtp
-      setTokenType('magiclink')
-      setView('set-password')
-      return
-    }
-
-    // Normal session check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        loadStudent()
-      } else {
+    async function loadStudent() {
+      try {
+        const s = await fetchMyEnrollment()
+        if (!s || s.status !== 'active') {
+          setAccessError(true)
+          await supabase.auth.signOut()
+          setView('login')
+        } else if (!s.has_set_password) {
+          // Session is live but student hasn't set a password yet
+          setIsReset(false)
+          setView('set-password')
+        } else {
+          setStudent(s)
+          setView('portal')
+        }
+      } catch {
+        setAccessError(true)
         setView('login')
       }
-    })
+    }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        if (event === 'SIGNED_IN') {
-          supabase.rpc('link_my_enrollment').then(() => {
-            // Only transition to portal if we're not mid password-setup flow
-            setView(v => v === 'set-password' ? 'set-password' : 'loading')
-            if (view !== 'set-password') loadStudent()
-          })
-        } else if (event === 'USER_UPDATED') {
-          loadStudent()
-        }
-      } else {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT') {
         setStudent(null)
         setView('login')
+        return
+      }
+
+      if (event === 'PASSWORD_RECOVERY') {
+        // User clicked a reset link — route to SetPasswordPage in reset mode
+        setIsReset(true)
+        setView('set-password')
+        return
+      }
+
+      if (event === 'USER_UPDATED') {
+        // Password was just set — load student and go to portal
+        await loadStudent()
+        return
+      }
+
+      if (session && event === 'SIGNED_IN') {
+        // New sign-in — link user_id and check if this is their first time
+        const { data: isFirstLogin } = await supabase.rpc('link_my_enrollment')
+        if (isFirstLogin === true) {
+          setIsReset(false)
+          setView('set-password')
+        } else {
+          await loadStudent()
+        }
+        return
+      }
+
+      if (event === 'INITIAL_SESSION') {
+        if (session) {
+          await loadStudent()
+        } else {
+          setView('login')
+        }
       }
     })
 
     return () => subscription.unsubscribe()
   }, [])
 
-  async function loadStudent() {
-    try {
-      const s = await fetchMyEnrollment()
-      if (!s || s.status !== 'active') {
-        setAccessError(true)
-        await supabase.auth.signOut()
-        setView('login')
-      } else {
-        setStudent(s)
-        setView('portal')
-      }
-    } catch {
-      setAccessError(true)
-      setView('login')
-    }
-  }
-
   async function handleSignOut() {
     await supabase.auth.signOut()
     setStudent(null)
     setView('login')
     navigate('dashboard')
+  }
+
+  async function handlePasswordSet() {
+    const s = await fetchMyEnrollment()
+    if (s && s.status === 'active') {
+      setStudent(s)
+      setView('portal')
+    } else {
+      setView('login')
+    }
   }
 
   if (view === 'loading') {
@@ -152,14 +152,8 @@ export default function PortalRoot() {
     )
   }
 
-  if (view === 'set-password' && tokenHash && tokenType) {
-    return (
-      <SetPasswordPage
-        tokenHash={tokenHash}
-        tokenType={tokenType as 'invite' | 'recovery' | 'magiclink'}
-        onComplete={loadStudent}
-      />
-    )
+  if (view === 'set-password') {
+    return <SetPasswordPage isReset={isReset} onComplete={handlePasswordSet} />
   }
 
   if (view === 'login' || !student) {

@@ -113,10 +113,10 @@ serve(async (req) => {
     })
   }
 
-  // Magic links always work regardless of project invite settings.
-  // The portal detects the token_hash and routes to SetPasswordPage on first use.
+  // First invite: magiclink → portal fires SIGNED_IN → link_my_enrollment=true → SetPasswordPage
+  // Password reset: recovery  → portal fires PASSWORD_RECOVERY             → SetPasswordPage (reset mode)
   const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
-    type: 'magiclink',
+    type: isFirstTime ? 'magiclink' : 'recovery',
     email: email.toLowerCase(),
     options: { redirectTo: PORTAL_URL },
   })
