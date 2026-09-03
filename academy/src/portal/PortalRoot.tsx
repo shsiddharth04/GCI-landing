@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { fetchMyEnrollment } from '../lib/db'
 import type { EnrolledStudent } from '../lib/db'
 import LoginPage from './pages/LoginPage'
+import SetPasswordPage from './pages/SetPasswordPage'
 import DashboardPage from './pages/DashboardPage'
 import SchedulePage from './pages/SchedulePage'
 import ResourcesPage from './pages/ResourcesPage'
@@ -11,6 +11,7 @@ import AnnouncementsPage from './pages/AnnouncementsPage'
 import PortalLayout from './components/PortalLayout'
 
 type Route = 'dashboard' | 'schedule' | 'resources' | 'announcements'
+type View = 'loading' | 'set-password' | 'login' | 'portal'
 
 function getRoute(): Route {
   const path = window.location.pathname
@@ -34,11 +35,12 @@ function navigate(route: Route) {
 export { navigate }
 
 export default function PortalRoot() {
-  const [session, setSession] = useState<Session | null>(null)
+  const [view, setView] = useState<View>('loading')
   const [student, setStudent] = useState<EnrolledStudent | null>(null)
-  const [loading, setLoading] = useState(true)
   const [accessError, setAccessError] = useState(false)
   const [route, setRoute] = useState<Route>(getRoute())
+  const [tokenHash, setTokenHash] = useState<string | null>(null)
+  const [tokenType, setTokenType] = useState<'invite' | 'recovery' | null>(null)
 
   useEffect(() => {
     window.addEventListener('portalroute', () => setRoute(getRoute()))
@@ -50,28 +52,43 @@ export default function PortalRoot() {
   }, [])
 
   useEffect(() => {
+    // Check for invite/recovery token in URL (from email link click)
+    const params = new URLSearchParams(window.location.search)
+    const hash = params.get('token_hash')
+    const type = params.get('type')
+
+    if (hash && (type === 'invite' || type === 'recovery')) {
+      setTokenHash(hash)
+      setTokenType(type as 'invite' | 'recovery')
+      // Clean the token from the URL so refreshing doesn't re-trigger
+      window.history.replaceState({}, '', window.location.pathname)
+      setView('set-password')
+      return
+    }
+
+    // Normal session check
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
       if (session) {
         loadStudent()
       } else {
-        setLoading(false)
+        setView('login')
       }
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session)
       if (session) {
         if (event === 'SIGNED_IN') {
-          // Link auth.uid() → enrolled_students.user_id on first login.
-          // No-op if already linked (user_id IS NULL guard in the function).
-          supabase.rpc('link_my_enrollment').then(() => loadStudent())
-        } else {
+          supabase.rpc('link_my_enrollment').then(() => {
+            // Only transition to portal if we're not mid password-setup flow
+            setView(v => v === 'set-password' ? 'set-password' : 'loading')
+            if (view !== 'set-password') loadStudent()
+          })
+        } else if (event === 'USER_UPDATED') {
           loadStudent()
         }
       } else {
         setStudent(null)
-        setLoading(false)
+        setView('login')
       }
     })
 
@@ -84,24 +101,25 @@ export default function PortalRoot() {
       if (!s || s.status !== 'active') {
         setAccessError(true)
         await supabase.auth.signOut()
+        setView('login')
       } else {
         setStudent(s)
+        setView('portal')
       }
     } catch {
       setAccessError(true)
-    } finally {
-      setLoading(false)
+      setView('login')
     }
   }
 
   async function handleSignOut() {
     await supabase.auth.signOut()
     setStudent(null)
-    setSession(null)
+    setView('login')
     navigate('dashboard')
   }
 
-  if (loading) {
+  if (view === 'loading') {
     return (
       <div style={{
         minHeight: '100vh', background: '#0a0a0a', display: 'flex',
@@ -119,7 +137,17 @@ export default function PortalRoot() {
     )
   }
 
-  if (!session || !student) {
+  if (view === 'set-password' && tokenHash && tokenType) {
+    return (
+      <SetPasswordPage
+        tokenHash={tokenHash}
+        tokenType={tokenType}
+        onComplete={loadStudent}
+      />
+    )
+  }
+
+  if (view === 'login' || !student) {
     return <LoginPage accessError={accessError} />
   }
 

@@ -61,6 +61,8 @@ function AddStudentForm({ onCreated }: { onCreated: () => void }) {
     setSaving(true); setError(null)
     try {
       await addEnrolledStudent(name.trim(), email.trim(), phone.trim(), cohort)
+      // Auto-send invite email — student gets a "set up your password" link immediately
+      await sendStudentInvite(email.trim().toLowerCase())
       setName(''); setEmail(''); setPhone(''); setCohort('C1')
       onCreated()
     } catch (e: unknown) {
@@ -156,7 +158,7 @@ function InviteButton({ student, onSent }: { student: EnrolledStudent; onSent: (
       className="flex items-center gap-1.5 font-mono text-[9px] text-[#7548B8] hover:text-[#6B40A8] tracking-widest uppercase transition-colors disabled:opacity-40"
     >
       <Mail size={9} />
-      {state === 'sending' ? 'Sending…' : student.invited_at ? 'Resend link' : 'Send invite'}
+      {state === 'sending' ? 'Sending…' : 'Resend invite'}
     </button>
   )
 }
