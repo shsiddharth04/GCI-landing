@@ -1058,7 +1058,7 @@ function CourseBlocksPanel() {
   return (
     <div>
       <p className="text-xs text-[#8B73B3] mb-5">
-        Block masterclass slots for course class times. Blocked slots show as <strong>Cohort 1 · class</strong> or <strong>Cohort 2 · class</strong> on the booking page — students see the studio is active.
+        Block masterclass slots for course class times. Blocked slots show as <strong>C1–C5 · class</strong> on the booking page — students see the studio is active.
       </p>
 
       {/* Day selector — next 7 days */}
@@ -1136,17 +1136,17 @@ function CourseBlocksPanel() {
         <div>
           <label className={labelCls}>Cohort</label>
           <div className="flex gap-2">
-            {(['C1', 'C2'] as const).map(c => (
+            {(['C1', 'C2', 'C3', 'C4', 'C5'] as const).map(c => (
               <button
                 key={c}
                 type="button"
                 onClick={() => setCohort(c)}
-                className={`px-5 py-2 text-xs font-mono font-bold transition-colors ${
-                  cohort === c
-                    ? c === 'C1' ? 'bg-pink-600 text-white' : 'bg-indigo-500 text-white'
-                    : 'bg-white text-[#8B73B3] hover:text-[#6B40A8]'
-                }`}
-                style={{ border: cohort === c ? 'none' : '1px solid #D4C6EF' }}
+                className="px-4 py-2 text-xs font-mono font-bold transition-colors"
+                style={{
+                  background: cohort === c ? COHORT_BG[c] : 'white',
+                  color: cohort === c ? 'white' : '#8B73B3',
+                  border: cohort === c ? 'none' : '1px solid #D4C6EF',
+                }}
               >
                 {c}
               </button>
