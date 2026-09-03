@@ -138,8 +138,8 @@ export default function SchedulePage({ student }: { student: EnrolledStudent }) 
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchMyCourseSchedule().then(setSessions).finally(() => setLoading(false))
-  }, [])
+    fetchMyCourseSchedule(student.cohort).then(setSessions).finally(() => setLoading(false))
+  }, [student.cohort])
 
   const today = new Date().toISOString().slice(0, 10)
   const upcoming = sessions.filter(s => s.session_date >= today)

@@ -566,21 +566,24 @@ export async function fetchMyEnrollment(): Promise<EnrolledStudent | null> {
   return data as EnrolledStudent | null
 }
 
-export async function fetchMyCourseSchedule(): Promise<Session[]> {
-  const today = new Date().toISOString().slice(0, 10)
+export async function fetchMyCourseSchedule(cohort: string): Promise<Session[]> {
   const { data, error } = await supabase
-    .from('sessions')
-    .select('*, instructors(name)')
-    .eq('session_type', 'course_class')
-    .neq('status', 'cancelled')
-    .gte('session_date', '2020-01-01')
-    .order('session_date', { ascending: true })
+    .from('course_class_blocks')
+    .select('id, block_date, start_time, end_time, label, cohort')
+    .eq('cohort', cohort)
+    .order('block_date', { ascending: true })
     .order('start_time', { ascending: true })
   if (error) throw error
-  return (data ?? []).map((s: Record<string, unknown>) => ({
-    ...s,
-    instructor_name: (s.instructors as { name: string } | null)?.name ?? '',
-  })) as Session[]
+  return (data ?? []).map((b: Record<string, unknown>) => ({
+    id: b.id as string,
+    session_date: b.block_date as string,
+    start_time: b.start_time as string,
+    end_time: b.end_time as string,
+    location: (b.label as string | null) ?? 'GCI Studio, Gurugram',
+    cohort: b.cohort,
+    session_type: 'course_class',
+    status: 'open',
+  })) as unknown as Session[]
 }
 
 export async function fetchMyResources(): Promise<StudentResource[]> {

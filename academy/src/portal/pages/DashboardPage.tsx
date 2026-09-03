@@ -68,7 +68,7 @@ export default function DashboardPage({
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    Promise.all([fetchMyCourseSchedule(), fetchMyAnnouncements(), fetchMyResources()])
+    Promise.all([fetchMyCourseSchedule(student.cohort), fetchMyAnnouncements(), fetchMyResources()])
       .then(([s, a, r]) => { setSessions(s); setAnnouncements(a); setResources(r) })
       .finally(() => setLoading(false))
   }, [])
