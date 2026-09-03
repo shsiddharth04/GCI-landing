@@ -39,17 +39,18 @@ export default function SetPasswordPage({
 
   useEffect(() => {
     async function verify() {
-      const otpType = tokenType === 'recovery' ? 'recovery' : tokenType === 'invite' ? 'invite' : 'magiclink'
-      const { error } = await supabase.auth.verifyOtp({
-        token_hash: tokenHash,
-        type: otpType,
-      })
-      if (error) {
-        setVerifyError('This link has expired or already been used. Request a new one from the login page.')
-      } else {
-        // Link the user_id to enrolled_students now that auth session exists
-        await supabase.rpc('link_my_enrollment')
+      if (tokenHash) {
+        // PKCE flow: verify token from URL query param
+        const otpType = tokenType === 'recovery' ? 'recovery' : tokenType === 'invite' ? 'invite' : 'magiclink'
+        const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: otpType })
+        if (error) {
+          setVerifyError('This link has expired or already been used. Request a new one from the login page.')
+          setVerifying(false)
+          return
+        }
       }
+      // Session already live (implicit flow) or just established above — link user_id
+      await supabase.rpc('link_my_enrollment')
       setVerifying(false)
     }
     verify()

@@ -52,16 +52,31 @@ export default function PortalRoot() {
   }, [])
 
   useEffect(() => {
-    // Check for invite/recovery token in URL (from email link click)
-    const params = new URLSearchParams(window.location.search)
-    const hash = params.get('token_hash')
-    const type = params.get('type')
+    // PKCE flow: token arrives as ?token_hash=xxx&type=xxx in query string
+    const searchParams = new URLSearchParams(window.location.search)
+    const qTokenHash = searchParams.get('token_hash')
+    const qType = searchParams.get('type')
 
-    if (hash && (type === 'invite' || type === 'recovery' || type === 'magiclink')) {
-      setTokenHash(hash)
-      setTokenType(type as 'invite' | 'recovery' | 'magiclink')
-      // Clean the token from the URL so refreshing doesn't re-trigger
+    if (qTokenHash && (qType === 'invite' || qType === 'recovery' || qType === 'magiclink')) {
+      setTokenHash(qTokenHash)
+      setTokenType(qType as 'invite' | 'recovery' | 'magiclink')
       window.history.replaceState({}, '', window.location.pathname)
+      setView('set-password')
+      return
+    }
+
+    // Implicit flow: Supabase processes the magic link server-side and redirects
+    // with #access_token=xxx in the fragment. The client auto-consumes it and
+    // logs the user in — we intercept here before getSession() sees the session.
+    const hashStr = window.location.hash.slice(1)
+    const hashParams = new URLSearchParams(hashStr)
+    const hashType = hashParams.get('type')
+
+    if (hashParams.get('access_token') && hashType === 'magiclink') {
+      // Session is already established — skip verifyOtp, just set the password
+      window.history.replaceState({}, '', window.location.pathname)
+      setTokenHash('')       // empty = tell SetPasswordPage to skip verifyOtp
+      setTokenType('magiclink')
       setView('set-password')
       return
     }
