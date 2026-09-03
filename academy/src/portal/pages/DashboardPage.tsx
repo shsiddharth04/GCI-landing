@@ -26,7 +26,7 @@ function fmtWeekday(d: string) {
 }
 
 const COHORT_COLOR: Record<string, string> = {
-  C1: '#f472b6', C2: '#818cf8', C3: '#fbbf24', C4: '#34d399', C5: '#38bdf8',
+  C0: '#94a3b8', C1: '#f472b6', C2: '#818cf8', C3: '#fbbf24', C4: '#34d399', C5: '#38bdf8',
 }
 
 function CohortBadge({ cohort }: { cohort: string }) {

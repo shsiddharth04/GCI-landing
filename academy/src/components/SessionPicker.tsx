@@ -375,7 +375,7 @@ export default function SessionPicker() {
                 const isClassBlock = slot.status.startsWith('blocked-c')
                 const blockCohort = isClassBlock ? slot.status.replace('blocked-', '').toUpperCase() : null
                 const COHORT_RGBA: Record<string, string> = {
-                  C1: '236,72,153', C2: '99,102,241', C3: '245,158,11', C4: '16,185,129', C5: '14,165,233',
+                  C0: '100,116,139', C1: '236,72,153', C2: '99,102,241', C3: '245,158,11', C4: '16,185,129', C5: '14,165,233',
                 }
                 const cohortRgb = blockCohort ? (COHORT_RGBA[blockCohort] ?? '99,102,241') : null
 

@@ -14,13 +14,13 @@ function fmtDate(d: string) {
 }
 
 const COHORT_BG: Record<string, string> = {
-  C1: '#db2777', C2: '#6366f1', C3: '#f59e0b', C4: '#059669', C5: '#0ea5e9',
+  C0: '#64748b', C1: '#db2777', C2: '#6366f1', C3: '#f59e0b', C4: '#059669', C5: '#0ea5e9',
 }
 const COHORT_BADGE_BG: Record<string, string> = {
-  C1: '#fdf2f8', C2: '#eef2ff', C3: '#fffbeb', C4: '#ecfdf5', C5: '#f0f9ff',
+  C0: '#f8fafc', C1: '#fdf2f8', C2: '#eef2ff', C3: '#fffbeb', C4: '#ecfdf5', C5: '#f0f9ff',
 }
 const COHORT_BADGE_TEXT: Record<string, string> = {
-  C1: '#be185d', C2: '#4338ca', C3: '#b45309', C4: '#065f46', C5: '#0369a1',
+  C0: '#475569', C1: '#be185d', C2: '#4338ca', C3: '#b45309', C4: '#065f46', C5: '#0369a1',
 }
 
 function CohortBadge({ cohort }: { cohort: EnrolledStudent['cohort'] }) {
@@ -51,7 +51,7 @@ function AddStudentForm({ onCreated }: { onCreated: () => void }) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
-  const [cohort, setCohort] = useState<EnrolledStudent['cohort']>('C1')
+  const [cohort, setCohort] = useState<EnrolledStudent['cohort']>('C0')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -63,7 +63,7 @@ function AddStudentForm({ onCreated }: { onCreated: () => void }) {
       await addEnrolledStudent(name.trim(), email.trim(), phone.trim(), cohort)
       // Auto-send invite email — student gets a "set up your password" link immediately
       await sendStudentInvite(email.trim().toLowerCase())
-      setName(''); setEmail(''); setPhone(''); setCohort('C1')
+      setName(''); setEmail(''); setPhone(''); setCohort('C0')
       onCreated()
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Failed to add student.'
@@ -93,7 +93,7 @@ function AddStudentForm({ onCreated }: { onCreated: () => void }) {
           <div>
             <label className={labelCls}>Cohort</label>
             <div className="flex gap-2 pt-0.5">
-              {(['C1', 'C2', 'C3', 'C4', 'C5'] as const).map(c => (
+              {(['C0', 'C1', 'C2', 'C3', 'C4', 'C5'] as const).map(c => (
                 <button
                   key={c}
                   type="button"

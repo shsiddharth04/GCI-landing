@@ -14,13 +14,13 @@ import { loadSettings } from '../settings'
 // ── Cohort colour maps (inline styles — immune to Tailwind purging) ───────────
 
 const COHORT_BG: Record<string, string> = {
-  C1: '#db2777', C2: '#6366f1', C3: '#f59e0b', C4: '#059669', C5: '#0ea5e9',
+  C0: '#64748b', C1: '#db2777', C2: '#6366f1', C3: '#f59e0b', C4: '#059669', C5: '#0ea5e9',
 }
 const COHORT_BADGE_BG: Record<string, string> = {
-  C1: '#fdf2f8', C2: '#eef2ff', C3: '#fffbeb', C4: '#ecfdf5', C5: '#f0f9ff',
+  C0: '#f8fafc', C1: '#fdf2f8', C2: '#eef2ff', C3: '#fffbeb', C4: '#ecfdf5', C5: '#f0f9ff',
 }
 const COHORT_BADGE_TEXT: Record<string, string> = {
-  C1: '#be185d', C2: '#4338ca', C3: '#b45309', C4: '#065f46', C5: '#0369a1',
+  C0: '#475569', C1: '#be185d', C2: '#4338ca', C3: '#b45309', C4: '#065f46', C5: '#0369a1',
 }
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
@@ -146,7 +146,7 @@ function SingleForm({
 }) {
   const [instructorId, setInstructorId] = useState(instructors[0]?.id ?? '')
   const [sessionType, setSessionType] = useState<'masterclass' | 'course_class'>('masterclass')
-  const [cohort, setCohort] = useState<'C1' | 'C2' | 'C3' | 'C4' | 'C5'>('C1')
+  const [cohort, setCohort] = useState<'C0' | 'C1' | 'C2' | 'C3' | 'C4' | 'C5'>('C1')
   const [date, setDate] = useState('')
   const [startTime, setStartTime] = useState('')
   const [endTime, setEndTime] = useState('')
@@ -201,7 +201,7 @@ function SingleForm({
           <div className="col-span-2">
             <label className={labelCls}>Cohort</label>
             <div className="flex gap-2">
-              {(['C1', 'C2', 'C3', 'C4', 'C5'] as const).map(c => (
+              {((['C0', 'C1', 'C2', 'C3', 'C4', 'C5'] as const)).map(c => (
                 <button
                   key={c}
                   type="button"
@@ -267,7 +267,7 @@ function RecurringForm({
 }) {
   const [instructorId, setInstructorId] = useState(instructors[0]?.id ?? '')
   const [sessionType, setSessionType] = useState<'masterclass' | 'course_class'>('masterclass')
-  const [cohort, setCohort] = useState<'C1' | 'C2' | 'C3' | 'C4' | 'C5'>('C1')
+  const [cohort, setCohort] = useState<'C0' | 'C1' | 'C2' | 'C3' | 'C4' | 'C5'>('C1')
   const [days, setDays] = useState<number[]>([])
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
@@ -344,7 +344,7 @@ function RecurringForm({
           <div className="col-span-2">
             <label className={labelCls}>Cohort</label>
             <div className="flex gap-2">
-              {(['C1', 'C2', 'C3', 'C4', 'C5'] as const).map(c => (
+              {((['C0', 'C1', 'C2', 'C3', 'C4', 'C5'] as const)).map(c => (
                 <button
                   key={c}
                   type="button"
@@ -1022,7 +1022,7 @@ function CourseBlocksPanel() {
 
   const [startTime, setStartTime] = useState('')
   const [endTime, setEndTime] = useState('')
-  const [cohort, setCohort] = useState<'C1' | 'C2' | 'C3' | 'C4' | 'C5'>('C1')
+  const [cohort, setCohort] = useState<'C0' | 'C1' | 'C2' | 'C3' | 'C4' | 'C5'>('C1')
   const [blockLabel, setBlockLabel] = useState('')
   const [adding, setAdding] = useState(false)
 
@@ -1136,7 +1136,7 @@ function CourseBlocksPanel() {
         <div>
           <label className={labelCls}>Cohort</label>
           <div className="flex gap-2">
-            {(['C1', 'C2', 'C3', 'C4', 'C5'] as const).map(c => (
+            {((['C0', 'C1', 'C2', 'C3', 'C4', 'C5'] as const)).map(c => (
               <button
                 key={c}
                 type="button"

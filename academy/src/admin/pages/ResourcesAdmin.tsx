@@ -14,13 +14,13 @@ const TYPE_LABELS: Record<string, string> = {
 const RESOURCE_TYPES: StudentResource['resource_type'][] = ['link', 'pdf', 'video', 'audio', 'other']
 
 const COHORT_BG: Record<string, string> = {
-  C1: '#db2777', C2: '#6366f1', C3: '#f59e0b', C4: '#059669', C5: '#0ea5e9', all: '#6B40A8',
+  C0: '#64748b', C1: '#db2777', C2: '#6366f1', C3: '#f59e0b', C4: '#059669', C5: '#0ea5e9', all: '#6B40A8',
 }
 const COHORT_BADGE_BG: Record<string, string> = {
-  C1: '#fdf2f8', C2: '#eef2ff', C3: '#fffbeb', C4: '#ecfdf5', C5: '#f0f9ff', all: '#EDE6FF',
+  C0: '#f8fafc', C1: '#fdf2f8', C2: '#eef2ff', C3: '#fffbeb', C4: '#ecfdf5', C5: '#f0f9ff', all: '#EDE6FF',
 }
 const COHORT_BADGE_TEXT: Record<string, string> = {
-  C1: '#be185d', C2: '#4338ca', C3: '#b45309', C4: '#065f46', C5: '#0369a1', all: '#6B40A8',
+  C0: '#475569', C1: '#be185d', C2: '#4338ca', C3: '#b45309', C4: '#065f46', C5: '#0369a1', all: '#6B40A8',
 }
 
 function CohortBadge({ cohort }: { cohort: StudentResource['cohort'] }) {

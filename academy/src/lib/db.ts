@@ -13,7 +13,7 @@ export interface Session {
   instructor_id: string
   session_type: 'masterclass' | 'course_class'
   course_id: string | null
-  cohort: 'C1' | 'C2' | 'C3' | 'C4' | 'C5' | null
+  cohort: 'C0' | 'C1' | 'C2' | 'C3' | 'C4' | 'C5' | null
   session_date: string
   start_time: string
   end_time: string
@@ -114,7 +114,7 @@ export interface BlockedWindow {
   session_date: string
   start_time: string
   end_time: string
-  cohort?: 'C1' | 'C2' | 'C3' | 'C4' | 'C5'  // set for course_class_blocks; undefined for session-based blocks
+  cohort?: 'C0' | 'C1' | 'C2' | 'C3' | 'C4' | 'C5'  // set for course_class_blocks; undefined for session-based blocks
 }
 
 export interface CourseClassBlock {
@@ -122,7 +122,7 @@ export interface CourseClassBlock {
   block_date: string
   start_time: string
   end_time: string
-  cohort: 'C1' | 'C2' | 'C3' | 'C4' | 'C5'
+  cohort: 'C0' | 'C1' | 'C2' | 'C3' | 'C4' | 'C5'
   label: string | null
   created_at: string
 }
@@ -182,7 +182,7 @@ export async function fetchMasterclassSlotData(fromDate: string, toDate: string)
       session_date: b.block_date,
       start_time: b.start_time.slice(0, 5),
       end_time: b.end_time.slice(0, 5),
-      cohort: b.cohort as 'C1' | 'C2' | 'C3' | 'C4' | 'C5',
+      cohort: b.cohort as 'C0' | 'C1' | 'C2' | 'C3' | 'C4' | 'C5',
     })
   )
 
@@ -386,7 +386,7 @@ export async function addCourseClassBlock(
   date: string,
   startTime: string,
   endTime: string,
-  cohort: 'C1' | 'C2' | 'C3' | 'C4' | 'C5',
+  cohort: 'C0' | 'C1' | 'C2' | 'C3' | 'C4' | 'C5',
   label?: string
 ): Promise<CourseClassBlock> {
   const { data, error } = await supabase
@@ -410,7 +410,7 @@ export interface EnrolledStudent {
   name: string
   email: string
   phone: string | null
-  cohort: 'C1' | 'C2' | 'C3' | 'C4' | 'C5'
+  cohort: 'C0' | 'C1' | 'C2' | 'C3' | 'C4' | 'C5'
   status: 'active' | 'graduated' | 'suspended'
   user_id: string | null
   invited_at: string | null
@@ -424,7 +424,7 @@ export interface StudentResource {
   description: string | null
   url: string
   resource_type: 'pdf' | 'link' | 'video' | 'audio' | 'other' | null
-  cohort: 'C1' | 'C2' | 'C3' | 'C4' | 'C5' | 'all'
+  cohort: 'C0' | 'C1' | 'C2' | 'C3' | 'C4' | 'C5' | 'all'
   is_published: boolean
   file_name: string | null
   created_at: string
@@ -434,7 +434,7 @@ export interface Announcement {
   id: string
   title: string
   body: string
-  cohort: 'C1' | 'C2' | 'C3' | 'C4' | 'C5' | 'all'
+  cohort: 'C0' | 'C1' | 'C2' | 'C3' | 'C4' | 'C5' | 'all'
   is_published: boolean
   published_at: string | null
   created_at: string
@@ -452,7 +452,7 @@ export async function fetchEnrolledStudents(): Promise<EnrolledStudent[]> {
 }
 
 export async function addEnrolledStudent(
-  name: string, email: string, phone: string, cohort: 'C1' | 'C2' | 'C3' | 'C4' | 'C5'
+  name: string, email: string, phone: string, cohort: 'C0' | 'C1' | 'C2' | 'C3' | 'C4' | 'C5'
 ): Promise<EnrolledStudent> {
   const { data, error } = await supabase
     .from('enrolled_students')
