@@ -59,10 +59,16 @@ export default function PortalRoot() {
       }
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session)
       if (session) {
-        loadStudent()
+        if (event === 'SIGNED_IN') {
+          // Link auth.uid() → enrolled_students.user_id on first login.
+          // No-op if already linked (user_id IS NULL guard in the function).
+          supabase.rpc('link_my_enrollment').then(() => loadStudent())
+        } else {
+          loadStudent()
+        }
       } else {
         setStudent(null)
         setLoading(false)
