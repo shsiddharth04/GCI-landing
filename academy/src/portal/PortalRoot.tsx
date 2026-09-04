@@ -57,7 +57,6 @@ export default function PortalRoot() {
         const s = await fetchMyEnrollment()
         if (!s || s.status !== 'active') {
           setAccessError(true)
-          await supabase.auth.signOut()
           setView('login')
         } else if (!s.has_set_password) {
           // Session is live but student hasn't set a password yet
@@ -81,37 +80,35 @@ export default function PortalRoot() {
       }
 
       if (event === 'PASSWORD_RECOVERY') {
-        // User clicked a reset link — route to SetPasswordPage in reset mode
         setIsReset(true)
         setView('set-password')
         return
       }
 
       if (event === 'USER_UPDATED') {
-        // Password was just set — load student and go to portal
         await loadStudent()
         return
       }
 
-      if (session && event === 'SIGNED_IN') {
-        // New sign-in — link user_id and check if this is their first time
+      if (!session) {
+        setView('login')
+        return
+      }
+
+      // For INITIAL_SESSION and SIGNED_IN, both can fire on a magic link redirect.
+      // Always run link_my_enrollment first — it sets user_id and returns true only
+      // on the very first sign-in. This avoids calling loadStudent() before the
+      // row is linked, which would cause a RLS miss and a spurious access error.
+      if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
         const { data: isFirstLogin } = await supabase.rpc('link_my_enrollment')
         if (isFirstLogin === true) {
           setIsReset(false)
           setView('set-password')
-        } else {
-          await loadStudent()
+          return
         }
-        return
       }
 
-      if (event === 'INITIAL_SESSION') {
-        if (session) {
-          await loadStudent()
-        } else {
-          setView('login')
-        }
-      }
+      await loadStudent()
     })
 
     return () => subscription.unsubscribe()
