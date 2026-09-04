@@ -23,8 +23,8 @@ function ResourceCard({ resource, style }: { resource: StudentResource; style?: 
       rel="noreferrer"
       style={{
         display: 'block', textDecoration: 'none',
-        background: '#141414',
-        border: '1px solid rgba(232,222,250,0.08)',
+        background: '#1e1e1e',
+        border: '1px solid rgba(232,222,250,0.13)',
         padding: '24px 24px 20px',
         cursor: 'pointer',
         transition: 'border-color 120ms, transform 120ms',
@@ -32,17 +32,17 @@ function ResourceCard({ resource, style }: { resource: StudentResource; style?: 
       }}
       onMouseEnter={e => {
         const a = e.currentTarget as HTMLAnchorElement
-        a.style.borderColor = 'rgba(232,222,250,0.25)'
+        a.style.borderColor = 'rgba(232,222,250,0.45)'
         a.style.transform = 'translateY(-2px)'
       }}
       onMouseLeave={e => {
         const a = e.currentTarget as HTMLAnchorElement
-        a.style.borderColor = 'rgba(232,222,250,0.08)'
+        a.style.borderColor = 'rgba(232,222,250,0.13)'
         a.style.transform = 'translateY(0)'
       }}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
-        <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.14em', color: 'rgba(232,222,250,0.4)' }}>
+        <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.14em', color: 'rgba(232,222,250,0.6)' }}>
           [{label}]
         </span>
         <ExternalLink size={12} style={{ color: 'rgba(232,222,250,0.2)', flexShrink: 0 }} />
@@ -54,7 +54,7 @@ function ResourceCard({ resource, style }: { resource: StudentResource; style?: 
 
       {resource.description && (
         <div style={{
-          fontSize: 12, color: 'rgba(232,222,250,0.45)', lineHeight: 1.6, fontFamily: SANS,
+          fontSize: 12, color: 'rgba(232,222,250,0.65)', lineHeight: 1.6, fontFamily: SANS,
           display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
         }}>
           {resource.description}
@@ -66,7 +66,7 @@ function ResourceCard({ resource, style }: { resource: StudentResource; style?: 
 
 function SkeletonCard() {
   return (
-    <div style={{ background: '#141414', border: '1px solid rgba(232,222,250,0.05)', padding: '24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div style={{ background: '#1e1e1e', border: '1px solid rgba(232,222,250,0.05)', padding: '24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div style={{ height: 10, width: 40, background: 'rgba(232,222,250,0.06)', borderRadius: 2 }} />
       <div style={{ height: 18, width: '80%', background: 'rgba(232,222,250,0.06)', borderRadius: 2 }} />
       <div style={{ height: 12, background: 'rgba(232,222,250,0.04)', borderRadius: 2 }} />
@@ -112,7 +112,7 @@ export default function ResourcesPage() {
                 padding: '6px 14px',
                 background: active ? '#E8DEFA' : 'transparent',
                 border: `1px solid ${active ? '#E8DEFA' : 'rgba(232,222,250,0.15)'}`,
-                color: active ? '#0a0a0a' : 'rgba(232,222,250,0.5)',
+                color: active ? '#0a0a0a' : 'rgba(232,222,250,0.7)',
                 fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em',
                 textTransform: 'uppercase', cursor: 'pointer',
                 fontWeight: active ? 700 : 400,
@@ -129,7 +129,7 @@ export default function ResourcesPage() {
                 if (!active) {
                   const b = e.currentTarget as HTMLButtonElement
                   b.style.borderColor = 'rgba(232,222,250,0.15)'
-                  b.style.color = 'rgba(232,222,250,0.5)'
+                  b.style.color = 'rgba(232,222,250,0.7)'
                 }
               }}
             >
@@ -144,7 +144,7 @@ export default function ResourcesPage() {
         {loading ? (
           Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
         ) : filtered.length === 0 ? (
-          <div style={{ gridColumn: '1/-1', fontFamily: MONO, fontSize: 13, color: 'rgba(232,222,250,0.25)', padding: '40px 0' }}>
+          <div style={{ gridColumn: '1/-1', fontFamily: MONO, fontSize: 13, color: 'rgba(232,222,250,0.45)', padding: '40px 0' }}>
             {filter === 'all' ? 'No resources available yet.' : `No ${TYPE_LABELS[filter]} resources yet.`}
           </div>
         ) : (

@@ -79,7 +79,7 @@ function AddAnnouncementForm({ onCreated }: { onCreated: () => void }) {
         <div>
           <label className={labelCls}>Cohort</label>
           <div className="flex gap-1.5">
-            {(['C1', 'C2', 'C3', 'C4', 'C5', 'all'] as const).map(c => (
+            {(['C0', 'C1', 'C2', 'C3', 'C4', 'C5', 'all'] as const).map(c => (
               <button
                 key={c}
                 type="button"

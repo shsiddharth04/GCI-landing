@@ -566,6 +566,8 @@ export async function fetchMyEnrollment(): Promise<EnrolledStudent | null> {
   return data as EnrolledStudent | null
 }
 
+const STUDIO_ADDRESS = '11th Floor, The Capital, Next to CDS, Gurugram'
+
 export async function fetchMyCourseSchedule(cohort: string): Promise<Session[]> {
   const { data, error } = await supabase
     .from('course_class_blocks')
@@ -579,11 +581,23 @@ export async function fetchMyCourseSchedule(cohort: string): Promise<Session[]> 
     session_date: b.block_date as string,
     start_time: b.start_time as string,
     end_time: b.end_time as string,
-    location: (b.label as string | null) ?? 'GCI Studio, Gurugram',
+    location: STUDIO_ADDRESS,
+    course_name: (b.label as string | null) ?? null,
     cohort: b.cohort,
     session_type: 'course_class',
     status: 'open',
   })) as unknown as Session[]
+}
+
+export async function uploadResourceFile(file: File): Promise<string> {
+  const ext = file.name.split('.').pop() ?? 'bin'
+  const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+  const { data, error } = await supabase.storage
+    .from('academy-resources')
+    .upload(path, file, { contentType: file.type, upsert: false })
+  if (error) throw error
+  const { data: { publicUrl } } = supabase.storage.from('academy-resources').getPublicUrl(data.path)
+  return publicUrl
 }
 
 export async function fetchMyResources(): Promise<StudentResource[]> {

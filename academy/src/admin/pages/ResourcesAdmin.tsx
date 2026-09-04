@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react'
-import { Plus, Trash2, Eye, EyeOff, RefreshCw, ExternalLink } from 'lucide-react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { Plus, Trash2, Eye, EyeOff, RefreshCw, ExternalLink, Upload } from 'lucide-react'
 import {
-  fetchAllResources, addStudentResource, updateResourcePublished, deleteStudentResource,
+  fetchAllResources, addStudentResource, updateResourcePublished,
+  deleteStudentResource, uploadResourceFile,
 } from '../../lib/db'
 import type { StudentResource } from '../../lib/db'
 
@@ -38,6 +39,8 @@ function TypeBadge({ type }: { type: StudentResource['resource_type'] }) {
   return <span className="font-mono text-[9px] tracking-widest uppercase px-2 py-0.5 bg-[#F9F6FF] text-[#8B73B3]">{TYPE_LABELS[type ?? 'link'] ?? 'File'}</span>
 }
 
+type SourceMode = 'link' | 'upload'
+
 function AddResourceForm({ onCreated }: { onCreated: () => void }) {
   const [title, setTitle] = useState('')
   const [url, setUrl] = useState('')
@@ -47,15 +50,44 @@ function AddResourceForm({ onCreated }: { onCreated: () => void }) {
   const [publish, setPublish] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [sourceMode, setSourceMode] = useState<SourceMode>('link')
+  const [uploading, setUploading] = useState(false)
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    setError(null)
+    try {
+      const publicUrl = await uploadResourceFile(file)
+      setUrl(publicUrl)
+      setUploadedFileName(file.name)
+      // Auto-detect type from extension
+      const ext = file.name.split('.').pop()?.toLowerCase()
+      if (ext === 'pdf') setType('pdf')
+      else if (['mp4', 'mov', 'avi', 'webm'].includes(ext ?? '')) setType('video')
+      else if (['mp3', 'wav', 'aac', 'm4a'].includes(ext ?? '')) setType('audio')
+      else setType('other')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload failed.')
+    } finally {
+      setUploading(false)
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!title.trim() || !url.trim()) { setError('Title and URL are required.'); return }
+    if (!title.trim()) { setError('Title is required.'); return }
+    if (!url.trim()) { setError(sourceMode === 'upload' ? 'Upload a file first.' : 'URL is required.'); return }
     setSaving(true); setError(null)
     try {
       const resource = await addStudentResource(title.trim(), url.trim(), cohort, type, description.trim() || undefined)
       if (publish) await updateResourcePublished(resource.id, true)
-      setTitle(''); setUrl(''); setDescription(''); setCohort('all'); setType('link'); setPublish(false)
+      setTitle(''); setUrl(''); setDescription(''); setCohort('all'); setType('link')
+      setPublish(false); setUploadedFileName(null); setSourceMode('link')
+      if (fileRef.current) fileRef.current.value = ''
       onCreated()
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to add resource.')
@@ -73,18 +105,79 @@ function AddResourceForm({ onCreated }: { onCreated: () => void }) {
             <label className={labelCls}>Title</label>
             <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Module 3 — Rekordbox Deep Dive" className={inputCls} />
           </div>
+
+          {/* Source toggle */}
           <div className="col-span-2">
-            <label className={labelCls}>URL</label>
-            <input type="url" value={url} onChange={e => setUrl(e.target.value)} placeholder="https://drive.google.com/..." className={inputCls} />
+            <label className={labelCls}>Source</label>
+            <div className="flex gap-0 mb-2">
+              {(['link', 'upload'] as SourceMode[]).map(m => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => { setSourceMode(m); setUrl(''); setUploadedFileName(null) }}
+                  className="px-4 py-2 text-xs font-mono font-bold transition-colors"
+                  style={{
+                    background: sourceMode === m ? '#6B40A8' : 'white',
+                    color: sourceMode === m ? 'white' : '#8B73B3',
+                    border: '1px solid #D4C6EF',
+                    borderRight: m === 'link' ? 'none' : '1px solid #D4C6EF',
+                  }}
+                >
+                  {m === 'link' ? 'Link / URL' : 'Upload file'}
+                </button>
+              ))}
+            </div>
+
+            {sourceMode === 'link' ? (
+              <input
+                type="url"
+                value={url}
+                onChange={e => setUrl(e.target.value)}
+                placeholder="https://drive.google.com/..."
+                className={inputCls}
+              />
+            ) : (
+              <div>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  onChange={handleFileChange}
+                  disabled={uploading}
+                  className="hidden"
+                  id="resource-file-input"
+                  accept=".pdf,.mp4,.mov,.mp3,.wav,.aac,.ppt,.pptx,.doc,.docx,.zip,.png,.jpg,.jpeg"
+                />
+                <label
+                  htmlFor="resource-file-input"
+                  className="flex items-center gap-2 cursor-pointer"
+                  style={{
+                    background: '#F9F6FF', border: '1px solid #D4C6EF',
+                    padding: '10px 14px',
+                    opacity: uploading ? 0.6 : 1,
+                    transition: 'opacity 150ms',
+                  }}
+                >
+                  <Upload size={13} className="text-[#8B73B3] shrink-0" />
+                  <span className="text-sm text-[#8B73B3] font-mono truncate">
+                    {uploading ? 'Uploading…' : uploadedFileName ?? 'Choose file to upload'}
+                  </span>
+                  {uploadedFileName && !uploading && (
+                    <span className="ml-auto text-[9px] font-mono text-emerald-600 uppercase tracking-widest shrink-0">✓ Uploaded</span>
+                  )}
+                </label>
+              </div>
+            )}
           </div>
+
           <div className="col-span-2">
             <label className={labelCls}>Description <span className="normal-case text-[#C4B4E4] ml-1">(optional)</span></label>
             <input value={description} onChange={e => setDescription(e.target.value)} placeholder="Brief description of the resource" className={inputCls} />
           </div>
+
           <div>
             <label className={labelCls}>Cohort</label>
-            <div className="flex gap-1.5">
-              {(['C1', 'C2', 'C3', 'C4', 'C5', 'all'] as const).map(c => (
+            <div className="flex gap-1.5 flex-wrap">
+              {(['C0', 'C1', 'C2', 'C3', 'C4', 'C5', 'all'] as const).map(c => (
                 <button
                   key={c}
                   type="button"
@@ -101,6 +194,7 @@ function AddResourceForm({ onCreated }: { onCreated: () => void }) {
               ))}
             </div>
           </div>
+
           <div>
             <label className={labelCls}>Type</label>
             <select value={type ?? 'link'} onChange={e => setType(e.target.value as StudentResource['resource_type'])} className={inputCls}>
@@ -115,7 +209,7 @@ function AddResourceForm({ onCreated }: { onCreated: () => void }) {
           <button
             type="submit"
             onClick={() => setPublish(false)}
-            disabled={saving}
+            disabled={saving || uploading}
             className="flex items-center gap-2 bg-white hover:bg-[#F9F6FF] text-[#6B40A8] border border-[#D4C6EF] text-xs font-bold font-mono tracking-widest uppercase px-4 py-2.5 disabled:opacity-50 transition-colors"
           >
             <EyeOff size={12} />
@@ -124,7 +218,7 @@ function AddResourceForm({ onCreated }: { onCreated: () => void }) {
           <button
             type="submit"
             onClick={() => setPublish(true)}
-            disabled={saving}
+            disabled={saving || uploading}
             className="flex items-center gap-2 bg-[#6B40A8] hover:bg-[#5C358A] text-white text-xs font-bold font-mono tracking-widest uppercase px-4 py-2.5 disabled:opacity-50 transition-colors"
           >
             <Eye size={12} />
@@ -194,9 +288,8 @@ export default function ResourcesAdmin() {
       {showAdd && <AddResourceForm onCreated={() => { setShowAdd(false); load() }} />}
 
       <div style={{ border: '1px solid #E3D9F7' }}>
-        {/* Header */}
         <div className="grid px-5 py-2.5 bg-[#F9F6FF]" style={{ gridTemplateColumns: '2fr 80px 80px 1fr 80px', borderBottom: '1px solid #E3D9F7' }}>
-          {['Title', 'Cohort', 'Type', 'URL', 'Actions'].map(h => (
+          {['Title', 'Cohort', 'Type', 'URL / File', 'Actions'].map(h => (
             <span key={h} className="text-[9px] font-mono text-[#C4B4E4] uppercase tracking-widest">{h}</span>
           ))}
         </div>

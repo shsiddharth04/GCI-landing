@@ -88,7 +88,7 @@ export default function DashboardPage({
       {/* Progress strip */}
       <div style={{ marginBottom: 48 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.35)' }}>
+          <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.55)' }}>
             {loading ? (
               <SkeletonBlock h={10} w={140} />
             ) : (
@@ -97,7 +97,7 @@ export default function DashboardPage({
           </span>
           <CohortBadge cohort={student.cohort} />
         </div>
-        <div style={{ height: 1, background: 'rgba(232,222,250,0.08)', position: 'relative' }}>
+        <div style={{ height: 1, background: 'rgba(232,222,250,0.12)', position: 'relative' }}>
           {!loading && totalSessions > 0 && (
             <div style={{
               position: 'absolute', top: 0, left: 0, height: '100%',
@@ -121,12 +121,12 @@ export default function DashboardPage({
 
       {/* Next class hero */}
       <div style={{
-        background: '#141414', border: '1px solid rgba(232,222,250,0.08)',
+        background: '#1e1e1e', border: '1px solid rgba(232,222,250,0.12)',
         borderLeft: `3px solid #E8DEFA`,
         padding: '36px 40px', marginBottom: 32,
         animation: 'fadeSlideIn 200ms ease both',
       }}>
-        <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.35)', marginBottom: 24 }}>
+        <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.55)', marginBottom: 24 }}>
           Next class
         </div>
 
@@ -160,8 +160,8 @@ export default function DashboardPage({
                 {fmt12(nextClass.start_time)} – {fmt12(nextClass.end_time)}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                <MapPin size={12} style={{ color: 'rgba(232,222,250,0.3)', flexShrink: 0 }} />
-                <span style={{ fontSize: 13, color: 'rgba(232,222,250,0.45)', fontFamily: SANS }}>
+                <MapPin size={12} style={{ color: 'rgba(232,222,250,0.7)', flexShrink: 0 }} />
+                <span style={{ fontSize: 13, color: 'rgba(232,222,250,0.65)', fontFamily: SANS }}>
                   {nextClass.location}
                 </span>
               </div>
@@ -195,7 +195,7 @@ export default function DashboardPage({
             </div>
           </div>
         ) : (
-          <div style={{ fontSize: 14, color: 'rgba(232,222,250,0.35)', fontFamily: MONO }}>
+          <div style={{ fontSize: 14, color: 'rgba(232,222,250,0.55)', fontFamily: MONO }}>
             No upcoming classes scheduled yet.
           </div>
         )}
@@ -205,16 +205,16 @@ export default function DashboardPage({
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
 
         {/* Latest announcement */}
-        <div style={{ border: '1px solid rgba(232,222,250,0.08)', background: '#141414', padding: '28px 32px' }}>
+        <div style={{ border: '1px solid rgba(232,222,250,0.12)', background: '#1e1e1e', padding: '28px 32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-            <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.3)' }}>
+            <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.7)' }}>
               Announcements
             </span>
             <button
               onClick={() => onNavigate('announcements')}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(232,222,250,0.3)', fontFamily: MONO, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', padding: 0, transition: 'color 100ms', display: 'flex', alignItems: 'center', gap: 4 }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(232,222,250,0.7)', fontFamily: MONO, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', padding: 0, transition: 'color 100ms', display: 'flex', alignItems: 'center', gap: 4 }}
               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#E8DEFA' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(232,222,250,0.3)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(232,222,250,0.7)' }}
             >
               View all <ArrowRight size={9} />
             </button>
@@ -231,35 +231,35 @@ export default function DashboardPage({
               <div style={{ fontSize: 17, fontWeight: 600, color: '#E8DEFA', marginBottom: 10, lineHeight: 1.3, fontFamily: SANS }}>
                 {latestAnnouncement.title}
               </div>
-              <div style={{ fontSize: 13, color: 'rgba(232,222,250,0.5)', lineHeight: 1.7, fontFamily: SANS,
+              <div style={{ fontSize: 13, color: 'rgba(232,222,250,0.7)', lineHeight: 1.7, fontFamily: SANS,
                 display: '-webkit-box', WebkitLineClamp: '3', WebkitBoxOrient: 'vertical', overflow: 'hidden',
               }}>
                 {latestAnnouncement.body}
               </div>
               {latestAnnouncement.published_at && (
-                <div style={{ fontFamily: MONO, fontSize: 10, color: 'rgba(232,222,250,0.25)', marginTop: 12 }}>
+                <div style={{ fontFamily: MONO, fontSize: 10, color: 'rgba(232,222,250,0.45)', marginTop: 12 }}>
                   {new Date(latestAnnouncement.published_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }).toUpperCase()}
                 </div>
               )}
             </>
           ) : (
-            <div style={{ fontSize: 13, color: 'rgba(232,222,250,0.25)', fontFamily: MONO }}>
+            <div style={{ fontSize: 13, color: 'rgba(232,222,250,0.45)', fontFamily: MONO }}>
               No announcements yet.
             </div>
           )}
         </div>
 
         {/* Recent resources */}
-        <div style={{ border: '1px solid rgba(232,222,250,0.08)', background: '#141414', padding: '28px 32px' }}>
+        <div style={{ border: '1px solid rgba(232,222,250,0.12)', background: '#1e1e1e', padding: '28px 32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-            <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.3)' }}>
+            <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.7)' }}>
               Resources
             </span>
             <button
               onClick={() => onNavigate('resources')}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(232,222,250,0.3)', fontFamily: MONO, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', padding: 0, transition: 'color 100ms', display: 'flex', alignItems: 'center', gap: 4 }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(232,222,250,0.7)', fontFamily: MONO, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', padding: 0, transition: 'color 100ms', display: 'flex', alignItems: 'center', gap: 4 }}
               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#E8DEFA' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(232,222,250,0.3)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(232,222,250,0.7)' }}
             >
               View all <ArrowRight size={9} />
             </button>
@@ -289,15 +289,15 @@ export default function DashboardPage({
                   onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.opacity = '1' }}
                 >
                   <TypeBadge type={r.resource_type} />
-                  <span style={{ fontSize: 13, color: 'rgba(232,222,250,0.75)', fontFamily: SANS, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span style={{ fontSize: 13, color: 'rgba(232,222,250,0.88)', fontFamily: SANS, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {r.title}
                   </span>
-                  <ArrowRight size={11} style={{ color: 'rgba(232,222,250,0.25)', flexShrink: 0 }} />
+                  <ArrowRight size={11} style={{ color: 'rgba(232,222,250,0.45)', flexShrink: 0 }} />
                 </a>
               ))}
             </div>
           ) : (
-            <div style={{ fontSize: 13, color: 'rgba(232,222,250,0.25)', fontFamily: MONO }}>
+            <div style={{ fontSize: 13, color: 'rgba(232,222,250,0.45)', fontFamily: MONO }}>
               No resources yet.
             </div>
           )}

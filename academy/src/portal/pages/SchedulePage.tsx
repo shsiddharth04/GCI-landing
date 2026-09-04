@@ -38,7 +38,7 @@ function SessionRow({
   return (
     <div style={{
       display: 'flex', alignItems: 'stretch', gap: 0,
-      opacity: isPast ? 0.38 : 1,
+      opacity: isPast ? 0.45 : 1,
       transition: 'opacity 150ms',
       ...style,
     }}>
@@ -47,29 +47,29 @@ function SessionRow({
         <div style={{
           width: isNext ? 12 : 8, height: isNext ? 12 : 8,
           borderRadius: '50%',
-          background: isNext ? '#E8DEFA' : isPast ? 'rgba(232,222,250,0.2)' : 'rgba(232,222,250,0.4)',
+          background: isNext ? '#E8DEFA' : isPast ? 'rgba(232,222,250,0.3)' : 'rgba(232,222,250,0.5)',
           flexShrink: 0,
           marginTop: 6,
           boxShadow: isNext ? '0 0 12px rgba(232,222,250,0.4)' : 'none',
         }} />
-        <div style={{ flex: 1, width: 1, background: 'rgba(232,222,250,0.07)', marginTop: 6 }} />
+        <div style={{ flex: 1, width: 1, background: 'rgba(232,222,250,0.1)', marginTop: 6 }} />
       </div>
 
       {/* Content */}
       <div style={{
-        flex: 1, paddingBottom: 24, paddingLeft: 16,
-        borderBottom: '1px solid rgba(232,222,250,0.04)',
+        flex: 1, paddingBottom: 28, paddingLeft: 16,
+        borderBottom: '1px solid rgba(232,222,250,0.07)',
         marginBottom: 0,
       }}>
         {/* Date line */}
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 8 }}>
-          <span style={{ fontFamily: MONO, fontSize: 28, fontWeight: 700, color: isPast ? 'rgba(232,222,250,0.4)' : '#E8DEFA', lineHeight: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 10 }}>
+          <span style={{ fontFamily: MONO, fontSize: 28, fontWeight: 700, color: isPast ? 'rgba(232,222,250,0.55)' : '#E8DEFA', lineHeight: 1 }}>
             {day}
           </span>
-          <span style={{ fontFamily: MONO, fontSize: 13, color: 'rgba(232,222,250,0.5)' }}>
+          <span style={{ fontFamily: MONO, fontSize: 13, color: 'rgba(232,222,250,0.65)' }}>
             {month}
           </span>
-          <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', color: 'rgba(232,222,250,0.3)' }}>
+          <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', color: 'rgba(232,222,250,0.45)' }}>
             {weekday}
           </span>
           <div style={{ marginLeft: 'auto' }}>
@@ -83,34 +83,41 @@ function SessionRow({
               </span>
             )}
             {isPast && (
-              <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.25)' }}>
+              <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.4)' }}>
                 [Done]
               </span>
             )}
             {!isNext && !isPast && (
-              <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.3)' }}>
+              <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.45)' }}>
                 [Upcoming]
               </span>
             )}
           </div>
         </div>
 
+        {/* Module label */}
+        {session.course_name && (
+          <div style={{ fontFamily: SANS, fontSize: 15, fontWeight: 600, color: 'rgba(232,222,250,0.9)', marginBottom: 8 }}>
+            {session.course_name}
+          </div>
+        )}
+
         {/* Time + location */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-          <span style={{ fontFamily: MONO, fontSize: 14, color: 'rgba(232,222,250,0.65)' }}>
+          <span style={{ fontFamily: MONO, fontSize: 14, color: 'rgba(232,222,250,0.8)' }}>
             {fmt12(session.start_time)} – {fmt12(session.end_time)}
           </span>
-          <span style={{ fontFamily: MONO, fontSize: 10, color: 'rgba(232,222,250,0.25)' }}>·</span>
+          <span style={{ fontFamily: MONO, fontSize: 10, color: 'rgba(232,222,250,0.3)' }}>·</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <MapPin size={11} style={{ color: 'rgba(232,222,250,0.25)', flexShrink: 0 }} />
-            <span style={{ fontSize: 12, color: 'rgba(232,222,250,0.35)', fontFamily: SANS }}>
+            <MapPin size={11} style={{ color: 'rgba(232,222,250,0.4)', flexShrink: 0 }} />
+            <span style={{ fontSize: 12, color: 'rgba(232,222,250,0.55)', fontFamily: SANS }}>
               {session.location}
             </span>
           </div>
         </div>
 
         {/* Session number */}
-        <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.1em', color: 'rgba(232,222,250,0.18)', marginTop: 8 }}>
+        <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.1em', color: 'rgba(232,222,250,0.3)', marginTop: 10 }}>
           Session {String(index + 1).padStart(2, '0')}
         </div>
       </div>
@@ -120,13 +127,13 @@ function SessionRow({
 
 function SkeletonRow() {
   return (
-    <div style={{ display: 'flex', gap: 16, paddingBottom: 24 }}>
+    <div style={{ display: 'flex', gap: 16, paddingBottom: 28 }}>
       <div style={{ width: 48, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgba(232,222,250,0.08)' }} />
-        <div style={{ flex: 1, width: 1, background: 'rgba(232,222,250,0.04)', marginTop: 6 }} />
+        <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgba(232,222,250,0.1)' }} />
+        <div style={{ flex: 1, width: 1, background: 'rgba(232,222,250,0.06)', marginTop: 6 }} />
       </div>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <div style={{ height: 28, width: 100, background: 'rgba(232,222,250,0.06)', borderRadius: 2 }} />
+        <div style={{ height: 28, width: 100, background: 'rgba(232,222,250,0.08)', borderRadius: 2 }} />
         <div style={{ height: 14, width: 180, background: 'rgba(232,222,250,0.06)', borderRadius: 2 }} />
       </div>
     </div>
@@ -153,7 +160,7 @@ export default function SchedulePage({ student }: { student: EnrolledStudent }) 
     <div style={{ padding: '48px 56px', fontFamily: SANS, minHeight: '100vh' }}>
       {/* Header */}
       <div style={{ marginBottom: 48 }}>
-        <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.3)', marginBottom: 12 }}>
+        <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.5)', marginBottom: 12 }}>
           Schedule
         </div>
         <h1 style={{ fontFamily: SANS, fontSize: 36, fontWeight: 700, color: '#E8DEFA', letterSpacing: '-0.02em', margin: '0 0 20px' }}>
@@ -163,14 +170,14 @@ export default function SchedulePage({ student }: { student: EnrolledStudent }) 
         {/* Progress */}
         {!loading && total > 0 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 16 }}>
-            <div style={{ flex: 1, maxWidth: 280, height: 2, background: 'rgba(232,222,250,0.08)', position: 'relative' }}>
+            <div style={{ flex: 1, maxWidth: 280, height: 2, background: 'rgba(232,222,250,0.1)', position: 'relative' }}>
               <div style={{
                 position: 'absolute', top: 0, left: 0, height: '100%',
                 width: `${(completed / total) * 100}%`,
                 background: '#E8DEFA', transition: 'width 600ms ease',
               }} />
             </div>
-            <span style={{ fontFamily: MONO, fontSize: 11, color: 'rgba(232,222,250,0.4)' }}>
+            <span style={{ fontFamily: MONO, fontSize: 11, color: 'rgba(232,222,250,0.55)' }}>
               {completed} / {total} complete
             </span>
           </div>
@@ -182,15 +189,14 @@ export default function SchedulePage({ student }: { student: EnrolledStudent }) 
         {loading ? (
           Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
         ) : sessions.length === 0 ? (
-          <div style={{ fontFamily: MONO, fontSize: 13, color: 'rgba(232,222,250,0.25)', padding: '40px 0' }}>
+          <div style={{ fontFamily: MONO, fontSize: 13, color: 'rgba(232,222,250,0.45)', padding: '40px 0' }}>
             No classes scheduled yet. Check back soon.
           </div>
         ) : (
           <>
-            {/* Upcoming */}
             {upcoming.length > 0 && (
               <>
-                <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.3)', marginBottom: 24 }}>
+                <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.45)', marginBottom: 24 }}>
                   Upcoming
                 </div>
                 {upcoming.map((s, i) => (
@@ -206,17 +212,16 @@ export default function SchedulePage({ student }: { student: EnrolledStudent }) 
               </>
             )}
 
-            {/* Past */}
             {past.length > 0 && (
               <>
-                <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.2)', margin: '32px 0 24px' }}>
+                <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.35)', margin: '32px 0 24px' }}>
                   Completed
                 </div>
-                {past.slice().reverse().map((s, i) => (
+                {past.map((s, i) => (
                   <SessionRow
                     key={s.id}
                     session={s}
-                    index={past.length - 1 - i}
+                    index={i}
                     isPast={true}
                     isNext={false}
                   />
