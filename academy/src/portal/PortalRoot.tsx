@@ -8,9 +8,10 @@ import DashboardPage from './pages/DashboardPage'
 import SchedulePage from './pages/SchedulePage'
 import ResourcesPage from './pages/ResourcesPage'
 import AnnouncementsPage from './pages/AnnouncementsPage'
+import PracticeSessionPage from './pages/PracticeSessionPage'
 import PortalLayout from './components/PortalLayout'
 
-type Route = 'dashboard' | 'schedule' | 'resources' | 'announcements'
+type Route = 'dashboard' | 'schedule' | 'resources' | 'announcements' | 'practice'
 type View = 'loading' | 'set-password' | 'login' | 'portal'
 
 function getRoute(): Route {
@@ -18,6 +19,7 @@ function getRoute(): Route {
   if (path.includes('/schedule')) return 'schedule'
   if (path.includes('/resources')) return 'resources'
   if (path.includes('/announcements')) return 'announcements'
+  if (path.includes('/practice')) return 'practice'
   return 'dashboard'
 }
 
@@ -27,6 +29,7 @@ function navigate(route: Route) {
     schedule: '/schedule',
     resources: '/resources',
     announcements: '/announcements',
+    practice: '/practice',
   }
   window.history.pushState({}, '', paths[route])
   window.dispatchEvent(new Event('portalroute'))
@@ -159,10 +162,11 @@ export default function PortalRoot() {
 
   return (
     <PortalLayout student={student} route={route} onNavigate={navigate} onSignOut={handleSignOut}>
-      {route === 'dashboard'     && <DashboardPage     student={student} onNavigate={navigate} />}
-      {route === 'schedule'      && <SchedulePage       student={student} />}
+      {route === 'dashboard'     && <DashboardPage      student={student} onNavigate={navigate} />}
+      {route === 'schedule'      && <SchedulePage        student={student} />}
       {route === 'resources'     && <ResourcesPage />}
       {route === 'announcements' && <AnnouncementsPage />}
+      {route === 'practice'      && <PracticeSessionPage />}
     </PortalLayout>
   )
 }

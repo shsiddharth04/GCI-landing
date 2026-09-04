@@ -1,17 +1,18 @@
-import { Calendar, BookOpen, Bell, LayoutDashboard, LogOut } from 'lucide-react'
+import { Calendar, BookOpen, Bell, LayoutDashboard, LogOut, Mic2 } from 'lucide-react'
 import type { EnrolledStudent } from '../../lib/db'
 import { useIsMobile } from '../hooks/useIsMobile'
 
-type Route = 'dashboard' | 'schedule' | 'resources' | 'announcements'
+type Route = 'dashboard' | 'schedule' | 'resources' | 'announcements' | 'practice'
 
 const MONO = "'JetBrains Mono', 'Space Mono', monospace"
 const SANS = "'Space Grotesk', 'Plus Jakarta Sans', sans-serif"
 
 const NAV = [
-  { route: 'dashboard'     as Route, label: 'Dashboard',     icon: LayoutDashboard },
-  { route: 'schedule'      as Route, label: 'Schedule',       icon: Calendar },
-  { route: 'resources'     as Route, label: 'Resources',      icon: BookOpen },
-  { route: 'announcements' as Route, label: 'Alerts',         icon: Bell },
+  { route: 'dashboard'     as Route, label: 'Dashboard',  icon: LayoutDashboard, soon: false },
+  { route: 'schedule'      as Route, label: 'Schedule',   icon: Calendar,        soon: false },
+  { route: 'resources'     as Route, label: 'Resources',  icon: BookOpen,        soon: false },
+  { route: 'announcements' as Route, label: 'Alerts',     icon: Bell,            soon: false },
+  { route: 'practice'      as Route, label: 'Practice',   icon: Mic2,            soon: true  },
 ]
 
 const COHORT_COLOR: Record<string, string> = {
@@ -82,7 +83,7 @@ export default function PortalLayout({
           borderTop: '1px solid rgba(232,222,250,0.1)',
           display: 'flex', zIndex: 50,
         }}>
-          {NAV.map(({ route: r, label, icon: Icon }) => {
+          {NAV.map(({ route: r, label, icon: Icon, soon }) => {
             const active = route === r
             return (
               <button
@@ -90,18 +91,28 @@ export default function PortalLayout({
                 onClick={() => onNavigate(r)}
                 style={{
                   flex: 1, display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', justifyContent: 'center', gap: 4,
+                  alignItems: 'center', justifyContent: 'center', gap: 3,
                   background: 'none', border: 'none', cursor: 'pointer',
                   borderTop: active ? '2px solid #E8DEFA' : '2px solid transparent',
-                  color: active ? '#E8DEFA' : 'rgba(232,222,250,0.4)',
-                  padding: '8px 4px 6px',
-                  transition: 'color 100ms',
+                  color: active ? '#E8DEFA' : soon ? 'rgba(232,222,250,0.25)' : 'rgba(232,222,250,0.4)',
+                  padding: '8px 2px 6px',
+                  transition: 'color 100ms', position: 'relative',
                 }}
               >
-                <Icon size={18} strokeWidth={active ? 2 : 1.6} />
-                <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                <Icon size={17} strokeWidth={active ? 2 : 1.6} />
+                <span style={{ fontFamily: MONO, fontSize: 8, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
                   {label}
                 </span>
+                {soon && (
+                  <span style={{
+                    position: 'absolute', top: 6, right: '50%', transform: 'translateX(8px)',
+                    fontFamily: MONO, fontSize: 6, letterSpacing: '0.06em',
+                    background: 'rgba(232,222,250,0.15)', color: 'rgba(232,222,250,0.5)',
+                    padding: '1px 3px', borderRadius: 2,
+                  }}>
+                    soon
+                  </span>
+                )}
               </button>
             )
           })}
@@ -135,7 +146,7 @@ export default function PortalLayout({
 
         {/* Nav */}
         <nav style={{ flex: 1, padding: '12px 10px', display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {NAV.map(({ route: r, label, icon: Icon }) => {
+          {NAV.map(({ route: r, label, icon: Icon, soon }) => {
             const active = route === r
             return (
               <button
@@ -148,7 +159,7 @@ export default function PortalLayout({
                   border: 'none',
                   borderLeft: active ? '2px solid #E8DEFA' : '2px solid transparent',
                   cursor: 'pointer',
-                  color: active ? '#E8DEFA' : 'rgba(232,222,250,0.6)',
+                  color: active ? '#E8DEFA' : soon ? 'rgba(232,222,250,0.35)' : 'rgba(232,222,250,0.6)',
                   fontSize: 13, fontWeight: active ? 600 : 400,
                   fontFamily: SANS,
                   textAlign: 'left', width: '100%',
@@ -156,19 +167,29 @@ export default function PortalLayout({
                 }}
                 onMouseEnter={e => {
                   if (!active) {
-                    (e.currentTarget as HTMLButtonElement).style.color = 'rgba(232,222,250,0.9)'
+                    (e.currentTarget as HTMLButtonElement).style.color = soon ? 'rgba(232,222,250,0.5)' : 'rgba(232,222,250,0.9)'
                     ;(e.currentTarget as HTMLButtonElement).style.background = 'rgba(232,222,250,0.05)'
                   }
                 }}
                 onMouseLeave={e => {
                   if (!active) {
-                    (e.currentTarget as HTMLButtonElement).style.color = 'rgba(232,222,250,0.6)'
+                    (e.currentTarget as HTMLButtonElement).style.color = soon ? 'rgba(232,222,250,0.35)' : 'rgba(232,222,250,0.6)'
                     ;(e.currentTarget as HTMLButtonElement).style.background = 'transparent'
                   }
                 }}
               >
                 <Icon size={14} strokeWidth={1.8} />
-                {label === 'Alerts' ? 'Announcements' : label}
+                <span style={{ flex: 1 }}>{label === 'Alerts' ? 'Announcements' : label}</span>
+                {soon && (
+                  <span style={{
+                    fontFamily: "'JetBrains Mono', monospace", fontSize: 8,
+                    letterSpacing: '0.08em', textTransform: 'uppercase',
+                    background: 'rgba(232,222,250,0.08)', color: 'rgba(232,222,250,0.4)',
+                    padding: '2px 5px',
+                  }}>
+                    Soon
+                  </span>
+                )}
               </button>
             )
           })}
