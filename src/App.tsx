@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ShieldCheck, Mail, Send, Radio, Sparkles, AlertCircle } from "lucide-react";
+import { Analytics } from "@vercel/analytics/react";
 
 import Header from "./components/Header";
 import Hero from "./components/Hero";
@@ -394,6 +395,9 @@ export default function App() {
         onClose={() => setIsArtistModalOpen(false)}
         onSelectVibe={handleLaunchArtistMatcher}
       />
+
+      {/* Vercel Web Analytics */}
+      <Analytics />
     </div>
   );
 }
