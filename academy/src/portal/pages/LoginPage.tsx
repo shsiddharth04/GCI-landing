@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 const MONO = "'JetBrains Mono', 'Space Mono', monospace"
 const SANS = "'Space Grotesk', 'Plus Jakarta Sans', sans-serif"
@@ -25,6 +26,7 @@ type LoginState = 'idle' | 'loading' | 'error'
 type ForgotState = 'idle' | 'loading' | 'sent' | 'error'
 
 export default function LoginPage({ accessError }: { accessError?: boolean }) {
+  const isMobile = useIsMobile()
   const [mode, setMode] = useState<Mode>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -53,7 +55,6 @@ export default function LoginPage({ accessError }: { accessError?: boolean }) {
       )
       setLoginState('error')
     }
-    // On success, onAuthStateChange in PortalRoot handles the transition
   }
 
   async function handleForgot(e: React.FormEvent) {
@@ -61,7 +62,6 @@ export default function LoginPage({ accessError }: { accessError?: boolean }) {
     if (!email.trim()) return
     setForgotState('loading')
 
-    // Use the edge function so the reset email matches our brand
     const { error } = await supabase.functions.invoke('student-auth', {
       body: { email: email.trim().toLowerCase() },
     })
@@ -80,6 +80,229 @@ export default function LoginPage({ accessError }: { accessError?: boolean }) {
     color: '#E8DEFA', fontFamily: SANS, outline: 'none',
     transition: 'border-color 150ms',
   })
+
+  const formPanel = (
+    <div style={{
+      flex: isMobile ? 'none' : '0 0 45%',
+      display: 'flex', flexDirection: 'column',
+      justifyContent: isMobile ? 'flex-start' : 'center',
+      padding: isMobile ? '32px 24px 40px' : '56px 64px',
+      width: isMobile ? '100%' : undefined,
+    }}>
+      {/* Mobile logo */}
+      {isMobile && (
+        <div style={{ marginBottom: 36 }}>
+          <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.35)', marginBottom: 6 }}>
+            Gig Culture India
+          </div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#ffffff', letterSpacing: '-0.01em' }}>
+            Music <span style={{ color: '#E8DEFA' }}>Academy</span>
+          </div>
+          <div style={{ marginTop: 16 }}>
+            <WaveformBars />
+          </div>
+        </div>
+      )}
+
+      <div style={{ maxWidth: isMobile ? '100%' : 340 }}>
+        <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.35)', marginBottom: 32 }}>
+          [ Student Portal ]
+        </div>
+
+        {mode === 'login' ? (
+          <form onSubmit={handleLogin}>
+            <div style={{ marginBottom: 24 }}>
+              <label style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.4)', display: 'block', marginBottom: 10 }}>
+                Email address
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => { setEmail(e.target.value); setLoginState('idle') }}
+                placeholder="your@email.com"
+                required
+                style={inputStyle(loginState === 'error')}
+                onFocus={e => { (e.target as HTMLInputElement).style.borderBottomColor = 'rgba(232,222,250,0.6)' }}
+                onBlur={e => { (e.target as HTMLInputElement).style.borderBottomColor = loginState === 'error' ? 'rgba(244,114,182,0.6)' : 'rgba(232,222,250,0.2)' }}
+              />
+            </div>
+
+            <div style={{ marginBottom: 8 }}>
+              <label style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.4)', display: 'block', marginBottom: 10 }}>
+                Password
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={e => { setPassword(e.target.value); setLoginState('idle') }}
+                  placeholder="Your password"
+                  required
+                  style={{ ...inputStyle(loginState === 'error'), paddingRight: 48 }}
+                  onFocus={e => { (e.target as HTMLInputElement).style.borderBottomColor = 'rgba(232,222,250,0.6)' }}
+                  onBlur={e => { (e.target as HTMLInputElement).style.borderBottomColor = loginState === 'error' ? 'rgba(244,114,182,0.6)' : 'rgba(232,222,250,0.2)' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(v => !v)}
+                  style={{
+                    position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    fontFamily: MONO, fontSize: 9, letterSpacing: '0.1em',
+                    color: 'rgba(232,222,250,0.3)', padding: 0,
+                  }}
+                >
+                  {showPassword ? 'HIDE' : 'SHOW'}
+                </button>
+              </div>
+            </div>
+
+            {loginState === 'error' && (
+              <div style={{ fontFamily: MONO, fontSize: 11, color: 'rgba(244,114,182,0.85)', marginTop: 8, lineHeight: 1.5 }}>
+                {errorMsg}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loginState === 'loading' || !email.trim() || !password}
+              style={{
+                marginTop: 32, width: '100%',
+                background: loginState === 'loading' ? 'rgba(232,222,250,0.7)' : '#E8DEFA',
+                color: '#0a0a0a', border: 'none', padding: '14px 24px',
+                fontFamily: MONO, fontSize: 11, fontWeight: 700, letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                cursor: loginState === 'loading' ? 'default' : 'pointer',
+                opacity: (loginState === 'loading' || !email.trim() || !password) ? 0.7 : 1,
+                transition: 'opacity 100ms',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}
+            >
+              {loginState === 'loading' ? (
+                <span style={{ display: 'flex', alignItems: 'flex-end', gap: 3, height: 14 }}>
+                  {[0, 1, 2].map(i => (
+                    <span key={i} className="eq-bar" style={{
+                      display: 'inline-block', width: 2, height: '100%',
+                      background: '#0a0a0a', borderRadius: 1, animationDelay: `${i * 0.15}s`,
+                    }} />
+                  ))}
+                </span>
+              ) : 'Log in →'}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => { setMode('forgot'); setForgotState('idle') }}
+              style={{
+                marginTop: 20, background: 'none', border: 'none', padding: 0,
+                fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em',
+                textTransform: 'uppercase', color: 'rgba(232,222,250,0.3)',
+                cursor: 'pointer', transition: 'color 100ms', display: 'block',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(232,222,250,0.65)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(232,222,250,0.3)' }}
+            >
+              Forgot password?
+            </button>
+          </form>
+        ) : (
+          forgotState === 'sent' ? (
+            <div style={{ animation: 'fadeSlideIn 200ms ease both' }}>
+              <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#E8DEFA', marginBottom: 16 }}>
+                ✓ Email sent
+              </div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: '#E8DEFA', lineHeight: 1.2, marginBottom: 16, letterSpacing: '-0.02em' }}>
+                Check your inbox.
+              </div>
+              <div style={{ fontSize: 14, color: 'rgba(232,222,250,0.5)', lineHeight: 1.7 }}>
+                We've sent a password reset link to <span style={{ color: 'rgba(232,222,250,0.8)' }}>{email}</span>. It expires in 1 hour.
+              </div>
+              <button
+                onClick={() => { setMode('login'); setForgotState('idle') }}
+                style={{
+                  marginTop: 32, background: 'none', border: 'none', padding: 0,
+                  fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em',
+                  textTransform: 'uppercase', color: 'rgba(232,222,250,0.35)',
+                  cursor: 'pointer', display: 'block',
+                }}
+              >
+                ← Back to login
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleForgot}>
+              <div style={{ fontSize: 14, color: 'rgba(232,222,250,0.5)', lineHeight: 1.7, marginBottom: 28 }}>
+                Enter your enrolled email and we'll send a link to set a new password.
+              </div>
+              <div style={{ marginBottom: 8 }}>
+                <label style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.4)', display: 'block', marginBottom: 10 }}>
+                  Email address
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => { setEmail(e.target.value); setForgotState('idle') }}
+                  placeholder="your@email.com"
+                  required
+                  style={inputStyle(forgotState === 'error')}
+                />
+              </div>
+
+              {forgotState === 'error' && (
+                <div style={{ fontFamily: MONO, fontSize: 11, color: 'rgba(244,114,182,0.85)', marginTop: 8, lineHeight: 1.5 }}>
+                  That email isn't on the enrollment list.
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={forgotState === 'loading' || !email.trim()}
+                style={{
+                  marginTop: 32, width: '100%',
+                  background: forgotState === 'loading' ? 'rgba(232,222,250,0.7)' : '#E8DEFA',
+                  color: '#0a0a0a', border: 'none', padding: '14px 24px',
+                  fontFamily: MONO, fontSize: 11, fontWeight: 700, letterSpacing: '0.12em',
+                  textTransform: 'uppercase', cursor: forgotState === 'loading' ? 'default' : 'pointer',
+                  opacity: (forgotState === 'loading' || !email.trim()) ? 0.7 : 1,
+                  transition: 'opacity 100ms',
+                }}
+              >
+                {forgotState === 'loading' ? 'Sending…' : 'Send reset link →'}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setMode('login')}
+                style={{
+                  marginTop: 20, background: 'none', border: 'none', padding: 0,
+                  fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em',
+                  textTransform: 'uppercase', color: 'rgba(232,222,250,0.3)',
+                  cursor: 'pointer', display: 'block',
+                }}
+              >
+                ← Back to login
+              </button>
+            </form>
+          )
+        )}
+      </div>
+    </div>
+  )
+
+  if (isMobile) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#0a0a0a', fontFamily: SANS }}>
+        {formPanel}
+        <style>{`
+          @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          input::placeholder { color: rgba(232,222,250,0.2); }
+        `}</style>
+      </div>
+    )
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: '#0a0a0a', display: 'flex', fontFamily: SANS }}>
@@ -125,194 +348,7 @@ export default function LoginPage({ accessError }: { accessError?: boolean }) {
       </div>
 
       {/* Right — form */}
-      <div style={{
-        flex: '0 0 45%', display: 'flex', flexDirection: 'column',
-        justifyContent: 'center', padding: '56px 64px',
-      }}>
-        <div style={{ maxWidth: 340 }}>
-          <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.35)', marginBottom: 32 }}>
-            [ Student Portal ]
-          </div>
-
-          {mode === 'login' ? (
-            <form onSubmit={handleLogin}>
-              <div style={{ marginBottom: 24 }}>
-                <label style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.4)', display: 'block', marginBottom: 10 }}>
-                  Email address
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={e => { setEmail(e.target.value); setLoginState('idle') }}
-                  placeholder="your@email.com"
-                  required
-                  style={inputStyle(loginState === 'error')}
-                  onFocus={e => { (e.target as HTMLInputElement).style.borderBottomColor = 'rgba(232,222,250,0.6)' }}
-                  onBlur={e => { (e.target as HTMLInputElement).style.borderBottomColor = loginState === 'error' ? 'rgba(244,114,182,0.6)' : 'rgba(232,222,250,0.2)' }}
-                />
-              </div>
-
-              <div style={{ marginBottom: 8 }}>
-                <label style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.4)', display: 'block', marginBottom: 10 }}>
-                  Password
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={e => { setPassword(e.target.value); setLoginState('idle') }}
-                    placeholder="Your password"
-                    required
-                    style={{ ...inputStyle(loginState === 'error'), paddingRight: 48 }}
-                    onFocus={e => { (e.target as HTMLInputElement).style.borderBottomColor = 'rgba(232,222,250,0.6)' }}
-                    onBlur={e => { (e.target as HTMLInputElement).style.borderBottomColor = loginState === 'error' ? 'rgba(244,114,182,0.6)' : 'rgba(232,222,250,0.2)' }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(v => !v)}
-                    style={{
-                      position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)',
-                      background: 'none', border: 'none', cursor: 'pointer',
-                      fontFamily: MONO, fontSize: 9, letterSpacing: '0.1em',
-                      color: 'rgba(232,222,250,0.3)', padding: 0,
-                    }}
-                  >
-                    {showPassword ? 'HIDE' : 'SHOW'}
-                  </button>
-                </div>
-              </div>
-
-              {loginState === 'error' && (
-                <div style={{ fontFamily: MONO, fontSize: 11, color: 'rgba(244,114,182,0.85)', marginTop: 8, lineHeight: 1.5 }}>
-                  {errorMsg}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loginState === 'loading' || !email.trim() || !password}
-                style={{
-                  marginTop: 32, width: '100%',
-                  background: loginState === 'loading' ? 'rgba(232,222,250,0.7)' : '#E8DEFA',
-                  color: '#0a0a0a', border: 'none', padding: '14px 24px',
-                  fontFamily: MONO, fontSize: 11, fontWeight: 700, letterSpacing: '0.12em',
-                  textTransform: 'uppercase',
-                  cursor: loginState === 'loading' ? 'default' : 'pointer',
-                  opacity: (loginState === 'loading' || !email.trim() || !password) ? 0.7 : 1,
-                  transition: 'opacity 100ms',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                }}
-              >
-                {loginState === 'loading' ? (
-                  <span style={{ display: 'flex', alignItems: 'flex-end', gap: 3, height: 14 }}>
-                    {[0, 1, 2].map(i => (
-                      <span key={i} className="eq-bar" style={{
-                        display: 'inline-block', width: 2, height: '100%',
-                        background: '#0a0a0a', borderRadius: 1, animationDelay: `${i * 0.15}s`,
-                      }} />
-                    ))}
-                  </span>
-                ) : 'Log in →'}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => { setMode('forgot'); setForgotState('idle') }}
-                style={{
-                  marginTop: 20, background: 'none', border: 'none', padding: 0,
-                  fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em',
-                  textTransform: 'uppercase', color: 'rgba(232,222,250,0.3)',
-                  cursor: 'pointer', transition: 'color 100ms', display: 'block',
-                }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(232,222,250,0.65)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(232,222,250,0.3)' }}
-              >
-                Forgot password?
-              </button>
-            </form>
-          ) : (
-            // Forgot password view
-            forgotState === 'sent' ? (
-              <div style={{ animation: 'fadeSlideIn 200ms ease both' }}>
-                <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#E8DEFA', marginBottom: 16 }}>
-                  ✓ Email sent
-                </div>
-                <div style={{ fontSize: 28, fontWeight: 700, color: '#E8DEFA', lineHeight: 1.2, marginBottom: 16, letterSpacing: '-0.02em' }}>
-                  Check your inbox.
-                </div>
-                <div style={{ fontSize: 14, color: 'rgba(232,222,250,0.5)', lineHeight: 1.7 }}>
-                  We've sent a password reset link to <span style={{ color: 'rgba(232,222,250,0.8)' }}>{email}</span>. It expires in 1 hour.
-                </div>
-                <button
-                  onClick={() => { setMode('login'); setForgotState('idle') }}
-                  style={{
-                    marginTop: 32, background: 'none', border: 'none', padding: 0,
-                    fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em',
-                    textTransform: 'uppercase', color: 'rgba(232,222,250,0.35)',
-                    cursor: 'pointer', display: 'block',
-                  }}
-                >
-                  ← Back to login
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleForgot}>
-                <div style={{ fontSize: 14, color: 'rgba(232,222,250,0.5)', lineHeight: 1.7, marginBottom: 28 }}>
-                  Enter your enrolled email and we'll send a link to set a new password.
-                </div>
-                <div style={{ marginBottom: 8 }}>
-                  <label style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.4)', display: 'block', marginBottom: 10 }}>
-                    Email address
-                  </label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={e => { setEmail(e.target.value); setForgotState('idle') }}
-                    placeholder="your@email.com"
-                    required
-                    style={inputStyle(forgotState === 'error')}
-                  />
-                </div>
-
-                {forgotState === 'error' && (
-                  <div style={{ fontFamily: MONO, fontSize: 11, color: 'rgba(244,114,182,0.85)', marginTop: 8, lineHeight: 1.5 }}>
-                    That email isn't on the enrollment list.
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={forgotState === 'loading' || !email.trim()}
-                  style={{
-                    marginTop: 32, width: '100%',
-                    background: forgotState === 'loading' ? 'rgba(232,222,250,0.7)' : '#E8DEFA',
-                    color: '#0a0a0a', border: 'none', padding: '14px 24px',
-                    fontFamily: MONO, fontSize: 11, fontWeight: 700, letterSpacing: '0.12em',
-                    textTransform: 'uppercase', cursor: forgotState === 'loading' ? 'default' : 'pointer',
-                    opacity: (forgotState === 'loading' || !email.trim()) ? 0.7 : 1,
-                    transition: 'opacity 100ms',
-                  }}
-                >
-                  {forgotState === 'loading' ? 'Sending…' : 'Send reset link →'}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setMode('login')}
-                  style={{
-                    marginTop: 20, background: 'none', border: 'none', padding: 0,
-                    fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em',
-                    textTransform: 'uppercase', color: 'rgba(232,222,250,0.3)',
-                    cursor: 'pointer', display: 'block',
-                  }}
-                >
-                  ← Back to login
-                </button>
-              </form>
-            )
-          )}
-        </div>
-      </div>
+      {formPanel}
 
       <style>{`
         @keyframes fadeSlideIn {

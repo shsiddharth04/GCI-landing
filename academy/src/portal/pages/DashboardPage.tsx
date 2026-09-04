@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { ArrowRight, MapPin } from 'lucide-react'
 import { fetchMyCourseSchedule, fetchMyAnnouncements, fetchMyResources } from '../../lib/db'
 import type { EnrolledStudent, Session, Announcement, StudentResource } from '../../lib/db'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 const MONO = "'JetBrains Mono', 'Space Mono', monospace"
 const SANS = "'Space Grotesk', 'Plus Jakarta Sans', sans-serif"
@@ -62,6 +63,7 @@ export default function DashboardPage({
   student: EnrolledStudent
   onNavigate: (r: Route) => void
 }) {
+  const isMobile = useIsMobile()
   const [sessions, setSessions] = useState<Session[]>([])
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [resources, setResources] = useState<StudentResource[]>([])
@@ -82,11 +84,13 @@ export default function DashboardPage({
   const latestAnnouncement = announcements[0] ?? null
   const topResources = resources.slice(0, 3)
 
+  const pad = isMobile ? '24px 20px' : '48px 56px'
+
   return (
-    <div style={{ padding: '48px 56px', fontFamily: SANS, minHeight: '100vh' }}>
+    <div style={{ padding: pad, fontFamily: SANS, minHeight: '100vh' }}>
 
       {/* Progress strip */}
-      <div style={{ marginBottom: 48 }}>
+      <div style={{ marginBottom: isMobile ? 28 : 48 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
           <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.55)' }}>
             {loading ? (
@@ -110,9 +114,9 @@ export default function DashboardPage({
       </div>
 
       {/* Greeting */}
-      <div style={{ marginBottom: 40 }}>
+      <div style={{ marginBottom: isMobile ? 24 : 40 }}>
         <h1 style={{
-          fontFamily: SANS, fontSize: 40, fontWeight: 700,
+          fontFamily: SANS, fontSize: isMobile ? 28 : 40, fontWeight: 700,
           color: '#E8DEFA', letterSpacing: '-0.025em', margin: 0,
         }}>
           Hi, {student.name.split(' ')[0]}.
@@ -123,89 +127,110 @@ export default function DashboardPage({
       <div style={{
         background: '#1e1e1e', border: '1px solid rgba(232,222,250,0.12)',
         borderLeft: `3px solid #E8DEFA`,
-        padding: '36px 40px', marginBottom: 32,
+        padding: isMobile ? '20px 20px' : '36px 40px', marginBottom: isMobile ? 16 : 32,
         animation: 'fadeSlideIn 200ms ease both',
       }}>
-        <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.55)', marginBottom: 24 }}>
+        <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.55)', marginBottom: isMobile ? 16 : 24 }}>
           Next class
         </div>
 
         {loading ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <SkeletonBlock h={80} w={120} />
+            <SkeletonBlock h={isMobile ? 52 : 80} w={120} />
             <SkeletonBlock h={20} w={200} />
             <SkeletonBlock h={16} w={160} />
           </div>
         ) : nextClass ? (
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 48, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: isMobile ? 20 : 48, flexWrap: 'wrap' }}>
             <div>
               <div style={{
-                fontFamily: MONO, fontSize: 88, fontWeight: 700,
+                fontFamily: MONO, fontSize: isMobile ? 56 : 88, fontWeight: 700,
                 color: '#E8DEFA', lineHeight: 1, letterSpacing: '-0.04em',
               }}>
                 {fmtDayNum(nextClass.session_date)}
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginTop: 4 }}>
-                <span style={{ fontFamily: MONO, fontSize: 18, color: 'rgba(232,222,250,0.7)' }}>
+                <span style={{ fontFamily: MONO, fontSize: isMobile ? 14 : 18, color: 'rgba(232,222,250,0.7)' }}>
                   {fmtMonth(nextClass.session_date)}
                 </span>
-                <span style={{ fontFamily: SANS, fontSize: 14, color: 'rgba(232,222,250,0.4)' }}>
+                <span style={{ fontFamily: SANS, fontSize: isMobile ? 12 : 14, color: 'rgba(232,222,250,0.4)' }}>
                   {fmtWeekday(nextClass.session_date)}
                 </span>
               </div>
             </div>
 
             <div style={{ paddingBottom: 8 }}>
-              <div style={{ fontFamily: MONO, fontSize: 22, color: 'rgba(232,222,250,0.8)', marginBottom: 12 }}>
+              <div style={{ fontFamily: MONO, fontSize: isMobile ? 15 : 22, color: 'rgba(232,222,250,0.8)', marginBottom: 12 }}>
                 {fmt12(nextClass.start_time)} – {fmt12(nextClass.end_time)}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                <MapPin size={12} style={{ color: 'rgba(232,222,250,0.7)', flexShrink: 0 }} />
-                <span style={{ fontSize: 13, color: 'rgba(232,222,250,0.65)', fontFamily: SANS }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 8 }}>
+                <MapPin size={12} style={{ color: 'rgba(232,222,250,0.7)', flexShrink: 0, marginTop: 1 }} />
+                <span style={{ fontSize: 12, color: 'rgba(232,222,250,0.65)', fontFamily: SANS, lineHeight: 1.4 }}>
                   {nextClass.location}
                 </span>
               </div>
               <CohortBadge cohort={student.cohort} />
             </div>
 
-            <div style={{ marginLeft: 'auto', paddingBottom: 8 }}>
-              <button
-                onClick={() => onNavigate('schedule')}
-                style={{
-                  background: 'none', border: '1px solid rgba(232,222,250,0.15)',
-                  color: 'rgba(232,222,250,0.6)', fontFamily: MONO, fontSize: 10,
-                  letterSpacing: '0.12em', textTransform: 'uppercase',
-                  padding: '8px 14px', cursor: 'pointer',
-                  transition: 'all 120ms',
-                  display: 'flex', alignItems: 'center', gap: 6,
-                }}
-                onMouseEnter={e => {
-                  const b = e.currentTarget as HTMLButtonElement
-                  b.style.borderColor = 'rgba(232,222,250,0.4)'
-                  b.style.color = '#E8DEFA'
-                }}
-                onMouseLeave={e => {
-                  const b = e.currentTarget as HTMLButtonElement
-                  b.style.borderColor = 'rgba(232,222,250,0.15)'
-                  b.style.color = 'rgba(232,222,250,0.6)'
-                }}
-              >
-                Full schedule <ArrowRight size={11} />
-              </button>
-            </div>
+            {!isMobile && (
+              <div style={{ marginLeft: 'auto', paddingBottom: 8 }}>
+                <button
+                  onClick={() => onNavigate('schedule')}
+                  style={{
+                    background: 'none', border: '1px solid rgba(232,222,250,0.15)',
+                    color: 'rgba(232,222,250,0.6)', fontFamily: MONO, fontSize: 10,
+                    letterSpacing: '0.12em', textTransform: 'uppercase',
+                    padding: '8px 14px', cursor: 'pointer',
+                    transition: 'all 120ms',
+                    display: 'flex', alignItems: 'center', gap: 6,
+                  }}
+                  onMouseEnter={e => {
+                    const b = e.currentTarget as HTMLButtonElement
+                    b.style.borderColor = 'rgba(232,222,250,0.4)'
+                    b.style.color = '#E8DEFA'
+                  }}
+                  onMouseLeave={e => {
+                    const b = e.currentTarget as HTMLButtonElement
+                    b.style.borderColor = 'rgba(232,222,250,0.15)'
+                    b.style.color = 'rgba(232,222,250,0.6)'
+                  }}
+                >
+                  Full schedule <ArrowRight size={11} />
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <div style={{ fontSize: 14, color: 'rgba(232,222,250,0.55)', fontFamily: MONO }}>
             No upcoming classes scheduled yet.
           </div>
         )}
+
+        {isMobile && nextClass && (
+          <button
+            onClick={() => onNavigate('schedule')}
+            style={{
+              marginTop: 20, background: 'none', border: '1px solid rgba(232,222,250,0.15)',
+              color: 'rgba(232,222,250,0.6)', fontFamily: MONO, fontSize: 10,
+              letterSpacing: '0.12em', textTransform: 'uppercase',
+              padding: '8px 14px', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 6,
+            }}
+          >
+            Full schedule <ArrowRight size={11} />
+          </button>
+        )}
       </div>
 
-      {/* Two column: announcement + resources */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+      {/* Two column: announcement + resources — single column on mobile */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+        gap: isMobile ? 12 : 16,
+      }}>
 
         {/* Latest announcement */}
-        <div style={{ border: '1px solid rgba(232,222,250,0.12)', background: '#1e1e1e', padding: '28px 32px' }}>
+        <div style={{ border: '1px solid rgba(232,222,250,0.12)', background: '#1e1e1e', padding: isMobile ? '20px 20px' : '28px 32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
             <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.7)' }}>
               Announcements
@@ -250,7 +275,7 @@ export default function DashboardPage({
         </div>
 
         {/* Recent resources */}
-        <div style={{ border: '1px solid rgba(232,222,250,0.12)', background: '#1e1e1e', padding: '28px 32px' }}>
+        <div style={{ border: '1px solid rgba(232,222,250,0.12)', background: '#1e1e1e', padding: isMobile ? '20px 20px' : '28px 32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
             <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.7)' }}>
               Resources

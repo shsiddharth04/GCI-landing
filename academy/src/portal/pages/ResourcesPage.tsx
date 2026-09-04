@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { ExternalLink } from 'lucide-react'
 import { fetchMyResources } from '../../lib/db'
 import type { StudentResource } from '../../lib/db'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 const MONO = "'JetBrains Mono', 'Space Mono', monospace"
 const SANS = "'Space Grotesk', 'Plus Jakarta Sans', sans-serif"
@@ -25,7 +26,7 @@ function ResourceCard({ resource, style }: { resource: StudentResource; style?: 
         display: 'block', textDecoration: 'none',
         background: '#1e1e1e',
         border: '1px solid rgba(232,222,250,0.13)',
-        padding: '24px 24px 20px',
+        padding: '20px 20px 18px',
         cursor: 'pointer',
         transition: 'border-color 120ms, transform 120ms',
         ...style,
@@ -41,14 +42,14 @@ function ResourceCard({ resource, style }: { resource: StudentResource; style?: 
         a.style.transform = 'translateY(0)'
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
         <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.14em', color: 'rgba(232,222,250,0.6)' }}>
           [{label}]
         </span>
         <ExternalLink size={12} style={{ color: 'rgba(232,222,250,0.2)', flexShrink: 0 }} />
       </div>
 
-      <div style={{ fontSize: 16, fontWeight: 600, color: '#E8DEFA', lineHeight: 1.3, marginBottom: 10, fontFamily: SANS }}>
+      <div style={{ fontSize: 15, fontWeight: 600, color: '#E8DEFA', lineHeight: 1.3, marginBottom: 8, fontFamily: SANS }}>
         {resource.title}
       </div>
 
@@ -66,9 +67,9 @@ function ResourceCard({ resource, style }: { resource: StudentResource; style?: 
 
 function SkeletonCard() {
   return (
-    <div style={{ background: '#1e1e1e', border: '1px solid rgba(232,222,250,0.05)', padding: '24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div style={{ background: '#1e1e1e', border: '1px solid rgba(232,222,250,0.05)', padding: '20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ height: 10, width: 40, background: 'rgba(232,222,250,0.06)', borderRadius: 2 }} />
-      <div style={{ height: 18, width: '80%', background: 'rgba(232,222,250,0.06)', borderRadius: 2 }} />
+      <div style={{ height: 16, width: '80%', background: 'rgba(232,222,250,0.06)', borderRadius: 2 }} />
       <div style={{ height: 12, background: 'rgba(232,222,250,0.04)', borderRadius: 2 }} />
       <div style={{ height: 12, width: '60%', background: 'rgba(232,222,250,0.04)', borderRadius: 2 }} />
     </div>
@@ -76,6 +77,7 @@ function SkeletonCard() {
 }
 
 export default function ResourcesPage() {
+  const isMobile = useIsMobile()
   const [resources, setResources] = useState<StudentResource[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<Filter>('all')
@@ -89,19 +91,19 @@ export default function ResourcesPage() {
     : resources.filter(r => r.resource_type === filter)
 
   return (
-    <div style={{ padding: '48px 56px', fontFamily: SANS, minHeight: '100vh' }}>
+    <div style={{ padding: isMobile ? '24px 20px' : '48px 56px', fontFamily: SANS, minHeight: '100vh' }}>
       {/* Header */}
-      <div style={{ marginBottom: 40 }}>
-        <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.3)', marginBottom: 12 }}>
+      <div style={{ marginBottom: isMobile ? 24 : 40 }}>
+        <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.3)', marginBottom: 10 }}>
           Resources
         </div>
-        <h1 style={{ fontFamily: SANS, fontSize: 36, fontWeight: 700, color: '#E8DEFA', letterSpacing: '-0.02em', margin: 0 }}>
+        <h1 style={{ fontFamily: SANS, fontSize: isMobile ? 24 : 36, fontWeight: 700, color: '#E8DEFA', letterSpacing: '-0.02em', margin: 0 }}>
           Your materials.
         </h1>
       </div>
 
       {/* Filter chips */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 36, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 28, flexWrap: 'wrap' }}>
         {FILTER_OPTIONS.map(f => {
           const active = filter === f
           return (
@@ -109,7 +111,7 @@ export default function ResourcesPage() {
               key={f}
               onClick={() => setFilter(f)}
               style={{
-                padding: '6px 14px',
+                padding: isMobile ? '5px 12px' : '6px 14px',
                 background: active ? '#E8DEFA' : 'transparent',
                 border: `1px solid ${active ? '#E8DEFA' : 'rgba(232,222,250,0.15)'}`,
                 color: active ? '#0a0a0a' : 'rgba(232,222,250,0.7)',
@@ -140,9 +142,13 @@ export default function ResourcesPage() {
       </div>
 
       {/* Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(260px, 1fr))',
+        gap: isMobile ? 10 : 12,
+      }}>
         {loading ? (
-          Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
+          Array.from({ length: isMobile ? 4 : 6 }).map((_, i) => <SkeletonCard key={i} />)
         ) : filtered.length === 0 ? (
           <div style={{ gridColumn: '1/-1', fontFamily: MONO, fontSize: 13, color: 'rgba(232,222,250,0.45)', padding: '40px 0' }}>
             {filter === 'all' ? 'No resources available yet.' : `No ${TYPE_LABELS[filter]} resources yet.`}

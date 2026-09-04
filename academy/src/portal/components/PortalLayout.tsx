@@ -1,5 +1,6 @@
 import { Calendar, BookOpen, Bell, LayoutDashboard, LogOut } from 'lucide-react'
 import type { EnrolledStudent } from '../../lib/db'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 type Route = 'dashboard' | 'schedule' | 'resources' | 'announcements'
 
@@ -10,7 +11,7 @@ const NAV = [
   { route: 'dashboard'     as Route, label: 'Dashboard',     icon: LayoutDashboard },
   { route: 'schedule'      as Route, label: 'Schedule',       icon: Calendar },
   { route: 'resources'     as Route, label: 'Resources',      icon: BookOpen },
-  { route: 'announcements' as Route, label: 'Announcements',  icon: Bell },
+  { route: 'announcements' as Route, label: 'Alerts',         icon: Bell },
 ]
 
 const COHORT_COLOR: Record<string, string> = {
@@ -39,6 +40,77 @@ export default function PortalLayout({
   onNavigate: (r: Route) => void
   onSignOut: () => void
 }) {
+  const isMobile = useIsMobile()
+
+  if (isMobile) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', fontFamily: SANS, background: '#0e0e0e' }}>
+        {/* Mobile top bar */}
+        <header style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 20px', height: 52, flexShrink: 0,
+          background: '#0e0e0e',
+          borderBottom: '1px solid rgba(232,222,250,0.1)',
+          position: 'sticky', top: 0, zIndex: 40,
+        }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: '#ffffff', letterSpacing: '-0.01em' }}>
+            GCI <span style={{ color: '#E8DEFA' }}>Academy</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <CohortDot cohort={student.cohort} />
+            <button
+              onClick={onSignOut}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer', padding: '6px',
+                color: 'rgba(232,222,250,0.35)', display: 'flex', alignItems: 'center',
+              }}
+            >
+              <LogOut size={14} />
+            </button>
+          </div>
+        </header>
+
+        {/* Content */}
+        <main style={{ flex: 1, background: '#141414', paddingBottom: 64, minHeight: 0, overflowY: 'auto' }}>
+          {children}
+        </main>
+
+        {/* Bottom nav */}
+        <nav style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, height: 60,
+          background: '#0e0e0e',
+          borderTop: '1px solid rgba(232,222,250,0.1)',
+          display: 'flex', zIndex: 50,
+        }}>
+          {NAV.map(({ route: r, label, icon: Icon }) => {
+            const active = route === r
+            return (
+              <button
+                key={r}
+                onClick={() => onNavigate(r)}
+                style={{
+                  flex: 1, display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center', gap: 4,
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  borderTop: active ? '2px solid #E8DEFA' : '2px solid transparent',
+                  color: active ? '#E8DEFA' : 'rgba(232,222,250,0.4)',
+                  padding: '8px 4px 6px',
+                  transition: 'color 100ms',
+                }}
+              >
+                <Icon size={18} strokeWidth={active ? 2 : 1.6} />
+                <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                  {label}
+                </span>
+              </button>
+            )
+          })}
+        </nav>
+      </div>
+    )
+  }
+
+  // Desktop layout — unchanged
   return (
     <div style={{
       minHeight: '100vh', display: 'flex',
@@ -96,7 +168,7 @@ export default function PortalLayout({
                 }}
               >
                 <Icon size={14} strokeWidth={1.8} />
-                {label}
+                {label === 'Alerts' ? 'Announcements' : label}
               </button>
             )
           })}
