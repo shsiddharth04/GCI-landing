@@ -37,10 +37,21 @@ function navigate(route: Route) {
 
 export { navigate }
 
+function detectLinkExpired(): boolean {
+  const hash = window.location.hash
+  if (hash.includes('error=access_denied') || hash.includes('error_code=403')) {
+    // Clean the hash so a refresh doesn't re-show the message
+    window.history.replaceState(null, '', window.location.pathname)
+    return true
+  }
+  return false
+}
+
 export default function PortalRoot() {
   const [view, setView] = useState<View>('loading')
   const [student, setStudent] = useState<EnrolledStudent | null>(null)
   const [accessError, setAccessError] = useState(false)
+  const [linkExpired, setLinkExpired] = useState(() => detectLinkExpired())
   const [route, setRoute] = useState<Route>(getRoute())
   const [isReset, setIsReset] = useState(false)
 
@@ -159,7 +170,7 @@ export default function PortalRoot() {
   }
 
   if (view === 'login' || !student) {
-    return <LoginPage accessError={accessError} />
+    return <LoginPage accessError={accessError} linkExpired={linkExpired} onLinkExpiredShown={() => setLinkExpired(false)} />
   }
 
   return (

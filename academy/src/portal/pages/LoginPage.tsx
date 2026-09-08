@@ -25,9 +25,17 @@ type Mode = 'login' | 'forgot'
 type LoginState = 'idle' | 'loading' | 'error'
 type ForgotState = 'idle' | 'loading' | 'sent' | 'error'
 
-export default function LoginPage({ accessError }: { accessError?: boolean }) {
+export default function LoginPage({
+  accessError,
+  linkExpired,
+  onLinkExpiredShown,
+}: {
+  accessError?: boolean
+  linkExpired?: boolean
+  onLinkExpiredShown?: () => void
+}) {
   const isMobile = useIsMobile()
-  const [mode, setMode] = useState<Mode>('login')
+  const [mode, setMode] = useState<Mode>(linkExpired ? 'forgot' : 'login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -231,9 +239,20 @@ export default function LoginPage({ accessError }: { accessError?: boolean }) {
             </div>
           ) : (
             <form onSubmit={handleForgot}>
-              <div style={{ fontSize: 14, color: 'rgba(232,222,250,0.5)', lineHeight: 1.7, marginBottom: 28 }}>
-                Enter your enrolled email and we'll send a link to set a new password.
-              </div>
+              {linkExpired ? (
+                <div style={{
+                  fontFamily: MONO, fontSize: 11, color: 'rgba(251,191,36,0.85)',
+                  lineHeight: 1.6, marginBottom: 24,
+                  borderLeft: '2px solid rgba(251,191,36,0.4)',
+                  paddingLeft: 12,
+                }}>
+                  Your link has expired. Enter your email and we'll send a fresh one.
+                </div>
+              ) : (
+                <div style={{ fontSize: 14, color: 'rgba(232,222,250,0.5)', lineHeight: 1.7, marginBottom: 28 }}>
+                  Enter your enrolled email and we'll send a link to set a new password.
+                </div>
+              )}
               <div style={{ marginBottom: 8 }}>
                 <label style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.4)', display: 'block', marginBottom: 10 }}>
                   Email address
@@ -272,7 +291,7 @@ export default function LoginPage({ accessError }: { accessError?: boolean }) {
 
               <button
                 type="button"
-                onClick={() => setMode('login')}
+                onClick={() => { setMode('login'); onLinkExpiredShown?.() }}
                 style={{
                   marginTop: 20, background: 'none', border: 'none', padding: 0,
                   fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em',
