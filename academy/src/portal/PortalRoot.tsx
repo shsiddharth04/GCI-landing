@@ -66,6 +66,7 @@ export default function PortalRoot() {
           setIsReset(false)
           setView('set-password')
         } else {
+          setAccessError(false)
           setStudent(s)
           setView('portal')
         }
@@ -78,6 +79,7 @@ export default function PortalRoot() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_OUT') {
         setStudent(null)
+        setAccessError(false)
         setView('login')
         return
       }

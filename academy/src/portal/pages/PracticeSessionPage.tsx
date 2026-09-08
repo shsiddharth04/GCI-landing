@@ -6,7 +6,7 @@ function WaveformBars() {
   return (
     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 48 }}>
       {heights.map((h, i) => (
-        <div key={i} className="eq-bar" style={{
+        <div key={i} className="practice-wave-bar" style={{
           width: 3, background: 'rgba(232,222,250,0.25)', borderRadius: 2,
           height: `${h * 100}%`,
           animationDelay: `${i * 0.1}s`,
@@ -66,11 +66,11 @@ export default function PracticeSessionPage() {
       </div>
 
       <style>{`
-        @keyframes eq-pulse {
+        @keyframes practice-wave-pulse {
           0%, 100% { transform: scaleY(0.4); }
           50% { transform: scaleY(1); }
         }
-        .eq-bar { animation: eq-pulse 1s ease-in-out infinite; transform-origin: bottom; }
+        .practice-wave-bar { animation: practice-wave-pulse 1s ease-in-out infinite; transform-origin: bottom; }
       `}</style>
     </div>
   )

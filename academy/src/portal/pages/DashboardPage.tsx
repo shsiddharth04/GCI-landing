@@ -7,7 +7,7 @@ import { useIsMobile } from '../hooks/useIsMobile'
 const MONO = "'JetBrains Mono', 'Space Mono', monospace"
 const SANS = "'Space Grotesk', 'Plus Jakarta Sans', sans-serif"
 
-type Route = 'dashboard' | 'schedule' | 'resources' | 'announcements'
+type Route = 'dashboard' | 'schedule' | 'resources' | 'announcements' | 'practice'
 
 function fmt12(t: string) {
   const [h, m] = t.slice(0, 5).split(':').map(Number)
@@ -73,7 +73,7 @@ export default function DashboardPage({
     Promise.all([fetchMyCourseSchedule(student.cohort), fetchMyAnnouncements(), fetchMyResources()])
       .then(([s, a, r]) => { setSessions(s); setAnnouncements(a); setResources(r) })
       .finally(() => setLoading(false))
-  }, [])
+  }, [student.cohort])
 
   const today = new Date().toISOString().slice(0, 10)
   const upcoming = sessions.filter(s => s.session_date >= today)
