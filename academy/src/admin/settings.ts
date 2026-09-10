@@ -114,7 +114,7 @@ export const DEFAULT_SETTINGS: AcademySettings = {
     studioAddress: '11th Floor, Capital Tower, Next To CDS Tower, Sector 20, Gurugram',
     mapEmbedUrl: '',
     isActive: true,
-    whatsInside: 'A hands-on session inside GCI Studio, Gurugram. Get behind the Pioneer XDJ-RX3, understand signal flow, and feel what DJing actually requires. Zero commitment. No payment, no prerequisites. Just show up.',
+    whatsInside: 'A hands-on session inside GCI Studio, Gurugram. Get behind the Pioneer XDJ-RX3, understand signal flow, and feel what DJing actually requires.',
     scheduleOpenTime: '10:00',
     scheduleCloseTime: '22:00',
     slotMinutes: 30,
@@ -126,13 +126,12 @@ export const DEFAULT_SETTINGS: AcademySettings = {
       id: 'divith',
       name: 'Divith Chowdhary',
       role: 'Founder & Lead Instructor · DJ UNTITLED.',
-      bio: 'Founder of GigCultureIndia, performing as UNTITLED. Plays genre-fluid sets tuned to the room, not a fixed sound. Trained under the founder of The Music Academy (production credits: Bang Bang, Chennai Express). Builds and teaches this course from real time behind the decks, not a textbook.',
+      bio: 'Founder of GigCultureIndia, performing as UNTITLED. Plays genre-fluid sets tuned to the room, not a fixed sound. Builds and teaches this course from real time behind the decks, not a textbook.',
       initials: 'DC',
       photoUrl: '/divith.jpg',
       isLead: true,
       credentialLines: [
         'Performing as UNTITLED.',
-        'Trained under the founder of The Music Academy',
         'Founder, Gig Culture India',
       ],
       socialLinks: [

@@ -134,7 +134,7 @@ export default function MasterclassForm() {
             transition: 'all 0.2s',
           }}
         >
-          {state === 'submitting' ? 'Registering…' : 'Register · it\'s free'}
+          {state === 'submitting' ? 'Registering…' : 'Register · ₹179'}
         </button>
       </div>
     </form>

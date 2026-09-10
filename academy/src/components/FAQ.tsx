@@ -18,10 +18,6 @@ const BASE_FAQS = [
     a: "3 students per batch. Intentionally. There's no back-row anonymity, no waiting your turn while a crowded room gets the instructor's attention. It's direct, hands-on mentorship from day one.",
   },
   {
-    q: 'Is the masterclass genuinely free?',
-    a: "Yes. No payment, no hidden fees. Register, show up, learn. Capacity is capped, so register early.",
-  },
-  {
     q: 'Is there a deposit to enroll in the DJ Course?',
     a: '₹2,000 confirms your seat and is non-refundable. 50% of the remaining fee is due after your first session. The other 50% is due before your 5th session.',
   },
