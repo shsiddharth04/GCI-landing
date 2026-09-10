@@ -41,7 +41,7 @@ const OUTCOMES = [
   {
     index: '03',
     title: 'Marketplace onboarding',
-    body: 'Your profile goes live on the GCI booking platform from day one. Hosts with real budgets, AI-matched to your sound. No cold emails, no industry gatekeepers.',
+    body: 'Your profile goes live on the GCI booking platform upon completion. Hosts with real budgets, AI-matched to your sound. No cold emails, no industry gatekeepers.',
     highlight: true,
   },
 ]
