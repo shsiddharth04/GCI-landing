@@ -8,7 +8,6 @@ const BLOCKS = [
     line: 'Tomorrowland today, GCI always.',
     photo: '/viraj.jpg',
     grayscale: false,
-    objectPosition: '50% 30%',
   },
   {
     title: 'ACADEMY ADVISOR',
@@ -16,7 +15,6 @@ const BLOCKS = [
     line: "Produced 'Bang Bang', remixed Chennai Express, now backing GCI.",
     photo: '/zoheb.jpg',
     grayscale: true,
-    objectPosition: '35% 25%',
   },
 ]
 
@@ -74,20 +72,18 @@ export default function TrustLayer() {
                 }}
               >
                 {/* Photo */}
-                <div style={{ overflow: 'hidden', height: 'clamp(180px, 28vh, 260px)', flexShrink: 0 }}>
-                  <img
-                    src={b.photo}
-                    alt={b.name}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      objectPosition: b.objectPosition,
-                      display: 'block',
-                      filter: b.grayscale ? 'grayscale(100%)' : 'none',
-                    }}
-                  />
-                </div>
+                <img
+                  src={b.photo}
+                  alt={b.name}
+                  style={{
+                    width: '100%',
+                    height: 'auto',
+                    display: 'block',
+                    maxHeight: 280,
+                    objectFit: 'scale-down',
+                    filter: b.grayscale ? 'grayscale(100%)' : 'none',
+                  }}
+                />
 
                 {/* Text */}
                 <div style={{ padding: '20px 24px 28px', borderTop: '1px solid rgba(212,191,255,0.1)' }}>
