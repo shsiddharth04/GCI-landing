@@ -79,7 +79,7 @@ export default function TrustLayer() {
                     width: '100%',
                     height: 'auto',
                     display: 'block',
-                    maxHeight: 280,
+                    maxHeight: 'clamp(160px, 35vw, 280px)',
                     objectFit: 'scale-down',
                     filter: b.grayscale ? 'grayscale(100%)' : 'none',
                   }}
