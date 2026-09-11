@@ -8,6 +8,7 @@ const BLOCKS = [
     line: 'Tomorrowland today, GCI always.',
     photo: '/viraj.jpg',
     grayscale: false,
+    objectPosition: '50% 30%',
   },
   {
     title: 'ACADEMY ADVISOR',
@@ -15,6 +16,7 @@ const BLOCKS = [
     line: "Produced 'Bang Bang', remixed Chennai Express, now backing GCI.",
     photo: '/zoheb.jpg',
     grayscale: true,
+    objectPosition: '35% 25%',
   },
 ]
 
@@ -80,7 +82,7 @@ export default function TrustLayer() {
                       width: '100%',
                       height: '100%',
                       objectFit: 'cover',
-                      objectPosition: 'top center',
+                      objectPosition: b.objectPosition,
                       display: 'block',
                       filter: b.grayscale ? 'grayscale(100%)' : 'none',
                     }}
