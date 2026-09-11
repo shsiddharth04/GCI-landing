@@ -20,11 +20,11 @@ const BLOCKS = [
 
 export default function TrustLayer() {
   return (
-    <section style={{ background: '#050505', padding: 'clamp(64px, 10vw, 112px) 24px' }}>
+    <section style={{ background: '#050505', padding: 'clamp(40px, 5vw, 64px) 24px' }}>
       <div style={{ maxWidth: 1152, margin: '0 auto' }}>
 
         {/* Heading */}
-        <div style={{ marginBottom: 'clamp(40px, 6vw, 64px)' }}>
+        <div style={{ marginBottom: 'clamp(20px, 3vw, 36px)' }}>
           <div style={{
             fontFamily: MONO, fontSize: 9, letterSpacing: '0.28em',
             textTransform: 'uppercase', color: '#d4bfff',
@@ -72,7 +72,7 @@ export default function TrustLayer() {
                 }}
               >
                 {/* Photo */}
-                <div style={{ overflow: 'hidden', aspectRatio: '4/5' }}>
+                <div style={{ overflow: 'hidden', height: 'clamp(180px, 28vh, 260px)', flexShrink: 0 }}>
                   <img
                     src={b.photo}
                     alt={b.name}
