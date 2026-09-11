@@ -4,6 +4,7 @@ import Hero from './components/Hero'
 import Tracks from './components/Tracks'
 import Instructors from './components/Instructors'
 import StudioGallery from './components/StudioGallery'
+import TrustLayer from './components/TrustLayer'
 import Outcomes from './components/Outcomes'
 import Pathway from './components/Pathway'
 import Graduation from './components/Graduation'
@@ -23,6 +24,7 @@ export default function App() {
       <Hero />
       <Tracks />
       <Instructors />
+      <TrustLayer />
       <StudioGallery />
       <Outcomes />
       <Pathway />
