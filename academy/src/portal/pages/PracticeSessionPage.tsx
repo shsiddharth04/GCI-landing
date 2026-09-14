@@ -4,6 +4,7 @@ import type { EnrolledStudent, Session, PracticeBooking, CourseClassBlock } from
 import {
   fetchSessionsForCalendar, fetchCourseBlocksForRange,
   fetchMyPracticeBookings, bookPracticeSlot, cancelPracticeBooking,
+  ensurePracticeSlots,
 } from '../../lib/db'
 import { supabase } from '../../lib/supabase'
 import { useIsMobile } from '../hooks/useIsMobile'
@@ -48,13 +49,28 @@ function canCancel(sessionDate: string | undefined, startTime: string | undefine
   return slotStart.getTime() - Date.now() > 24 * 60 * 60 * 1000
 }
 
+function getWeekMonday(date: Date): Date {
+  const d = new Date(date)
+  const day = d.getDay() // 0=Sun, 1=Mon...
+  d.setDate(d.getDate() + (day === 0 ? -6 : 1 - day))
+  d.setHours(0, 0, 0, 0)
+  return d
+}
+
+function calendarWeekStarts(): string[] {
+  const thisMonday = getWeekMonday(new Date())
+  const nextMonday = new Date(thisMonday)
+  nextMonday.setDate(nextMonday.getDate() + 7)
+  return [thisMonday.toISOString().slice(0, 10), nextMonday.toISOString().slice(0, 10)]
+}
+
 function calendarWindow(): { from: string; to: string } {
-  const from = new Date()
-  const to   = new Date(from)
-  to.setDate(to.getDate() + 60)
+  const thisMonday = getWeekMonday(new Date())
+  const nextSunday = new Date(thisMonday)
+  nextSunday.setDate(nextSunday.getDate() + 13) // Mon + 13 = Sunday of next week
   return {
-    from: from.toISOString().slice(0, 10),
-    to:   to.toISOString().slice(0, 10),
+    from: new Date().toISOString().slice(0, 10),
+    to:   nextSunday.toISOString().slice(0, 10),
   }
 }
 
@@ -396,6 +412,9 @@ export default function PracticeSessionPage({ student }: Props) {
   const load = useCallback(async () => {
     setLoadError(null)
     try {
+      // Materialize practice slots for this week + next week before fetching calendar.
+      // Non-fatal: if the RPC fails, the calendar still loads with whatever slots exist.
+      await ensurePracticeSlots(calendarWeekStarts()).catch(() => {})
       const { from, to } = calendarWindow()
       const [sessions, courseBlocks, bookings] = await Promise.all([
         fetchSessionsForCalendar(from, to),
@@ -591,10 +610,10 @@ export default function PracticeSessionPage({ student }: Props) {
       {calDates.length === 0 ? (
         <div style={{ paddingTop: 32 }}>
           <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.2)' }}>
-            No sessions scheduled in the next 60 days
+            No slots this week
           </div>
           <p style={{ fontSize: 14, color: 'rgba(232,222,250,0.35)', lineHeight: 1.7, margin: '12px 0 0' }}>
-            Check back when your instructor adds upcoming slots.
+            Practice slots refresh each week. Check back Sunday evening.
           </p>
         </div>
       ) : (

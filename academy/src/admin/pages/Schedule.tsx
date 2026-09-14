@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, RefreshCw, UserCheck, AlertCircle, Trash2, Calendar, Repeat, Lock, Unlock, LayoutGrid, BookOpen } from 'lucide-react'
+import { Plus, RefreshCw, UserCheck, AlertCircle, Trash2, Calendar, Repeat, Lock, Unlock, LayoutGrid, BookOpen, Clock } from 'lucide-react'
 import {
   fetchAllSessions, fetchSessionRegistrations, createSession,
   rescheduleSession, reassignRegistration, fetchInstructors, cancelSession,
   fetchMasterclassSlotData, upsertSlotOverride, deleteSlotOverride, fetchMasterclassBookings,
   fetchCourseClassBlocks, addCourseClassBlock, deleteCourseClassBlock,
+  fetchPracticeSlotTemplates, addPracticeSlotTemplates, deletePracticeSlotTemplate,
+  togglePracticeSlotTemplate, ensurePracticeSlots,
 } from '../../lib/db'
-import type { Session, Registration, Instructor, SlotOverride, MasterclassBooking, BlockedWindow, CourseClassBlock } from '../../lib/db'
+import type { Session, Registration, Instructor, SlotOverride, MasterclassBooking, BlockedWindow, CourseClassBlock, PracticeSlotTemplate } from '../../lib/db'
 import DatePicker from '../components/DatePicker'
 import TimePicker from '../components/TimePicker'
 import { loadSettings } from '../settings'
@@ -1207,10 +1209,216 @@ function CourseBlocksPanel() {
   )
 }
 
+// ── Practice schedule panel ───────────────────────────────────────────────────
+
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const DAY_FULL  = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+function getAdminWeekStarts(): string[] {
+  const d = new Date()
+  const day = d.getDay()
+  d.setDate(d.getDate() + (day === 0 ? -6 : 1 - day))
+  d.setHours(0, 0, 0, 0)
+  const thisMonday = d.toISOString().slice(0, 10)
+  const next = new Date(d)
+  next.setDate(next.getDate() + 7)
+  return [thisMonday, next.toISOString().slice(0, 10)]
+}
+
+function PracticeSchedulePanel() {
+  const [templates, setTemplates] = useState<PracticeSlotTemplate[]>([])
+  const [loading, setLoading]     = useState(true)
+  const [error, setError]         = useState<string | null>(null)
+
+  const [days, setDays]           = useState<number[]>([])
+  const [startTime, setStartTime] = useState('')
+  const [endTime, setEndTime]     = useState('')
+  const [adding, setAdding]       = useState(false)
+  const [addError, setAddError]   = useState<string | null>(null)
+
+  const [generating, setGenerating] = useState(false)
+  const [genResult, setGenResult]   = useState<number | null>(null)
+
+  async function loadTemplates() {
+    setLoading(true); setError(null)
+    try { setTemplates(await fetchPracticeSlotTemplates()) }
+    catch (e: unknown) { setError(e instanceof Error ? e.message : 'Failed to load templates.') }
+    finally { setLoading(false) }
+  }
+
+  useEffect(() => { loadTemplates() }, [])
+
+  async function handleAdd() {
+    if (days.length === 0) { setAddError('Select at least one day.'); return }
+    if (!startTime || !endTime) { setAddError('Select start and end times.'); return }
+    if (startTime >= endTime)   { setAddError('End must be after start.'); return }
+    setAdding(true); setAddError(null)
+    try {
+      await addPracticeSlotTemplates(days, startTime, endTime)
+      await loadTemplates()
+      setDays([]); setStartTime(''); setEndTime('')
+    } catch (e: unknown) {
+      setAddError(e instanceof Error ? e.message : 'Failed to add templates.')
+    } finally {
+      setAdding(false)
+    }
+  }
+
+  async function handleDelete(id: string) {
+    try { await deletePracticeSlotTemplate(id); setTemplates(prev => prev.filter(t => t.id !== id)) }
+    catch { setError('Failed to delete template.') }
+  }
+
+  async function handleToggle(t: PracticeSlotTemplate) {
+    try {
+      await togglePracticeSlotTemplate(t.id, !t.active)
+      setTemplates(prev => prev.map(x => x.id === t.id ? { ...x, active: !t.active } : x))
+    } catch { setError('Failed to update template.') }
+  }
+
+  async function handleGenerate() {
+    setGenerating(true); setGenResult(null); setError(null)
+    try {
+      const count = await ensurePracticeSlots(getAdminWeekStarts())
+      setGenResult(count)
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to generate slots.')
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  // Group templates by day_of_week for display
+  const byDay = new Map<number, PracticeSlotTemplate[]>()
+  for (const t of templates) {
+    byDay.set(t.day_of_week, [...(byDay.get(t.day_of_week) ?? []), t])
+  }
+  const sortedDays = Array.from(byDay.keys()).sort((a, b) => {
+    // Sort Mon-Sun (1-6, then 0)
+    const order = (d: number) => d === 0 ? 7 : d
+    return order(a) - order(b)
+  })
+
+  return (
+    <div>
+      <div className="flex items-start justify-between mb-5">
+        <p className="text-xs text-[#8B73B3] max-w-lg">
+          Practice slots are auto-generated from this template each week (current + next).
+          Slots are created when any student loads the practice page, or when you click Generate below.
+          Times that conflict with course class blocks are automatically skipped.
+        </p>
+        <div className="flex items-center gap-3 ml-4 shrink-0">
+          {genResult !== null && (
+            <span className="text-[10px] font-mono text-emerald-600">
+              {genResult === 0 ? 'Already up to date' : `${genResult} slot${genResult !== 1 ? 's' : ''} created`}
+            </span>
+          )}
+          <button
+            onClick={handleGenerate}
+            disabled={generating}
+            className="flex items-center gap-2 bg-[#6B40A8] hover:bg-[#5C358A] text-white text-xs font-bold font-mono tracking-widest uppercase px-4 py-2.5 disabled:opacity-50 transition-colors"
+          >
+            <RefreshCw size={11} className={generating ? 'animate-spin' : ''} />
+            {generating ? 'Generating…' : 'Generate now'}
+          </button>
+        </div>
+      </div>
+
+      {error && <div className="mb-4 bg-red-50 border border-red-200 px-4 py-3 text-xs text-red-600 font-mono">{error}</div>}
+
+      {/* Template list */}
+      {loading && <p className="text-xs text-[#C4B4E4] font-mono mb-5">Loading…</p>}
+
+      {!loading && templates.length === 0 && (
+        <div className="mb-5 py-10 text-center bg-[#F9F6FF]" style={{ border: '1px solid #E3D9F7' }}>
+          <p className="text-xs text-[#C4B4E4] font-mono">No practice schedule configured yet.</p>
+          <p className="text-[10px] text-[#D4C6EF] font-mono mt-1">Add time slots below — they repeat weekly.</p>
+        </div>
+      )}
+
+      {!loading && sortedDays.length > 0 && (
+        <div className="mb-5 space-y-4">
+          {sortedDays.map(dow => (
+            <div key={dow}>
+              <div className="text-[10px] font-mono font-bold text-[#8B73B3] tracking-widest uppercase mb-1.5">
+                {DAY_FULL[dow]}
+              </div>
+              <div className="space-y-1">
+                {(byDay.get(dow) ?? []).map(t => (
+                  <div key={t.id} className={`flex items-center gap-4 px-4 py-3 bg-white transition-opacity ${t.active ? '' : 'opacity-50'}`} style={{ border: '1px solid #E3D9F7' }}>
+                    <span className="font-mono text-sm text-[#190F30]">
+                      {fmt12(t.start_time.slice(0, 5))} – {fmt12(t.end_time.slice(0, 5))}
+                    </span>
+                    <span className={`font-mono text-[8px] tracking-widest uppercase px-2 py-0.5 ${t.active ? 'bg-emerald-50 text-emerald-700' : 'bg-[#F0EAFF] text-[#B5A3D4]'}`}>
+                      {t.active ? 'Active' : 'Paused'}
+                    </span>
+                    <div className="flex items-center gap-3 ml-auto">
+                      <button
+                        onClick={() => handleToggle(t)}
+                        className="text-[9px] font-mono tracking-widest uppercase text-[#8B73B3] hover:text-[#6B40A8] transition-colors"
+                      >
+                        {t.active ? 'Pause' : 'Resume'}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(t.id)}
+                        className="text-[#C4B4E4] hover:text-red-500 transition-colors"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Add form */}
+      <div className="bg-white p-5 space-y-4" style={{ border: '1px solid #E3D9F7' }}>
+        <p className="text-[10px] font-mono text-[#B5A3D4] uppercase tracking-widest">Add recurring slot</p>
+
+        <div>
+          <label className={labelCls}>Days of week</label>
+          <DayPicker selected={days} onChange={setDays} />
+          {days.length === 0 && <p className="text-[10px] text-[#C4B4E4] mt-1.5 font-mono">Select one or more days</p>}
+          {days.length > 0 && (
+            <p className="text-[10px] text-[#8B73B3] mt-1.5 font-mono">
+              {days.sort((a, b) => a - b).map(d => DAY_NAMES[d]).join(', ')}
+            </p>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={labelCls}>Start time</label>
+            <TimePicker value={startTime} onChange={setStartTime} placeholder="Start" />
+          </div>
+          <div>
+            <label className={labelCls}>End time</label>
+            <TimePicker value={endTime} onChange={setEndTime} placeholder="End" />
+          </div>
+        </div>
+
+        {addError && <p className="text-xs text-red-500 font-mono">{addError}</p>}
+
+        <button
+          type="button"
+          onClick={handleAdd}
+          disabled={adding}
+          className="bg-[#6B40A8] hover:bg-[#5C358A] text-white text-xs font-bold font-mono tracking-widest uppercase px-5 py-2.5 disabled:opacity-50 transition-colors"
+        >
+          {adding ? 'Adding…' : `Add ${days.length > 1 ? `${days.length} slots` : 'slot'}`}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function Schedule() {
-  const [tab, setTab] = useState<'sessions' | 'slots' | 'blocks'>('slots')
+  const [tab, setTab] = useState<'sessions' | 'slots' | 'blocks' | 'practice'>('slots')
   const [sessions, setSessions] = useState<Session[]>([])
   const [instructors, setInstructors] = useState<Instructor[]>([])
   const [loading, setLoading] = useState(true)
@@ -1242,7 +1450,7 @@ export default function Schedule() {
       {/* Header */}
       <div className="flex items-start justify-between mb-5">
         <h1 className="text-xl font-semibold text-[#190F30]">Schedule</h1>
-        {tab === 'sessions' && (
+        {(tab === 'sessions') && (
           <div className="flex items-center gap-3">
             <button onClick={load} className="text-[#C4B4E4] hover:text-[#7548B8] transition-colors p-1">
               <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
@@ -1261,9 +1469,10 @@ export default function Schedule() {
       {/* Top tabs */}
       <div className="flex mb-6" style={{ borderBottom: '1px solid #E3D9F7' }}>
         {([
-          ['slots',    'Masterclass slots', LayoutGrid],
-          ['blocks',   'Course blocks',     BookOpen],
-          ['sessions', 'Course sessions',   Calendar],
+          ['slots',    'Masterclass slots',  LayoutGrid],
+          ['blocks',   'Course blocks',      BookOpen],
+          ['sessions', 'Course sessions',    Calendar],
+          ['practice', 'Practice schedule',  Clock],
         ] as const).map(([t, label, Icon]) => (
           <button
             key={t}
@@ -1285,6 +1494,9 @@ export default function Schedule() {
 
       {/* Course blocks tab */}
       {tab === 'blocks' && <CourseBlocksPanel />}
+
+      {/* Practice schedule tab */}
+      {tab === 'practice' && <PracticeSchedulePanel />}
 
       {/* Course sessions tab */}
       {tab === 'sessions' && (
