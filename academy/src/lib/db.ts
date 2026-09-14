@@ -646,52 +646,8 @@ export async function fetchMyAnnouncements(): Promise<Announcement[]> {
   return (data ?? []) as Announcement[]
 }
 
-// ── Practice slot templates ───────────────────────────────────────────────────
-
-export interface PracticeSlotTemplate {
-  id: string
-  day_of_week: number   // 0=Sun, 1=Mon, ..., 6=Sat
-  start_time: string
-  end_time: string
-  active: boolean
-  created_at: string
-}
-
-export async function fetchPracticeSlotTemplates(): Promise<PracticeSlotTemplate[]> {
-  const { data, error } = await supabase
-    .from('practice_slot_templates')
-    .select('*')
-    .order('day_of_week')
-    .order('start_time')
-  if (error) throw error
-  return (data ?? []) as PracticeSlotTemplate[]
-}
-
-export async function addPracticeSlotTemplates(
-  dayOfWeeks: number[],
-  startTime: string,
-  endTime: string
-): Promise<PracticeSlotTemplate[]> {
-  const rows = dayOfWeeks.map(d => ({ day_of_week: d, start_time: startTime, end_time: endTime }))
-  const { data, error } = await supabase
-    .from('practice_slot_templates')
-    .upsert(rows, { onConflict: 'day_of_week,start_time' })
-    .select()
-  if (error) throw error
-  return (data ?? []) as PracticeSlotTemplate[]
-}
-
-export async function deletePracticeSlotTemplate(id: string): Promise<void> {
-  const { error } = await supabase.from('practice_slot_templates').delete().eq('id', id)
-  if (error) throw error
-}
-
-export async function togglePracticeSlotTemplate(id: string, active: boolean): Promise<void> {
-  const { error } = await supabase.from('practice_slot_templates').update({ active }).eq('id', id)
-  if (error) throw error
-}
-
 // Materializes practice_session rows for the given ISO week Mondays.
+// Slots = studio hours (10:00–22:00) minus course_class_blocks minus masterclass sessions.
 // Called by the student portal on page load so slots are always present.
 export async function ensurePracticeSlots(weekStarts: string[]): Promise<number> {
   const { data, error } = await supabase.rpc('ensure_practice_slots', {
