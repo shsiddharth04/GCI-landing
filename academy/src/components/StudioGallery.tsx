@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { loadSettings } from '../admin/settings'
 import { fadeUp, fadeIn, viewportOnce } from '../lib/motion'
@@ -193,7 +194,7 @@ export default function StudioGallery() {
         }}>
           {studioGallery.length} frames
         </span>
-        <a href="/studio" style={{
+        <Link to="/studio" style={{
           fontFamily: "'Space Mono', monospace", fontSize: '9px', letterSpacing: '0.22em',
           textTransform: 'uppercase', color: 'rgba(212,191,255,0.45)',
           textDecoration: 'none', transition: 'color 0.2s',
@@ -202,7 +203,7 @@ export default function StudioGallery() {
           onMouseLeave={e => (e.currentTarget.style.color = 'rgba(212,191,255,0.45)')}
         >
           Studio tour &rarr;
-        </a>
+        </Link>
       </div>
     </section>
   )

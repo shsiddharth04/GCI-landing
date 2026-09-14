@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
 
 const NAV_SECTIONS = [
@@ -48,7 +49,7 @@ export default function Nav() {
     }}>
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
-        <a href="/" className="flex items-center gap-3 group">
+        <Link to="/" className="flex items-center gap-3 group">
           <img src="/logo-mark.svg" alt="GCI" style={{ width: '36px', height: '36px' }} />
           <div style={{ lineHeight: 1 }}>
             <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', letterSpacing: '0.2em', color: 'rgba(212,191,255,0.5)', textTransform: 'uppercase', marginBottom: '3px' }}>
@@ -58,7 +59,7 @@ export default function Nav() {
               Music <span style={{ color: '#d4bfff' }}>Academy</span>
             </div>
           </div>
-        </a>
+        </Link>
 
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-8" style={{ fontSize: '13px' }}>
@@ -73,11 +74,11 @@ export default function Nav() {
               onMouseLeave={e => (e.currentTarget.style.color = isActive(href) ? '#d4bfff' : 'rgba(255,255,255,0.45)')}
             >{label}</a>
           ))}
-          <a href={STUDIO_HREF}
+          <Link to="/studio"
             style={{ transition: 'color 0.2s', textDecoration: 'none', color: 'rgba(255,255,255,0.45)' }}
             onMouseEnter={e => (e.currentTarget.style.color = 'white')}
             onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}
-          >Studio</a>
+          >Studio</Link>
         </nav>
 
         <div className="hidden md:flex items-center gap-4">
@@ -112,9 +113,9 @@ export default function Nav() {
               style={{ display: 'block', fontSize: '14px', color: isActive(href) ? '#d4bfff' : 'rgba(255,255,255,0.55)', textDecoration: 'none' }}
             >{label}</a>
           ))}
-          <a href={STUDIO_HREF} onClick={() => setOpen(false)}
+          <Link to="/studio" onClick={() => setOpen(false)}
             style={{ display: 'block', fontSize: '14px', color: 'rgba(255,255,255,0.55)', textDecoration: 'none' }}
-          >Studio</a>
+          >Studio</Link>
           <a href="#masterclass" onClick={() => setOpen(false)} style={{
             display: 'block', textAlign: 'center',
             background: '#d4bfff', color: '#050505',

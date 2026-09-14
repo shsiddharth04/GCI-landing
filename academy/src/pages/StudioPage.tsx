@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { motion } from 'motion/react'
 import type { GalleryItem } from '../admin/settings'
 
@@ -36,7 +37,7 @@ export default function StudioPage() {
         >
           &larr; Back
         </button>
-        <a href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
           <img src="/logo-mark.svg" alt="GCI" style={{ width: '26px', height: '26px', opacity: 0.75 }} />
           <div style={{ lineHeight: 1 }}>
             <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '7px', letterSpacing: '0.2em', color: 'rgba(212,191,255,0.35)', textTransform: 'uppercase', marginBottom: '2px' }}>
@@ -46,7 +47,7 @@ export default function StudioPage() {
               Music <span style={{ color: '#d4bfff' }}>Academy</span>
             </div>
           </div>
-        </a>
+        </Link>
       </div>
 
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }}>
