@@ -145,7 +145,7 @@ function SingleForm({
   onCancel: () => void
 }) {
   const [instructorId, setInstructorId] = useState(instructors[0]?.id ?? '')
-  const [sessionType, setSessionType] = useState<'masterclass' | 'course_class'>('masterclass')
+  const [sessionType, setSessionType] = useState<'masterclass' | 'course_class' | 'practice_session'>('masterclass')
   const [cohort, setCohort] = useState<'C0' | 'C1' | 'C2' | 'C3' | 'C4' | 'C5'>('C1')
   const [date, setDate] = useState('')
   const [startTime, setStartTime] = useState('')
@@ -185,9 +185,19 @@ function SingleForm({
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className={labelCls}>Type</label>
-          <select value={sessionType} onChange={e => setSessionType(e.target.value as typeof sessionType)} className={inputCls}>
+          <select
+            value={sessionType}
+            onChange={e => {
+              const t = e.target.value as typeof sessionType
+              setSessionType(t)
+              if (t === 'practice_session') setCapacity('1')
+              else if (capacity === '1') setCapacity('20')
+            }}
+            className={inputCls}
+          >
             <option value="masterclass">Masterclass</option>
             <option value="course_class">Course class</option>
+            <option value="practice_session">Practice slot</option>
           </select>
         </div>
         <div>
@@ -266,7 +276,7 @@ function RecurringForm({
   onCancel: () => void
 }) {
   const [instructorId, setInstructorId] = useState(instructors[0]?.id ?? '')
-  const [sessionType, setSessionType] = useState<'masterclass' | 'course_class'>('masterclass')
+  const [sessionType, setSessionType] = useState<'masterclass' | 'course_class' | 'practice_session'>('masterclass')
   const [cohort, setCohort] = useState<'C0' | 'C1' | 'C2' | 'C3' | 'C4' | 'C5'>('C1')
   const [days, setDays] = useState<number[]>([])
   const [fromDate, setFromDate] = useState('')
@@ -329,9 +339,19 @@ function RecurringForm({
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className={labelCls}>Type</label>
-          <select value={sessionType} onChange={e => setSessionType(e.target.value as typeof sessionType)} className={inputCls}>
+          <select
+            value={sessionType}
+            onChange={e => {
+              const t = e.target.value as typeof sessionType
+              setSessionType(t)
+              if (t === 'practice_session') setCapacity('1')
+              else if (capacity === '1') setCapacity('20')
+            }}
+            className={inputCls}
+          >
             <option value="masterclass">Masterclass</option>
             <option value="course_class">Course class</option>
+            <option value="practice_session">Practice slot</option>
           </select>
         </div>
         <div>
@@ -524,7 +544,13 @@ function RescheduleForm({ session, onDone, onCancel }: { session: Session; onDon
     if (startTime >= endTime) { setError('End must be after start.'); return }
     setSaving(true); setError(null)
     try {
-      await rescheduleSession(session.id, date, startTime, endTime)
+      const result = await rescheduleSession(session.id, date, startTime, endTime)
+      if (!result.success) {
+        setError(result.reason === 'target_slot_has_locked_booking'
+          ? 'That time slot is already booked by someone. Choose a different time.'
+          : result.reason ?? 'Reschedule failed.')
+        return
+      }
       onDone()
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed.')

@@ -11,7 +11,7 @@ export interface Instructor {
 export interface Session {
   id: string
   instructor_id: string
-  session_type: 'masterclass' | 'course_class'
+  session_type: 'masterclass' | 'course_class' | 'practice_session'
   course_id: string | null
   cohort: 'C0' | 'C1' | 'C2' | 'C3' | 'C4' | 'C5' | null
   session_date: string
@@ -22,6 +22,9 @@ export interface Session {
   seats_booked: number
   status: 'open' | 'full' | 'cancelled' | 'rescheduled'
   rescheduled_from_id: string | null
+  lock_owner_type: 'practice_session' | 'masterclass' | null
+  locked_by: string | null
+  locked_at: string | null
   created_at: string
   updated_at: string
   // joined
@@ -314,7 +317,7 @@ export async function fetchSessionRegistrations(sessionId: string): Promise<Regi
 }
 
 export async function createSession(session: Omit<Session,
-  'id' | 'seats_booked' | 'status' | 'rescheduled_from_id' | 'created_at' | 'updated_at' | 'instructor_name' | 'course_name'
+  'id' | 'seats_booked' | 'status' | 'rescheduled_from_id' | 'created_at' | 'updated_at' | 'instructor_name' | 'course_name' | 'lock_owner_type' | 'locked_by' | 'locked_at'
 >) {
   const { data, error } = await supabase.from('sessions').insert(session).select().single()
   if (error) throw error
@@ -326,14 +329,15 @@ export async function rescheduleSession(
   newDate: string,
   newStartTime: string,
   newEndTime: string
-) {
-  const { error } = await supabase.rpc('admin_reschedule_session', {
+): Promise<{ success: boolean; reason?: string }> {
+  const { data, error } = await supabase.rpc('admin_reschedule_session', {
     p_session_id: sessionId,
     p_new_date: newDate,
     p_new_start_time: newStartTime,
     p_new_end_time: newEndTime,
   })
   if (error) throw error
+  return data as { success: boolean; reason?: string }
 }
 
 export async function reassignRegistration(
@@ -417,6 +421,28 @@ export interface EnrolledStudent {
   enrolled_at: string
   notes: string | null
   has_set_password: boolean
+  practice_access_mode: 'locked' | 'unlocked'
+  blocked_until: string | null
+}
+
+export interface PracticeBooking {
+  id: string
+  session_id: string
+  enrolled_student_id: string
+  status: 'confirmed' | 'cancelled'
+  cancellation_token: string
+  email_sent: boolean
+  email_sent_at: string | null
+  created_at: string
+  cancelled_at: string | null
+  session?: {
+    id: string
+    session_date: string
+    start_time: string
+    end_time: string
+    location: string
+    status: string
+  }
 }
 
 export interface StudentResource {
@@ -618,4 +644,94 @@ export async function fetchMyAnnouncements(): Promise<Announcement[]> {
     .order('published_at', { ascending: false })
   if (error) throw error
   return (data ?? []) as Announcement[]
+}
+
+// ── Practice sessions (portal) ────────────────────────────────────────────────
+
+export async function fetchPracticeSlots(): Promise<Session[]> {
+  const today = new Date().toISOString().slice(0, 10)
+  const { data, error } = await supabase
+    .from('sessions')
+    .select('*')
+    .eq('session_type', 'practice_session')
+    .eq('status', 'open')
+    .is('lock_owner_type', null)
+    .gte('session_date', today)
+    .order('session_date', { ascending: true })
+    .order('start_time', { ascending: true })
+  if (error) throw error
+  return (data ?? []) as Session[]
+}
+
+export async function fetchMyPracticeBookings(): Promise<PracticeBooking[]> {
+  const { data, error } = await supabase
+    .from('practice_bookings')
+    .select(`
+      id, session_id, enrolled_student_id, status, cancellation_token,
+      email_sent, email_sent_at, created_at, cancelled_at,
+      session:sessions!practice_bookings_session_id_fkey(
+        id, session_date, start_time, end_time, location, status
+      )
+    `)
+    .eq('status', 'confirmed')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as PracticeBooking[]
+}
+
+export async function bookPracticeSlot(
+  sessionId: string,
+  enrolledStudentId: string
+): Promise<{ booking_id?: string; status?: string; error?: string; until?: string; locked_by_type?: string }> {
+  const { data, error } = await supabase.rpc('book_practice_slot', {
+    p_session_id: sessionId,
+    p_enrolled_student_id: enrolledStudentId,
+  })
+  if (error) throw error
+  return data as { booking_id?: string; status?: string; error?: string; until?: string; locked_by_type?: string }
+}
+
+export async function cancelPracticeBooking(
+  cancellationToken: string
+): Promise<{ success?: boolean; error?: string }> {
+  const { data, error } = await supabase.rpc('cancel_practice_booking', {
+    p_cancellation_token: cancellationToken,
+  })
+  if (error) throw error
+  return data as { success?: boolean; error?: string }
+}
+
+// ── Practice sessions (admin) ─────────────────────────────────────────────────
+
+export async function adminSetPracticeAccess(
+  enrolledStudentId: string,
+  action: 'unlock' | 'lock' | 'noshowblock_set' | 'noshowblock_lifted' | 'noshowblock_extended',
+  newBlockedUntil?: string | null,
+  overriddenBy?: string,
+  reason?: string
+): Promise<{ success?: boolean; action?: string; cancelled_bookings?: string[]; error?: string }> {
+  const { data, error } = await supabase.rpc('admin_set_student_practice_access', {
+    p_enrolled_student_id: enrolledStudentId,
+    p_action: action,
+    p_new_blocked_until: newBlockedUntil ?? null,
+    p_overridden_by: overriddenBy ?? null,
+    p_reason: reason ?? null,
+  })
+  if (error) throw error
+  return data as { success?: boolean; action?: string; cancelled_bookings?: string[]; error?: string }
+}
+
+export async function fetchAllPracticeBookings(): Promise<PracticeBooking[]> {
+  const { data, error } = await supabase
+    .from('practice_bookings')
+    .select(`
+      id, session_id, enrolled_student_id, status, cancellation_token,
+      email_sent, email_sent_at, created_at, cancelled_at,
+      session:sessions!practice_bookings_session_id_fkey(
+        id, session_date, start_time, end_time, location, status
+      )
+    `)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as PracticeBooking[]
 }

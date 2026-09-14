@@ -179,7 +179,7 @@ export default function PortalRoot() {
       {route === 'schedule'      && <SchedulePage        student={student} />}
       {route === 'resources'     && <ResourcesPage />}
       {route === 'announcements' && <AnnouncementsPage />}
-      {route === 'practice'      && <PracticeSessionPage />}
+      {route === 'practice'      && <PracticeSessionPage student={student} />}
     </PortalLayout>
   )
 }

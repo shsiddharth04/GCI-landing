@@ -12,7 +12,7 @@ const NAV = [
   { route: 'schedule'      as Route, label: 'Schedule',   icon: Calendar,        soon: false },
   { route: 'resources'     as Route, label: 'Resources',  icon: BookOpen,        soon: false },
   { route: 'announcements' as Route, label: 'Alerts',     icon: Bell,            soon: false },
-  { route: 'practice'      as Route, label: 'Practice',   icon: Mic2,            soon: true  },
+  { route: 'practice'      as Route, label: 'Practice',   icon: Mic2,            soon: false },
 ]
 
 const COHORT_COLOR: Record<string, string> = {
