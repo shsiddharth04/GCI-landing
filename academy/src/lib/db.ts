@@ -648,6 +648,35 @@ export async function fetchMyAnnouncements(): Promise<Announcement[]> {
 
 // ── Practice sessions (portal) ────────────────────────────────────────────────
 
+export async function fetchSessionsForCalendar(fromDate: string, toDate: string): Promise<Session[]> {
+  const { data, error } = await supabase
+    .from('sessions')
+    .select('*')
+    .in('session_type', ['masterclass', 'practice_session'])
+    .neq('status', 'cancelled')
+    .gte('session_date', fromDate)
+    .lte('session_date', toDate)
+    .order('session_date')
+    .order('start_time')
+  if (error) throw error
+  return (data ?? []) as Session[]
+}
+
+export async function fetchCourseBlocksForRange(
+  cohort: string, fromDate: string, toDate: string
+): Promise<CourseClassBlock[]> {
+  const { data, error } = await supabase
+    .from('course_class_blocks')
+    .select('id, block_date, start_time, end_time, label, cohort')
+    .eq('cohort', cohort)
+    .gte('block_date', fromDate)
+    .lte('block_date', toDate)
+    .order('block_date')
+    .order('start_time')
+  if (error) throw error
+  return (data ?? []) as CourseClassBlock[]
+}
+
 export async function fetchPracticeSlots(): Promise<Session[]> {
   const today = new Date().toISOString().slice(0, 10)
   const { data, error } = await supabase

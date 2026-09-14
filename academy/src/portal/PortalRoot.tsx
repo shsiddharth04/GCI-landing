@@ -15,11 +15,13 @@ type Route = 'dashboard' | 'schedule' | 'resources' | 'announcements' | 'practic
 type View = 'loading' | 'set-password' | 'login' | 'portal'
 
 function getRoute(): Route {
-  const path = window.location.pathname
-  if (path.includes('/schedule')) return 'schedule'
-  if (path.includes('/resources')) return 'resources'
-  if (path.includes('/announcements')) return 'announcements'
-  if (path.includes('/practice')) return 'practice'
+  const hash = window.location.hash.replace(/^#\/?/, '')
+  // Supabase auth callbacks use the hash for tokens/errors — don't interpret as a route.
+  if (hash.includes('access_token') || hash.startsWith('error')) return 'dashboard'
+  if (hash.startsWith('schedule')) return 'schedule'
+  if (hash.startsWith('resources')) return 'resources'
+  if (hash.startsWith('announcements')) return 'announcements'
+  if (hash.startsWith('practice')) return 'practice'
   return 'dashboard'
 }
 
@@ -31,8 +33,9 @@ function navigate(route: Route) {
     announcements: '/announcements',
     practice: '/practice',
   }
-  window.history.pushState({}, '', paths[route])
-  window.dispatchEvent(new Event('portalroute'))
+  // Hash-based navigation: works on Hostinger and Vercel without server-side rewrites.
+  // Uses the same #/route pattern as the main app's HashRouter.
+  window.location.hash = paths[route]
 }
 
 export { navigate }
@@ -40,8 +43,8 @@ export { navigate }
 function detectLinkExpired(): boolean {
   const hash = window.location.hash
   if (hash.includes('error=access_denied') || hash.includes('error_code=403')) {
-    // Clean the hash so a refresh doesn't re-show the message
-    window.history.replaceState(null, '', window.location.pathname)
+    // Clear the error hash and navigate to dashboard root
+    window.location.hash = '/'
     return true
   }
   return false
@@ -57,12 +60,8 @@ export default function PortalRoot() {
 
   useEffect(() => {
     const onRoute = () => setRoute(getRoute())
-    window.addEventListener('portalroute', onRoute)
-    window.addEventListener('popstate', onRoute)
-    return () => {
-      window.removeEventListener('portalroute', onRoute)
-      window.removeEventListener('popstate', onRoute)
-    }
+    window.addEventListener('hashchange', onRoute)
+    return () => window.removeEventListener('hashchange', onRoute)
   }, [])
 
   useEffect(() => {
