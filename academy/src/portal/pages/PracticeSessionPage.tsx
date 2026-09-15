@@ -70,11 +70,11 @@ function getWeekMonday(date: Date): Date {
 
 function calendarWindow(): { from: string; to: string } {
   const thisMonday = getWeekMonday(new Date())
-  const nextSunday = new Date(thisMonday)
-  nextSunday.setDate(nextSunday.getDate() + 13)
+  const thisSunday = new Date(thisMonday)
+  thisSunday.setDate(thisSunday.getDate() + 6)
   return {
     from: localDateStr(new Date()),
-    to:   localDateStr(nextSunday),
+    to:   localDateStr(thisSunday),
   }
 }
 
