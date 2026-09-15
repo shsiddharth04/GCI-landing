@@ -646,15 +646,49 @@ export async function fetchMyAnnouncements(): Promise<Announcement[]> {
   return (data ?? []) as Announcement[]
 }
 
-// Materializes practice_session rows for the given ISO week Mondays.
-// Slots = studio hours (10:00–22:00) minus course_class_blocks minus masterclass sessions.
-// Called by the student portal on page load so slots are always present.
-export async function ensurePracticeSlots(weekStarts: string[]): Promise<number> {
-  const { data, error } = await supabase.rpc('ensure_practice_slots', {
-    p_week_starts: weekStarts,
-  })
-  if (error) throw error
-  return (data as number) ?? 0
+// ── Practice vacancy computation (shared with portal UI) ─────────────────────
+
+export const PRACTICE_STUDIO_OPEN  = '10:00'
+export const PRACTICE_STUDIO_CLOSE = '20:00'
+export const PRACTICE_SLOT_MINUTES = 30
+
+export interface VacantSlot {
+  date: string
+  start: string
+  end: string
+}
+
+function practiceToMins(t: string): number {
+  const [h, m] = t.slice(0, 5).split(':').map(Number)
+  return h * 60 + m
+}
+
+function practiceFromMins(mins: number): string {
+  return `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`
+}
+
+export function computePracticeVacancies(
+  date: string,
+  daySessions: Pick<Session, 'start_time' | 'end_time'>[],
+  dayCourseBlocks: Pick<CourseClassBlock, 'start_time' | 'end_time'>[],
+): VacantSlot[] {
+  const blocked = [
+    ...daySessions.map(s => ({ s: practiceToMins(s.start_time), e: practiceToMins(s.end_time) })),
+    ...dayCourseBlocks.map(b => ({ s: practiceToMins(b.start_time), e: practiceToMins(b.end_time) })),
+  ]
+  const now = new Date()
+  const isToday = date === now.toISOString().slice(0, 10)
+  const nowMins = now.getHours() * 60 + now.getMinutes()
+  const open  = practiceToMins(PRACTICE_STUDIO_OPEN)
+  const close = practiceToMins(PRACTICE_STUDIO_CLOSE)
+  const vacant: VacantSlot[] = []
+  for (let cur = open; cur + PRACTICE_SLOT_MINUTES <= close; cur += PRACTICE_SLOT_MINUTES) {
+    const end = cur + PRACTICE_SLOT_MINUTES
+    if (isToday && cur < nowMins) continue
+    if (blocked.some(b => b.s < end && b.e > cur)) continue
+    vacant.push({ date, start: practiceFromMins(cur), end: practiceFromMins(end) })
+  }
+  return vacant
 }
 
 // ── Practice sessions (portal) ────────────────────────────────────────────────
@@ -663,7 +697,6 @@ export async function fetchSessionsForCalendar(fromDate: string, toDate: string)
   const { data, error } = await supabase
     .from('sessions')
     .select('*')
-    .in('session_type', ['masterclass', 'practice_session'])
     .neq('status', 'cancelled')
     .gte('session_date', fromDate)
     .lte('session_date', toDate)
@@ -716,19 +749,23 @@ export async function fetchMyPracticeBookings(): Promise<PracticeBooking[]> {
     .eq('status', 'confirmed')
     .order('created_at', { ascending: false })
   if (error) throw error
-  return (data ?? []) as PracticeBooking[]
+  return (data ?? []) as unknown as PracticeBooking[]
 }
 
 export async function bookPracticeSlot(
-  sessionId: string,
-  enrolledStudentId: string
-): Promise<{ booking_id?: string; status?: string; error?: string; until?: string; locked_by_type?: string }> {
+  enrolledStudentId: string,
+  sessionDate: string,
+  startTime: string,
+  endTime: string,
+): Promise<{ booking_id?: string; session_id?: string; status?: string; error?: string; until?: string }> {
   const { data, error } = await supabase.rpc('book_practice_slot', {
-    p_session_id: sessionId,
     p_enrolled_student_id: enrolledStudentId,
+    p_session_date:        sessionDate,
+    p_start_time:          startTime,
+    p_end_time:            endTime,
   })
   if (error) throw error
-  return data as { booking_id?: string; status?: string; error?: string; until?: string; locked_by_type?: string }
+  return data as { booking_id?: string; session_id?: string; status?: string; error?: string; until?: string }
 }
 
 export async function cancelPracticeBooking(
@@ -773,5 +810,5 @@ export async function fetchAllPracticeBookings(): Promise<PracticeBooking[]> {
     `)
     .order('created_at', { ascending: false })
   if (error) throw error
-  return (data ?? []) as PracticeBooking[]
+  return (data ?? []) as unknown as PracticeBooking[]
 }

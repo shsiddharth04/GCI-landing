@@ -1218,7 +1218,7 @@ export default function Schedule() {
   const [showCreate, setShowCreate] = useState(false)
   const [typeFilter, setTypeFilter] = useState<'all' | 'masterclass' | 'course_class'>('all')
 
-  const defaultLocation = '11th Floor, Capital Tower, Sector 20, Gurugram'
+  const defaultLocation = '11th Floor, The Capital, Next to CDS, Gurugram'
 
   const load = useCallback(async () => {
     setLoading(true); setError(null)

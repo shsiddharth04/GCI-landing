@@ -4,7 +4,8 @@ import type { EnrolledStudent, Session, PracticeBooking, CourseClassBlock } from
 import {
   fetchSessionsForCalendar, fetchCourseBlocksForRange,
   fetchMyPracticeBookings, bookPracticeSlot, cancelPracticeBooking,
-  ensurePracticeSlots,
+  computePracticeVacancies,
+  type VacantSlot,
 } from '../../lib/db'
 import { supabase } from '../../lib/supabase'
 import { useIsMobile } from '../hooks/useIsMobile'
@@ -13,7 +14,7 @@ interface Props { student: EnrolledStudent }
 
 const MONO = "'JetBrains Mono', 'Space Mono', monospace"
 const SANS = "'Space Grotesk', 'Plus Jakarta Sans', sans-serif"
-const STUDIO = '11th Floor, Capital Tower, Sector 20, Gurugram'
+const STUDIO = '11th Floor, The Capital, Next to CDS, Gurugram'
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
 
@@ -51,23 +52,16 @@ function canCancel(sessionDate: string | undefined, startTime: string | undefine
 
 function getWeekMonday(date: Date): Date {
   const d = new Date(date)
-  const day = d.getDay() // 0=Sun, 1=Mon...
+  const day = d.getDay()
   d.setDate(d.getDate() + (day === 0 ? -6 : 1 - day))
   d.setHours(0, 0, 0, 0)
   return d
 }
 
-function calendarWeekStarts(): string[] {
-  const thisMonday = getWeekMonday(new Date())
-  const nextMonday = new Date(thisMonday)
-  nextMonday.setDate(nextMonday.getDate() + 7)
-  return [thisMonday.toISOString().slice(0, 10), nextMonday.toISOString().slice(0, 10)]
-}
-
 function calendarWindow(): { from: string; to: string } {
   const thisMonday = getWeekMonday(new Date())
   const nextSunday = new Date(thisMonday)
-  nextSunday.setDate(nextSunday.getDate() + 13) // Mon + 13 = Sunday of next week
+  nextSunday.setDate(nextSunday.getDate() + 13)
   return {
     from: new Date().toISOString().slice(0, 10),
     to:   nextSunday.toISOString().slice(0, 10),
@@ -77,44 +71,73 @@ function calendarWindow(): { from: string; to: string } {
 // ── Calendar entry types ───────────────────────────────────────────────────────
 
 type CalEntry =
-  | { kind: 'course';     date: string; start: string; end: string; label: string | null }
+  | { kind: 'course';      date: string; start: string; end: string; label: string | null }
   | { kind: 'masterclass'; date: string; start: string; end: string; sessionId: string }
-  | { kind: 'practice';   date: string; start: string; end: string; session: Session; myBooking: PracticeBooking | null }
+  | { kind: 'practice';    date: string; start: string; end: string; session: Session; myBooking: PracticeBooking }
+  | { kind: 'vacant';      date: string; start: string; end: string }
 
 function buildCalendar(
-  sessions: Session[],
+  allSessions: Session[],
   courseBlocks: CourseClassBlock[],
   myBookings: PracticeBooking[],
+  from: string,
+  to: string,
 ): Map<string, CalEntry[]> {
-  const byBookingSession = new Map<string, PracticeBooking>()
-  for (const b of myBookings) byBookingSession.set(b.session_id, b)
+  const myBookingBySessionId = new Map<string, PracticeBooking>()
+  for (const b of myBookings) myBookingBySessionId.set(b.session_id, b)
 
-  const entries: CalEntry[] = []
-
-  for (const s of sessions) {
-    if (s.session_type === 'masterclass') {
-      entries.push({ kind: 'masterclass', date: s.session_date, start: s.start_time, end: s.end_time, sessionId: s.id })
-    } else if (s.session_type === 'practice_session') {
-      entries.push({ kind: 'practice', date: s.session_date, start: s.start_time, end: s.end_time, session: s, myBooking: byBookingSession.get(s.id) ?? null })
-    }
+  const sessionsByDate = new Map<string, Session[]>()
+  for (const s of allSessions) {
+    sessionsByDate.set(s.session_date, [...(sessionsByDate.get(s.session_date) ?? []), s])
   }
-
+  const blocksByDate = new Map<string, CourseClassBlock[]>()
   for (const b of courseBlocks) {
-    entries.push({ kind: 'course', date: b.block_date, start: b.start_time, end: b.end_time, label: b.label })
+    blocksByDate.set(b.block_date, [...(blocksByDate.get(b.block_date) ?? []), b])
   }
 
-  // Sort within each date by start_time
-  entries.sort((a, b) =>
-    a.date !== b.date
-      ? a.date.localeCompare(b.date)
-      : a.start.localeCompare(b.start)
-  )
+  const result = new Map<string, CalEntry[]>()
+  const cur = new Date(from + 'T00:00:00')
+  const end = new Date(to + 'T00:00:00')
 
-  const grouped = new Map<string, CalEntry[]>()
-  for (const e of entries) {
-    grouped.set(e.date, [...(grouped.get(e.date) ?? []), e])
+  while (cur <= end) {
+    const date = cur.toISOString().slice(0, 10)
+    const daySessions = sessionsByDate.get(date) ?? []
+    const dayBlocks   = blocksByDate.get(date) ?? []
+    const entries: CalEntry[] = []
+
+    for (const s of daySessions) {
+      if (s.session_type === 'course_class') {
+        entries.push({ kind: 'course', date, start: s.start_time, end: s.end_time, label: null })
+      } else if (s.session_type === 'masterclass') {
+        entries.push({ kind: 'masterclass', date, start: s.start_time, end: s.end_time, sessionId: s.id })
+      } else if (s.session_type === 'practice_session') {
+        const myBooking = myBookingBySessionId.get(s.id)
+        if (myBooking) {
+          // Only show MY practice sessions — others are implicitly absent from the vacant list
+          entries.push({ kind: 'practice', date, start: s.start_time, end: s.end_time, session: s, myBooking })
+        }
+      }
+    }
+
+    for (const b of dayBlocks) {
+      entries.push({ kind: 'course', date, start: b.start_time, end: b.end_time, label: b.label })
+    }
+
+    // Vacant slots: studio hours minus all blocked windows on this date
+    const vacancies = computePracticeVacancies(date, daySessions, dayBlocks)
+    for (const v of vacancies) {
+      entries.push({ kind: 'vacant', date, start: v.start, end: v.end })
+    }
+
+    if (entries.length > 0) {
+      entries.sort((a, b) => a.start.localeCompare(b.start))
+      result.set(date, entries)
+    }
+
+    cur.setDate(cur.getDate() + 1)
   }
-  return grouped
+
+  return result
 }
 
 // ── Waveform decoration ────────────────────────────────────────────────────────
@@ -196,48 +219,34 @@ function MasterclassEntry({ entry }: { entry: Extract<CalEntry, { kind: 'masterc
   )
 }
 
-interface PracticeEntryProps {
-  entry: Extract<CalEntry, { kind: 'practice' }>
-  bookedOnDate: number
-  confirmingSlotId: string | null
-  bookingSlotId: string | null
-  bookedSlotId: string | null
-  cancellingBookingId: string | null
-  cancellingId: string | null
-  onConfirmBook: (sessionId: string) => void
+interface VacantEntryProps {
+  entry: Extract<CalEntry, { kind: 'vacant' }>
+  dayFull: boolean
+  confirmingKey: string | null
+  bookingKey: string | null
+  bookedKey: string | null
+  onConfirm: (key: string) => void
   onCancelConfirm: () => void
-  onBook: (session: Session) => void
-  onConfirmCancel: (bookingId: string) => void
-  onKeepCancel: () => void
-  onCancel: (booking: PracticeBooking) => void
+  onBook: (slot: VacantSlot) => void
 }
 
-function PracticeEntry({
-  entry, bookedOnDate,
-  confirmingSlotId, bookingSlotId, bookedSlotId,
-  cancellingBookingId, cancellingId,
-  onConfirmBook, onCancelConfirm, onBook,
-  onConfirmCancel, onKeepCancel, onCancel,
-}: PracticeEntryProps) {
-  const { session, myBooking } = entry
-  const isConfirmingBook   = confirmingSlotId === session.id
-  const isBooking          = bookingSlotId === session.id
-  const wasBooked          = bookedSlotId === session.id
-  const isConfirmingCancel = myBooking !== null && cancellingBookingId === myBooking.id
-  const isCancelling       = myBooking !== null && cancellingId === myBooking.id
+function VacantEntry({
+  entry, dayFull, confirmingKey, bookingKey, bookedKey,
+  onConfirm, onCancelConfirm, onBook,
+}: VacantEntryProps) {
+  const key = `${entry.date}|${entry.start}`
+  const isConfirming = confirmingKey === key
+  const isBooking    = bookingKey === key
+  const wasBooked    = bookedKey === key
 
-  const available  = session.lock_owner_type === null && session.status === 'open'
-  const mine       = myBooking !== null
-  const taken      = !available && !mine
-  const dayFull    = bookedOnDate >= 2 && available && !mine
-
-  let borderColor = 'rgba(232,222,250,0.1)'
-  if (wasBooked || mine) borderColor = '#E8DEFA'
-  else if (available && !dayFull) borderColor = 'rgba(232,222,250,0.35)'
-
-  let bgColor = '#141414'
-  if (mine || wasBooked) bgColor = 'rgba(232,222,250,0.05)'
-  if (taken) bgColor = 'rgba(232,222,250,0.02)'
+  const borderColor = wasBooked
+    ? '#E8DEFA'
+    : isConfirming
+      ? '#E8DEFA'
+      : !dayFull
+        ? 'rgba(232,222,250,0.35)'
+        : 'rgba(232,222,250,0.1)'
+  const bgColor = wasBooked ? 'rgba(232,222,250,0.05)' : '#141414'
 
   return (
     <div style={{
@@ -246,18 +255,19 @@ function PracticeEntry({
       padding: '14px 16px',
       transition: 'background 0.2s, border-color 0.2s',
     }}>
-      {/* Row 1: type + time + primary action */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
           <TypeTag
-            label={mine ? 'Practice · Your slot' : taken ? 'Practice · Taken' : 'Practice'}
-            color={mine ? '#E8DEFA' : taken ? 'rgba(232,222,250,0.2)' : 'rgba(232,222,250,0.7)'}
+            label="Practice"
+            color={dayFull ? 'rgba(232,222,250,0.25)' : 'rgba(232,222,250,0.7)'}
           />
-          <span style={{ fontFamily: MONO, fontSize: 13, color: mine ? 'rgba(232,222,250,0.85)' : taken ? 'rgba(232,222,250,0.3)' : 'rgba(232,222,250,0.7)', letterSpacing: '0.04em' }}>
+          <span style={{
+            fontFamily: MONO, fontSize: 13, letterSpacing: '0.04em',
+            color: dayFull ? 'rgba(232,222,250,0.3)' : 'rgba(232,222,250,0.7)',
+          }}>
             {fmt12(entry.start)} — {fmt12(entry.end)}
           </span>
         </div>
-
         <div style={{ flexShrink: 0 }}>
           {wasBooked && (
             <span style={{
@@ -267,36 +277,14 @@ function PracticeEntry({
               Booked
             </span>
           )}
-
-          {!wasBooked && mine && !isConfirmingCancel && canCancel(session.session_date, session.start_time) && (
-            <button
-              onClick={() => onConfirmCancel(myBooking!.id)}
-              disabled={isCancelling}
-              style={{
-                background: 'none', border: '1px solid rgba(232,222,250,0.15)',
-                padding: '6px 14px', fontFamily: MONO, fontSize: 9,
-                letterSpacing: '0.12em', textTransform: 'uppercase',
-                color: 'rgba(232,222,250,0.4)', cursor: isCancelling ? 'wait' : 'pointer',
-              }}
-            >
-              {isCancelling ? '…' : 'Cancel'}
-            </button>
-          )}
-
-          {!wasBooked && mine && !canCancel(session.session_date, session.start_time) && (
-            <span style={{ fontFamily: MONO, fontSize: 8, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.2)' }}>
-              Inside 24h
-            </span>
-          )}
-
-          {!mine && !taken && !isConfirmingBook && !wasBooked && (
+          {!wasBooked && !isConfirming && (
             dayFull ? (
               <span style={{ fontFamily: MONO, fontSize: 8, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.2)' }}>
                 Day full
               </span>
             ) : (
               <button
-                onClick={() => onConfirmBook(session.id)}
+                onClick={() => onConfirm(key)}
                 style={{
                   background: '#E8DEFA', border: 'none', padding: '7px 18px',
                   fontFamily: MONO, fontSize: 9, letterSpacing: '0.12em',
@@ -310,8 +298,7 @@ function PracticeEntry({
         </div>
       </div>
 
-      {/* Inline: booking confirm */}
-      {isConfirmingBook && (
+      {isConfirming && (
         <div style={{
           marginTop: 12, paddingTop: 12, borderTop: '1px solid rgba(232,222,250,0.06)',
           display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
@@ -332,7 +319,7 @@ function PracticeEntry({
               Nevermind
             </button>
             <button
-              onClick={() => onBook(session)}
+              onClick={() => onBook({ date: entry.date, start: entry.start, end: entry.end })}
               disabled={isBooking}
               style={{
                 background: '#E8DEFA', border: 'none', padding: '6px 18px',
@@ -346,8 +333,63 @@ function PracticeEntry({
           </div>
         </div>
       )}
+    </div>
+  )
+}
 
-      {/* Inline: cancel confirm */}
+interface PracticeEntryProps {
+  entry: Extract<CalEntry, { kind: 'practice' }>
+  cancellingBookingId: string | null
+  cancellingId: string | null
+  onConfirmCancel: (bookingId: string) => void
+  onKeepCancel: () => void
+  onCancel: (booking: PracticeBooking) => void
+}
+
+function PracticeEntry({
+  entry, cancellingBookingId, cancellingId,
+  onConfirmCancel, onKeepCancel, onCancel,
+}: PracticeEntryProps) {
+  const { session, myBooking } = entry
+  const isConfirmingCancel = cancellingBookingId === myBooking.id
+  const isCancelling       = cancellingId === myBooking.id
+  const within24h          = !canCancel(session.session_date, session.start_time)
+
+  return (
+    <div style={{
+      background: 'rgba(232,222,250,0.05)',
+      borderLeft: '2px solid #E8DEFA',
+      padding: '14px 16px',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+          <TypeTag label="Practice · Your slot" color="#E8DEFA" />
+          <span style={{ fontFamily: MONO, fontSize: 13, color: 'rgba(232,222,250,0.85)', letterSpacing: '0.04em' }}>
+            {fmt12(entry.start)} — {fmt12(entry.end)}
+          </span>
+        </div>
+        <div style={{ flexShrink: 0 }}>
+          {within24h ? (
+            <span style={{ fontFamily: MONO, fontSize: 8, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.2)' }}>
+              Inside 24h
+            </span>
+          ) : !isConfirmingCancel ? (
+            <button
+              onClick={() => onConfirmCancel(myBooking.id)}
+              disabled={isCancelling}
+              style={{
+                background: 'none', border: '1px solid rgba(232,222,250,0.15)',
+                padding: '6px 14px', fontFamily: MONO, fontSize: 9,
+                letterSpacing: '0.12em', textTransform: 'uppercase',
+                color: 'rgba(232,222,250,0.4)', cursor: isCancelling ? 'wait' : 'pointer',
+              }}
+            >
+              {isCancelling ? '…' : 'Cancel'}
+            </button>
+          ) : null}
+        </div>
+      </div>
+
       {isConfirmingCancel && (
         <div style={{
           marginTop: 12, paddingTop: 12, borderTop: '1px solid rgba(232,222,250,0.06)',
@@ -369,7 +411,7 @@ function PracticeEntry({
               Keep it
             </button>
             <button
-              onClick={() => onCancel(myBooking!)}
+              onClick={() => onCancel(myBooking)}
               disabled={isCancelling}
               style={{
                 background: 'rgba(220,60,60,0.15)', border: '1px solid rgba(220,60,60,0.3)',
@@ -397,10 +439,10 @@ export default function PracticeSessionPage({ student }: Props) {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
 
-  const [confirmingSlotId, setConfirmingSlotId]   = useState<string | null>(null)
-  const [bookingSlotId, setBookingSlotId]         = useState<string | null>(null)
-  const [bookedSlotId, setBookedSlotId]           = useState<string | null>(null)
-  const [bookingError, setBookingError]           = useState<string | null>(null)
+  const [confirmingVacantKey, setConfirmingVacantKey] = useState<string | null>(null)
+  const [bookingVacantKey, setBookingVacantKey]       = useState<string | null>(null)
+  const [bookedVacantKey, setBookedVacantKey]         = useState<string | null>(null)
+  const [bookingError, setBookingError]               = useState<string | null>(null)
 
   const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null)
   const [cancellingId, setCancellingId]               = useState<string | null>(null)
@@ -412,16 +454,13 @@ export default function PracticeSessionPage({ student }: Props) {
   const load = useCallback(async () => {
     setLoadError(null)
     try {
-      // Materialize practice slots for this week + next week before fetching calendar.
-      // Non-fatal: if the RPC fails, the calendar still loads with whatever slots exist.
-      await ensurePracticeSlots(calendarWeekStarts()).catch(() => {})
       const { from, to } = calendarWindow()
       const [sessions, courseBlocks, bookings] = await Promise.all([
         fetchSessionsForCalendar(from, to),
         fetchCourseBlocksForRange(student.cohort, from, to),
         fetchMyPracticeBookings(),
       ])
-      setCalendar(buildCalendar(sessions, courseBlocks, bookings))
+      setCalendar(buildCalendar(sessions, courseBlocks, bookings, from, to))
       setMyBookings(bookings)
     } catch {
       setLoadError('Failed to load. Refresh the page.')
@@ -435,41 +474,43 @@ export default function PracticeSessionPage({ student }: Props) {
     else setLoading(false)
   }, [isLocked, isBlocked, load])
 
-  async function handleBook(session: Session) {
-    setBookingSlotId(session.id)
+  async function handleBook(slot: VacantSlot) {
+    const key = `${slot.date}|${slot.start}`
+    setBookingVacantKey(key)
     setBookingError(null)
     try {
-      const result = await bookPracticeSlot(session.id, student.id)
+      const result = await bookPracticeSlot(student.id, slot.date, slot.start, slot.end)
       if (result.error) {
         const MSGS: Record<string, string> = {
-          slot_taken:        'This slot was just taken — someone booked it first.',
-          slot_full:         'This slot is full.',
-          daily_cap_reached: 'You\'ve already booked 2 sessions on this day.',
-          access_locked:     'Practice booking isn\'t unlocked for your account.',
-          noshowblock:       'Your practice access is blocked. Contact your instructor.',
-          student_not_found: 'Account error. Refresh and try again.',
+          slot_no_longer_available: 'This slot was just taken — someone booked it first.',
+          invalid_slot:             'Invalid slot. Please refresh and try again.',
+          daily_cap_reached:        'You\'ve already booked 2 sessions on this day.',
+          access_locked:            'Practice booking isn\'t unlocked for your account.',
+          noshowblock:              'Your practice access is blocked. Contact your instructor.',
+          student_not_found:        'Account error. Refresh and try again.',
+          no_instructor_found:      'Studio configuration error. Contact your instructor.',
         }
         setBookingError(MSGS[result.error] ?? `Booking failed (${result.error}).`)
-        setConfirmingSlotId(null)
+        setConfirmingVacantKey(null)
         return
       }
       supabase.functions.invoke('send-practice-email', {
         body: { booking_id: result.booking_id, type: 'confirmed',
           student_name: student.name, student_email: student.email,
-          slot_date: session.session_date,
-          slot_start: session.start_time.slice(0, 5),
-          slot_end:   session.end_time.slice(0, 5),
+          slot_date:  slot.date,
+          slot_start: slot.start,
+          slot_end:   slot.end,
         },
       }).catch(() => {})
-      setConfirmingSlotId(null)
-      setBookedSlotId(session.id)
+      setConfirmingVacantKey(null)
+      setBookedVacantKey(key)
       await load()
-      setTimeout(() => setBookedSlotId(null), 4000)
+      setTimeout(() => setBookedVacantKey(null), 4000)
     } catch {
       setBookingError('Something went wrong. Try again.')
-      setConfirmingSlotId(null)
+      setConfirmingVacantKey(null)
     } finally {
-      setBookingSlotId(null)
+      setBookingVacantKey(null)
     }
   }
 
@@ -610,10 +651,10 @@ export default function PracticeSessionPage({ student }: Props) {
       {calDates.length === 0 ? (
         <div style={{ paddingTop: 32 }}>
           <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.2)' }}>
-            No slots this week
+            No slots available
           </div>
           <p style={{ fontSize: 14, color: 'rgba(232,222,250,0.35)', lineHeight: 1.7, margin: '12px 0 0' }}>
-            Practice slots refresh each week. Check back Sunday evening.
+            The studio is fully booked for the next two weeks. Check back later.
           </p>
         </div>
       ) : (
@@ -621,20 +662,24 @@ export default function PracticeSessionPage({ student }: Props) {
           {calDates.map(date => {
             const entries    = calendar.get(date)!
             const dayBooked  = bookedPerDate.get(date) ?? 0
-            const hasPractice = entries.some(e => e.kind === 'practice')
+            const hasVacant  = entries.some(e => e.kind === 'vacant')
+            const hasMine    = entries.some(e => e.kind === 'practice')
 
             return (
               <div key={date}>
                 {/* Date header */}
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10,
-                }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
                   <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.55)' }}>
                     {fmtDateHeading(date)}
                   </span>
-                  {hasPractice && dayBooked >= 2 && (
+                  {hasMine && dayBooked >= 2 && (
                     <span style={{ fontFamily: MONO, fontSize: 8, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.25)' }}>
                       · 2 sessions booked
+                    </span>
+                  )}
+                  {!hasVacant && !hasMine && (
+                    <span style={{ fontFamily: MONO, fontSize: 8, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.2)' }}>
+                      · Fully booked
                     </span>
                   )}
                 </div>
@@ -643,27 +688,35 @@ export default function PracticeSessionPage({ student }: Props) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {entries.map((entry, i) => {
                     if (entry.kind === 'course') {
-                      return <CourseEntry key={i} entry={entry} />
+                      return <CourseEntry key={`course-${i}`} entry={entry} />
                     }
                     if (entry.kind === 'masterclass') {
-                      return <MasterclassEntry key={i} entry={entry} />
+                      return <MasterclassEntry key={`mc-${entry.sessionId}`} entry={entry} />
+                    }
+                    if (entry.kind === 'practice') {
+                      return (
+                        <PracticeEntry
+                          key={`practice-${entry.myBooking.id}`}
+                          entry={entry}
+                          cancellingBookingId={cancellingBookingId}
+                          cancellingId={cancellingId}
+                          onConfirmCancel={id => setCancellingBookingId(id)}
+                          onKeepCancel={() => setCancellingBookingId(null)}
+                          onCancel={handleCancel}
+                        />
+                      )
                     }
                     return (
-                      <PracticeEntry
-                        key={entry.session.id}
+                      <VacantEntry
+                        key={`vacant-${entry.date}-${entry.start}`}
                         entry={entry}
-                        bookedOnDate={dayBooked}
-                        confirmingSlotId={confirmingSlotId}
-                        bookingSlotId={bookingSlotId}
-                        bookedSlotId={bookedSlotId}
-                        cancellingBookingId={cancellingBookingId}
-                        cancellingId={cancellingId}
-                        onConfirmBook={id => { setConfirmingSlotId(id); setBookingError(null) }}
-                        onCancelConfirm={() => setConfirmingSlotId(null)}
+                        dayFull={dayBooked >= 2}
+                        confirmingKey={confirmingVacantKey}
+                        bookingKey={bookingVacantKey}
+                        bookedKey={bookedVacantKey}
+                        onConfirm={key => { setConfirmingVacantKey(key); setBookingError(null) }}
+                        onCancelConfirm={() => setConfirmingVacantKey(null)}
                         onBook={handleBook}
-                        onConfirmCancel={id => setCancellingBookingId(id)}
-                        onKeepCancel={() => setCancellingBookingId(null)}
-                        onCancel={handleCancel}
                       />
                     )
                   })}
