@@ -677,7 +677,9 @@ export function computePracticeVacancies(
     ...dayCourseBlocks.map(b => ({ s: practiceToMins(b.start_time), e: practiceToMins(b.end_time) })),
   ]
   const now = new Date()
-  const isToday = date === now.toISOString().slice(0, 10)
+  const localDate = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  const isToday = date === localDate(now)
   const nowMins = now.getHours() * 60 + now.getMinutes()
   const open  = practiceToMins(PRACTICE_STUDIO_OPEN)
   const close = practiceToMins(PRACTICE_STUDIO_CLOSE)
@@ -707,12 +709,11 @@ export async function fetchSessionsForCalendar(fromDate: string, toDate: string)
 }
 
 export async function fetchCourseBlocksForRange(
-  cohort: string, fromDate: string, toDate: string
+  fromDate: string, toDate: string
 ): Promise<CourseClassBlock[]> {
   const { data, error } = await supabase
     .from('course_class_blocks')
     .select('id, block_date, start_time, end_time, label, cohort')
-    .eq('cohort', cohort)
     .gte('block_date', fromDate)
     .lte('block_date', toDate)
     .order('block_date')

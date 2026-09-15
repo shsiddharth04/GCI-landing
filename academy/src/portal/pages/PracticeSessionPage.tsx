@@ -18,6 +18,10 @@ const STUDIO = '11th Floor, The Capital, Next to CDS, Gurugram'
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
 
+function localDateStr(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 function fmt12(t: string): string {
   const [h, m] = t.slice(0, 5).split(':').map(Number)
   const period = h >= 12 ? 'PM' : 'AM'
@@ -63,8 +67,8 @@ function calendarWindow(): { from: string; to: string } {
   const nextSunday = new Date(thisMonday)
   nextSunday.setDate(nextSunday.getDate() + 13)
   return {
-    from: new Date().toISOString().slice(0, 10),
-    to:   nextSunday.toISOString().slice(0, 10),
+    from: localDateStr(new Date()),
+    to:   localDateStr(nextSunday),
   }
 }
 
@@ -82,6 +86,7 @@ function buildCalendar(
   myBookings: PracticeBooking[],
   from: string,
   to: string,
+  studentCohort: string,
 ): Map<string, CalEntry[]> {
   const myBookingBySessionId = new Map<string, PracticeBooking>()
   for (const b of myBookings) myBookingBySessionId.set(b.session_id, b)
@@ -100,7 +105,7 @@ function buildCalendar(
   const end = new Date(to + 'T00:00:00')
 
   while (cur <= end) {
-    const date = cur.toISOString().slice(0, 10)
+    const date = localDateStr(cur)
     const daySessions = sessionsByDate.get(date) ?? []
     const dayBlocks   = blocksByDate.get(date) ?? []
     const entries: CalEntry[] = []
@@ -120,10 +125,12 @@ function buildCalendar(
     }
 
     for (const b of dayBlocks) {
-      entries.push({ kind: 'course', date, start: b.start_time, end: b.end_time, label: b.label })
+      if (b.cohort === studentCohort) {
+        entries.push({ kind: 'course', date, start: b.start_time, end: b.end_time, label: b.label })
+      }
     }
 
-    // Vacant slots: studio hours minus all blocked windows on this date
+    // Vacant slots: studio hours minus ALL cohorts' blocks (studio is one space)
     const vacancies = computePracticeVacancies(date, daySessions, dayBlocks)
     for (const v of vacancies) {
       entries.push({ kind: 'vacant', date, start: v.start, end: v.end })
@@ -457,10 +464,10 @@ export default function PracticeSessionPage({ student }: Props) {
       const { from, to } = calendarWindow()
       const [sessions, courseBlocks, bookings] = await Promise.all([
         fetchSessionsForCalendar(from, to),
-        fetchCourseBlocksForRange(student.cohort, from, to),
+        fetchCourseBlocksForRange(from, to),
         fetchMyPracticeBookings(),
       ])
-      setCalendar(buildCalendar(sessions, courseBlocks, bookings, from, to))
+      setCalendar(buildCalendar(sessions, courseBlocks, bookings, from, to, student.cohort))
       setMyBookings(bookings)
     } catch {
       setLoadError('Failed to load. Refresh the page.')
