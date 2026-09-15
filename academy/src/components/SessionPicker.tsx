@@ -5,6 +5,44 @@ import type { SlotCounts, BlockedWindow, SlotOverride } from '../lib/db'
 import { loadSettings } from '../admin/settings'
 import { supabase } from '../lib/supabase'
 
+declare global {
+  interface Window {
+    Razorpay: new (options: Record<string, unknown>) => { open(): void }
+  }
+}
+
+const RAZORPAY_ENABLED = import.meta.env.VITE_RAZORPAY_ENABLED === 'true'
+
+// ── Razorpay helpers ─────────────────────────────────────────────────────────
+
+function loadRazorpayScript(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (window.Razorpay) { resolve(); return }
+    const s = document.createElement('script')
+    s.src = 'https://checkout.razorpay.com/v1/checkout.js'
+    s.onload = () => resolve()
+    s.onerror = () => reject(new Error('Failed to load Razorpay checkout'))
+    document.head.appendChild(s)
+  })
+}
+
+async function pollPaymentStatus(
+  bookingId: string,
+  maxAttempts = 10,
+): Promise<'paid' | 'failed' | 'timeout'> {
+  for (let i = 0; i < maxAttempts; i++) {
+    await new Promise(r => setTimeout(r, 2000))
+    const { data } = await supabase
+      .from('masterclass_bookings')
+      .select('payment_status')
+      .eq('id', bookingId)
+      .single()
+    if (data?.payment_status === 'paid') return 'paid'
+    if (data?.payment_status === 'failed') return 'failed'
+  }
+  return 'timeout'
+}
+
 // ── Slot generation ──────────────────────────────────────────────────────────
 
 function toMinutes(t: string) {
@@ -40,7 +78,6 @@ function getOverride(date: string, start: string, overrides: SlotOverride[]) {
 function isPast(date: string, slotStart: string) {
   const now = new Date()
   const slot = new Date(`${date}T${slotStart}:00`)
-  // Add a small buffer — if slot starts within 15 min, treat as past
   return slot.getTime() - now.getTime() < 15 * 60 * 1000
 }
 
@@ -106,9 +143,26 @@ function Field(props: React.InputHTMLAttributes<HTMLInputElement>) {
   )
 }
 
+// ── Spinner bar component ────────────────────────────────────────────────────
+
+function SpinnerBars() {
+  return (
+    <div style={{ display: 'flex', gap: '3px', alignItems: 'flex-end' }}>
+      {[0.6, 1, 0.7].map((h, i) => (
+        <div key={i} style={{
+          width: '3px', height: `${h * 14}px`,
+          background: '#d4bfff', opacity: 0.5, borderRadius: '1px',
+          animation: 'eqbar 0.8s ease-in-out infinite alternate',
+          animationDelay: `${i * 0.15}s`,
+        }} />
+      ))}
+    </div>
+  )
+}
+
 // ── Main component ───────────────────────────────────────────────────────────
 
-type Stage = 'pick' | 'form' | 'success' | 'waitlisted'
+type Stage = 'pick' | 'form' | 'processing' | 'success' | 'waitlisted' | 'payment_abandoned'
 
 export default function SessionPicker() {
   const { masterclass } = loadSettings()
@@ -121,32 +175,28 @@ export default function SessionPicker() {
     scheduleDaysAhead = 14,
   } = masterclass
 
-  // Build date list
   const today = new Date()
   const dates = Array.from({ length: scheduleDaysAhead }, (_, i) => dateStr(addDays(today, i)))
   const allSlots = generateSlots(scheduleOpenTime, scheduleCloseTime, slotMinutes)
 
-  // Data
   const [counts, setCounts] = useState<SlotCounts>({})
   const [blocked, setBlocked] = useState<BlockedWindow[]>([])
   const [overrides, setOverrides] = useState<SlotOverride[]>([])
   const [loading, setLoading] = useState(true)
   const [loadErr, setLoadErr] = useState(false)
 
-  // Selection
   const [activeDate, setActiveDate] = useState(dates[0])
   const [selectedSlot, setSelectedSlot] = useState<{ start: string; end: string } | null>(null)
   const [stage, setStage] = useState<Stage>('pick')
 
-  // Form
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
+  const [bookingId, setBookingId] = useState<string | null>(null)
 
   const formRef = useRef<HTMLDivElement>(null)
-  const dayScrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const from = dates[0]
@@ -157,18 +207,24 @@ export default function SessionPicker() {
       .finally(() => setLoading(false))
   }, [])
 
+  function refreshCounts() {
+    const from = dates[0]; const to = dates[dates.length - 1]
+    fetchMasterclassSlotData(from, to)
+      .then(({ counts, blocked, overrides }) => { setCounts(counts); setBlocked(blocked); setOverrides(overrides) })
+      .catch(() => null)
+  }
+
   function slotKey(date: string, start: string) { return `${date}|${start}` }
 
   function slotStatus(date: string, slot: { start: string; end: string }) {
     if (isPast(date, slot.start)) return 'past'
     const ov = getOverride(date, slot.start, overrides)
     if (ov?.override === 'blocked') return 'blocked'
-    // 'open' override bypasses course-class blocking; no override → check class blocks
     if (!ov) {
       const w = getBlockingWindow(slot.start, slot.end, blocked, date)
       if (w) {
         if (w.cohort) return `blocked-${w.cohort.toLowerCase()}`
-        return 'blocked' // session-table block, no cohort
+        return 'blocked'
       }
     }
     const booked = counts[slotKey(date, slot.start)] ?? 0
@@ -176,16 +232,11 @@ export default function SessionPicker() {
     return 'available'
   }
 
-  // Slots for the active day, excluding past
   const daySlots = allSlots.map(s => ({ ...s, status: slotStatus(activeDate, s) }))
   const visibleSlots = daySlots.filter(s => s.status !== 'past')
 
-  // Whether a day has any bookable slots
   function dayHasSlots(date: string) {
-    return allSlots.some(s => {
-      const st = slotStatus(date, s)
-      return st === 'available'
-    })
+    return allSlots.some(s => slotStatus(date, s) === 'available')
   }
 
   function pickSlot(slot: { start: string; end: string }) {
@@ -209,6 +260,63 @@ export default function SessionPicker() {
     return null
   }
 
+  // ── Razorpay checkout flow ───────────────────────────────────────────────────
+
+  async function openRazorpayCheckout(bid: string) {
+    setSubmitting(true)
+    try {
+      const { data, error: fnErr } = await supabase.functions.invoke('create-razorpay-order', {
+        body: { booking_id: bid },
+      })
+      if (fnErr || data?.error) throw new Error(data?.error ?? 'Order creation failed')
+
+      await loadRazorpayScript()
+
+      let handlerFired = false
+
+      const rzp = new window.Razorpay({
+        key: data.key_id,
+        order_id: data.order_id,
+        amount: data.amount,
+        currency: data.currency,
+        name: 'GCI Music Academy',
+        description: 'Masterclass Session Fee',
+        prefill: {
+          name: name.trim(),
+          email: email.trim(),
+          contact: phone.replace(/[\s\-+]/g, ''),
+        },
+        theme: { color: '#d4bfff' },
+        handler: async () => {
+          handlerFired = true
+          setStage('processing')
+          setSubmitting(false)
+          // Poll until webhook confirms payment_status = 'paid'
+          // If timeout (20s), still show success — webhook fires asynchronously
+          await pollPaymentStatus(bid)
+          setStage('success')
+          refreshCounts()
+        },
+        modal: {
+          ondismiss: () => {
+            if (!handlerFired) {
+              setStage('payment_abandoned')
+              setSubmitting(false)
+            }
+          },
+        },
+      })
+      rzp.open()
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Payment could not be opened'
+      setFormError(msg)
+      setStage('form')
+      setSubmitting(false)
+    }
+  }
+
+  // ── Form submit ──────────────────────────────────────────────────────────────
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!selectedSlot) return
@@ -222,27 +330,119 @@ export default function SessionPicker() {
         name.trim(), email.trim(), phone.replace(/[\s\-+]/g, ''),
         slotCapacity,
       )
+
       if (result.error === 'slot_blocked') {
         setFormError('This slot was just blocked by a class. Pick another time.')
-        // Refresh slot data
-        const from = dates[0]; const to = dates[dates.length - 1]
-        fetchMasterclassSlotData(from, to).then(({ counts, blocked, overrides }) => { setCounts(counts); setBlocked(blocked); setOverrides(overrides) }).catch(() => null)
+        refreshCounts()
         setSubmitting(false)
         return
       }
-      setStage(result.status === 'waitlisted' ? 'waitlisted' : 'success')
-      // Send confirmation email — fire-and-forget, never block the UX
-      supabase.functions.invoke('send-masterclass-confirmation', {
-        body: { name: name.trim(), email: email.trim(), date: activeDate, startTime: selectedSlot.start, endTime: selectedSlot.end, status: result.status ?? 'confirmed' },
-      }).catch(() => {})
-      // Refresh counts
-      const from = dates[0]; const to = dates[dates.length - 1]
-      fetchMasterclassSlotData(from, to).then(({ counts, blocked }) => { setCounts(counts); setBlocked(blocked) }).catch(() => null)
+      if (result.error === 'already_registered') {
+        setFormError('You already have a booking for this slot.')
+        setSubmitting(false)
+        return
+      }
+
+      if (result.status === 'waitlisted') {
+        setStage('waitlisted')
+        supabase.functions.invoke('send-masterclass-confirmation', {
+          body: { name: name.trim(), email: email.trim(), date: activeDate, startTime: selectedSlot.start, endTime: selectedSlot.end, status: 'waitlisted' },
+        }).catch(() => {})
+        refreshCounts()
+        setSubmitting(false)
+        return
+      }
+
+      // Confirmed slot
+      const bid = result.id!
+      setBookingId(bid)
+      refreshCounts()
+
+      if (!RAZORPAY_ENABLED) {
+        // Feature flag off — pre-payment flow, behavior unchanged
+        setStage('success')
+        supabase.functions.invoke('send-masterclass-confirmation', {
+          body: { name: name.trim(), email: email.trim(), date: activeDate, startTime: selectedSlot.start, endTime: selectedSlot.end, status: 'confirmed' },
+        }).catch(() => {})
+        setSubmitting(false)
+        return
+      }
+
+      await openRazorpayCheckout(bid)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)
       setFormError(`Booking failed: ${msg}`)
       setSubmitting(false)
     }
+  }
+
+  // ── Processing screen (polling after Razorpay handler fires) ─────────────────
+
+  if (stage === 'processing') {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        style={{ marginTop: '24px', background: 'rgba(5,5,5,0.7)', border: '1px solid rgba(212,191,255,0.2)', padding: '28px 24px', position: 'relative' }}
+      >
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(212,191,255,0.55), transparent)' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <SpinnerBars />
+          <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(212,191,255,0.5)', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
+            Confirming payment
+          </span>
+        </div>
+      </motion.div>
+    )
+  }
+
+  // ── Payment abandoned screen ──────────────────────────────────────────────────
+
+  if (stage === 'payment_abandoned') {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        style={{ marginTop: '24px', background: 'rgba(5,5,5,0.7)', border: '1px solid rgba(212,191,255,0.15)', padding: '28px 24px', position: 'relative' }}
+      >
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(212,191,255,0.35), transparent)' }} />
+        <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(212,191,255,0.5)', letterSpacing: '0.28em', textTransform: 'uppercase', marginBottom: '10px' }}>
+          Payment not completed
+        </p>
+        <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '14px', fontWeight: 600, color: 'rgba(255,255,255,0.85)', marginBottom: '4px' }}>
+          {fmtFullDate(activeDate)}
+        </p>
+        {selectedSlot && (
+          <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '10px', color: 'rgba(212,191,255,0.55)', letterSpacing: '0.14em', marginBottom: '16px' }}>
+            {fmtTime12(selectedSlot.start)} – {fmtTime12(selectedSlot.end)}
+          </p>
+        )}
+        <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.65, marginBottom: '20px' }}>
+          Your slot is still reserved. Complete payment to confirm it.
+        </p>
+        <button
+          onClick={() => bookingId && openRazorpayCheckout(bookingId)}
+          disabled={submitting}
+          style={{
+            background: '#d4bfff',
+            color: '#050505',
+            border: 'none',
+            fontFamily: "'Space Mono', monospace",
+            fontSize: '10px',
+            fontWeight: 700,
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            padding: '14px 20px',
+            cursor: submitting ? 'not-allowed' : 'pointer',
+            opacity: submitting ? 0.6 : 1,
+            transition: 'opacity 0.15s',
+            width: '100%',
+          }}
+        >
+          {submitting ? 'Opening payment...' : `Complete payment · ₹${fee}`}
+        </button>
+      </motion.div>
+    )
   }
 
   // ── Success / waitlist screens ──────────────────────────────────────────────
@@ -270,9 +470,11 @@ export default function SessionPicker() {
         <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.65 }}>
           {isWait
             ? "This slot just filled up. You're on the waitlist. We'll reach out if a spot opens."
-            : "We've received your request. Our team will reach out to confirm your slot and share payment details."}
+            : RAZORPAY_ENABLED
+              ? "Payment confirmed. Check your email for the booking details."
+              : "We've received your request. Our team will reach out to confirm your slot and share payment details."}
         </p>
-        {!isWait && (
+        {!isWait && !RAZORPAY_ENABLED && (
           <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '8px', color: 'rgba(212,191,255,0.4)', letterSpacing: '0.12em', marginTop: '10px' }}>
             ₹{fee} is credited toward the course fee if you enroll.
           </p>
@@ -286,11 +488,7 @@ export default function SessionPicker() {
   if (loading) {
     return (
       <div style={{ marginTop: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <div style={{ display: 'flex', gap: '3px', alignItems: 'flex-end' }}>
-          {[0.6, 1, 0.7].map((h, i) => (
-            <div key={i} style={{ width: '3px', height: `${h * 14}px`, background: '#d4bfff', opacity: 0.35, borderRadius: '1px', animation: 'eqbar 0.8s ease-in-out infinite alternate', animationDelay: `${i * 0.15}s` }} />
-          ))}
-        </div>
+        <SpinnerBars />
         <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(212,191,255,0.35)', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Loading</span>
       </div>
     )
@@ -311,7 +509,6 @@ export default function SessionPicker() {
 
       {/* Day scroll */}
       <div
-        ref={dayScrollRef}
         style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px', marginBottom: '16px', scrollbarWidth: 'none' }}
         className="hide-scrollbar"
       >
@@ -379,8 +576,6 @@ export default function SessionPicker() {
                 }
                 const cohortRgb = blockCohort ? (COHORT_RGBA[blockCohort] ?? '99,102,241') : null
 
-                // Slot style by state
-                // Note: section bg is #d4bfff (lavender), so all slot bgs must be dark enough to contrast
                 let slotBg = 'rgba(5,5,5,0.62)'
                 let slotBorder = '1px solid rgba(212,191,255,0.28)'
                 let slotCursor = 'pointer'
@@ -464,7 +659,6 @@ export default function SessionPicker() {
             <div style={{ background: 'rgba(5,5,5,0.8)', border: '1px solid rgba(212,191,255,0.2)', padding: '18px 20px', position: 'relative' }}>
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(212,191,255,0.55), transparent)' }} />
 
-              {/* Slot summary */}
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
                 <div>
                   <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', fontWeight: 600, color: 'rgba(255,255,255,0.85)', marginBottom: '2px' }}>
@@ -514,7 +708,9 @@ export default function SessionPicker() {
                     transition: 'opacity 0.15s',
                   }}
                 >
-                  {submitting ? 'Booking…' : `Confirm booking · ₹${fee}`}
+                  {submitting
+                    ? RAZORPAY_ENABLED ? 'Opening payment...' : 'Booking…'
+                    : `Confirm booking · ₹${fee}`}
                 </button>
               </form>
             </div>
