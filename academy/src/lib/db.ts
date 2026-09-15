@@ -242,15 +242,14 @@ export async function upsertSlotOverride(
   date: string, start: string, end: string,
   override: 'blocked' | 'open', reason?: string
 ): Promise<void> {
-  const { error } = await supabase
-    .from('masterclass_slot_overrides')
-    .upsert({ slot_date: date, slot_start: start, slot_end: end, override, reason: reason ?? null },
-      { onConflict: 'slot_date,slot_start' })
+  const { error } = await supabase.rpc('upsert_slot_override', {
+    p_date: date, p_start: start, p_end: end, p_override: override, p_reason: reason ?? null,
+  })
   if (error) throw error
 }
 
 export async function deleteSlotOverride(id: string): Promise<void> {
-  const { error } = await supabase.from('masterclass_slot_overrides').delete().eq('id', id)
+  const { error } = await supabase.rpc('delete_slot_override', { p_id: id })
   if (error) throw error
 }
 

@@ -26,3 +26,6 @@ enabled = false
 
 [edge_runtime]
 enabled = true
+
+[functions.razorpay-webhook]
+verify_jwt = false
