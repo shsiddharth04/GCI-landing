@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react'
-import { MapPin } from 'lucide-react'
 import type { EnrolledStudent, Session, PracticeBooking, CourseClassBlock } from '../../lib/db'
 import {
   fetchSessionsForCalendar, fetchCourseBlocksForRange,
@@ -29,12 +28,19 @@ function fmt12(t: string): string {
   return `${h12}:${String(m).padStart(2, '0')} ${period}`
 }
 
-function fmtDateHeading(d: string): string {
+function fmtCompact(t: string): string {
+  const [h, m] = t.slice(0, 5).split(':').map(Number)
+  const period = h >= 12 ? 'pm' : 'am'
+  const h12 = h % 12 === 0 ? 12 : h % 12
+  return m === 0 ? `${h12}${period}` : `${h12}:${String(m).padStart(2, '0')}${period}`
+}
+
+function fmtDateShort(d: string): string {
   const date = new Date(d + 'T00:00:00')
-  const day   = date.getDate().toString().padStart(2, '0')
-  const month = date.toLocaleDateString('en-IN', { month: 'short' }).toUpperCase()
-  const wd    = date.toLocaleDateString('en-IN', { weekday: 'short' }).toUpperCase()
-  return `${wd} ${day} ${month}`
+  const wd  = date.toLocaleDateString('en-IN', { weekday: 'short' }).toUpperCase()
+  const day = date.getDate().toString().padStart(2, '0')
+  const mon = date.toLocaleDateString('en-IN', { month: 'short' }).toUpperCase()
+  return `${wd} ${day} ${mon}`
 }
 
 function fmtBlockedUntil(d: string): string {
@@ -72,7 +78,18 @@ function calendarWindow(): { from: string; to: string } {
   }
 }
 
-// ── Calendar entry types ───────────────────────────────────────────────────────
+function allDatesInWindow(from: string, to: string): string[] {
+  const dates: string[] = []
+  const cur = new Date(from + 'T00:00:00')
+  const end = new Date(to + 'T00:00:00')
+  while (cur <= end) {
+    dates.push(localDateStr(cur))
+    cur.setDate(cur.getDate() + 1)
+  }
+  return dates
+}
+
+// ── Calendar types ─────────────────────────────────────────────────────────────
 
 type CalEntry =
   | { kind: 'course';      date: string; start: string; end: string; label: string | null }
@@ -118,7 +135,6 @@ function buildCalendar(
       } else if (s.session_type === 'practice_session') {
         const myBooking = myBookingBySessionId.get(s.id)
         if (myBooking) {
-          // Only show MY practice sessions — others are implicitly absent from the vacant list
           entries.push({ kind: 'practice', date, start: s.start_time, end: s.end_time, session: s, myBooking })
         }
       }
@@ -147,7 +163,7 @@ function buildCalendar(
   return result
 }
 
-// ── Waveform decoration ────────────────────────────────────────────────────────
+// ── WaveformBars ───────────────────────────────────────────────────────────────
 
 function WaveformBars({ dim = false }: { dim?: boolean }) {
   const heights = [0.2, 0.6, 1.0, 0.45, 0.8, 0.35, 0.9, 0.5, 0.7, 0.3, 0.85, 0.55, 0.75, 0.4, 0.65]
@@ -166,276 +182,6 @@ function WaveformBars({ dim = false }: { dim?: boolean }) {
   )
 }
 
-// ── Entry cards ────────────────────────────────────────────────────────────────
-
-function TypeTag({ label, color }: { label: string; color: string }) {
-  return (
-    <span style={{
-      fontFamily: MONO, fontSize: 8, letterSpacing: '0.2em',
-      textTransform: 'uppercase', color, flexShrink: 0,
-    }}>
-      {label}
-    </span>
-  )
-}
-
-function CourseEntry({ entry }: { entry: Extract<CalEntry, { kind: 'course' }> }) {
-  return (
-    <div style={{
-      background: 'rgba(232,222,250,0.02)',
-      borderLeft: '2px solid rgba(232,222,250,0.08)',
-      padding: '12px 16px',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-        <TypeTag label="Course class" color="rgba(232,222,250,0.2)" />
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <span style={{ fontFamily: MONO, fontSize: 12, color: 'rgba(232,222,250,0.35)', letterSpacing: '0.04em' }}>
-          {fmt12(entry.start)} — {fmt12(entry.end)}
-        </span>
-        {entry.label && (
-          <>
-            <span style={{ color: 'rgba(232,222,250,0.15)', fontFamily: MONO, fontSize: 10 }}>·</span>
-            <span style={{ fontSize: 12, color: 'rgba(232,222,250,0.3)', fontFamily: SANS }}>
-              {entry.label}
-            </span>
-          </>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function MasterclassEntry({ entry }: { entry: Extract<CalEntry, { kind: 'masterclass' }> }) {
-  return (
-    <div style={{
-      background: 'rgba(232,222,250,0.03)',
-      borderLeft: '2px solid rgba(232,222,250,0.15)',
-      padding: '12px 16px',
-    }}>
-      <div style={{ marginBottom: 4 }}>
-        <TypeTag label="Masterclass" color="rgba(232,222,250,0.35)" />
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <MapPin size={10} style={{ color: 'rgba(232,222,250,0.3)', flexShrink: 0 }} />
-        <span style={{ fontFamily: MONO, fontSize: 12, color: 'rgba(232,222,250,0.45)', letterSpacing: '0.04em' }}>
-          {fmt12(entry.start)} — {fmt12(entry.end)}
-        </span>
-      </div>
-    </div>
-  )
-}
-
-interface VacantEntryProps {
-  entry: Extract<CalEntry, { kind: 'vacant' }>
-  dayFull: boolean
-  confirmingKey: string | null
-  bookingKey: string | null
-  bookedKey: string | null
-  onConfirm: (key: string) => void
-  onCancelConfirm: () => void
-  onBook: (slot: VacantSlot) => void
-}
-
-function VacantEntry({
-  entry, dayFull, confirmingKey, bookingKey, bookedKey,
-  onConfirm, onCancelConfirm, onBook,
-}: VacantEntryProps) {
-  const key = `${entry.date}|${entry.start}`
-  const isConfirming = confirmingKey === key
-  const isBooking    = bookingKey === key
-  const wasBooked    = bookedKey === key
-
-  const borderColor = wasBooked
-    ? '#E8DEFA'
-    : isConfirming
-      ? '#E8DEFA'
-      : !dayFull
-        ? 'rgba(232,222,250,0.35)'
-        : 'rgba(232,222,250,0.1)'
-  const bgColor = wasBooked ? 'rgba(232,222,250,0.05)' : '#141414'
-
-  return (
-    <div style={{
-      background: bgColor,
-      borderLeft: `2px solid ${borderColor}`,
-      padding: '14px 16px',
-      transition: 'background 0.2s, border-color 0.2s',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-          <TypeTag
-            label="Practice"
-            color={dayFull ? 'rgba(232,222,250,0.25)' : 'rgba(232,222,250,0.7)'}
-          />
-          <span style={{
-            fontFamily: MONO, fontSize: 13, letterSpacing: '0.04em',
-            color: dayFull ? 'rgba(232,222,250,0.3)' : 'rgba(232,222,250,0.7)',
-          }}>
-            {fmt12(entry.start)} — {fmt12(entry.end)}
-          </span>
-        </div>
-        <div style={{ flexShrink: 0 }}>
-          {wasBooked && (
-            <span style={{
-              fontFamily: MONO, fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase',
-              color: '#0a0a0a', background: '#E8DEFA', padding: '4px 10px',
-            }}>
-              Booked
-            </span>
-          )}
-          {!wasBooked && !isConfirming && (
-            dayFull ? (
-              <span style={{ fontFamily: MONO, fontSize: 8, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.2)' }}>
-                Day full
-              </span>
-            ) : (
-              <button
-                onClick={() => onConfirm(key)}
-                style={{
-                  background: '#E8DEFA', border: 'none', padding: '7px 18px',
-                  fontFamily: MONO, fontSize: 9, letterSpacing: '0.12em',
-                  textTransform: 'uppercase', color: '#0a0a0a', fontWeight: 700, cursor: 'pointer',
-                }}
-              >
-                Book
-              </button>
-            )
-          )}
-        </div>
-      </div>
-
-      {isConfirming && (
-        <div style={{
-          marginTop: 12, paddingTop: 12, borderTop: '1px solid rgba(232,222,250,0.06)',
-          display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
-        }}>
-          <span style={{ fontSize: 13, color: 'rgba(232,222,250,0.5)', flexGrow: 1 }}>
-            Book this slot?
-          </span>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              onClick={onCancelConfirm}
-              style={{
-                background: 'none', border: '1px solid rgba(232,222,250,0.12)',
-                padding: '6px 14px', fontFamily: MONO, fontSize: 9,
-                letterSpacing: '0.12em', textTransform: 'uppercase',
-                color: 'rgba(232,222,250,0.35)', cursor: 'pointer',
-              }}
-            >
-              Nevermind
-            </button>
-            <button
-              onClick={() => onBook({ date: entry.date, start: entry.start, end: entry.end })}
-              disabled={isBooking}
-              style={{
-                background: '#E8DEFA', border: 'none', padding: '6px 18px',
-                fontFamily: MONO, fontSize: 9, letterSpacing: '0.12em',
-                textTransform: 'uppercase', color: '#0a0a0a', fontWeight: 700,
-                cursor: isBooking ? 'wait' : 'pointer', opacity: isBooking ? 0.6 : 1,
-              }}
-            >
-              {isBooking ? '…' : 'Confirm'}
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-interface PracticeEntryProps {
-  entry: Extract<CalEntry, { kind: 'practice' }>
-  cancellingBookingId: string | null
-  cancellingId: string | null
-  onConfirmCancel: (bookingId: string) => void
-  onKeepCancel: () => void
-  onCancel: (booking: PracticeBooking) => void
-}
-
-function PracticeEntry({
-  entry, cancellingBookingId, cancellingId,
-  onConfirmCancel, onKeepCancel, onCancel,
-}: PracticeEntryProps) {
-  const { session, myBooking } = entry
-  const isConfirmingCancel = cancellingBookingId === myBooking.id
-  const isCancelling       = cancellingId === myBooking.id
-  const within24h          = !canCancel(session.session_date, session.start_time)
-
-  return (
-    <div style={{
-      background: 'rgba(232,222,250,0.05)',
-      borderLeft: '2px solid #E8DEFA',
-      padding: '14px 16px',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-          <TypeTag label="Practice · Your slot" color="#E8DEFA" />
-          <span style={{ fontFamily: MONO, fontSize: 13, color: 'rgba(232,222,250,0.85)', letterSpacing: '0.04em' }}>
-            {fmt12(entry.start)} — {fmt12(entry.end)}
-          </span>
-        </div>
-        <div style={{ flexShrink: 0 }}>
-          {within24h ? (
-            <span style={{ fontFamily: MONO, fontSize: 8, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.2)' }}>
-              Inside 24h
-            </span>
-          ) : !isConfirmingCancel ? (
-            <button
-              onClick={() => onConfirmCancel(myBooking.id)}
-              disabled={isCancelling}
-              style={{
-                background: 'none', border: '1px solid rgba(232,222,250,0.15)',
-                padding: '6px 14px', fontFamily: MONO, fontSize: 9,
-                letterSpacing: '0.12em', textTransform: 'uppercase',
-                color: 'rgba(232,222,250,0.4)', cursor: isCancelling ? 'wait' : 'pointer',
-              }}
-            >
-              {isCancelling ? '…' : 'Cancel'}
-            </button>
-          ) : null}
-        </div>
-      </div>
-
-      {isConfirmingCancel && (
-        <div style={{
-          marginTop: 12, paddingTop: 12, borderTop: '1px solid rgba(232,222,250,0.06)',
-          display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
-        }}>
-          <span style={{ fontSize: 13, color: 'rgba(232,222,250,0.5)', flexGrow: 1 }}>
-            Cancel this slot?
-          </span>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              onClick={onKeepCancel}
-              style={{
-                background: 'none', border: '1px solid rgba(232,222,250,0.12)',
-                padding: '6px 14px', fontFamily: MONO, fontSize: 9,
-                letterSpacing: '0.12em', textTransform: 'uppercase',
-                color: 'rgba(232,222,250,0.35)', cursor: 'pointer',
-              }}
-            >
-              Keep it
-            </button>
-            <button
-              onClick={() => onCancel(myBooking)}
-              disabled={isCancelling}
-              style={{
-                background: 'rgba(220,60,60,0.15)', border: '1px solid rgba(220,60,60,0.3)',
-                padding: '6px 18px', fontFamily: MONO, fontSize: 9,
-                letterSpacing: '0.12em', textTransform: 'uppercase',
-                color: 'rgba(255,120,100,0.8)', cursor: isCancelling ? 'wait' : 'pointer',
-              }}
-            >
-              {isCancelling ? '…' : 'Yes, cancel'}
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
 // ── Main page ──────────────────────────────────────────────────────────────────
 
 export default function PracticeSessionPage({ student }: Props) {
@@ -445,6 +191,7 @@ export default function PracticeSessionPage({ student }: Props) {
   const [myBookings, setMyBookings] = useState<PracticeBooking[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [selectedDate, setSelectedDate] = useState<string>(() => localDateStr(new Date()))
 
   const [confirmingVacantKey, setConfirmingVacantKey] = useState<string | null>(null)
   const [bookingVacantKey, setBookingVacantKey]       = useState<string | null>(null)
@@ -457,6 +204,9 @@ export default function PracticeSessionPage({ student }: Props) {
 
   const isLocked  = student.practice_access_mode !== 'unlocked'
   const isBlocked = isBlockActive(student.blocked_until)
+
+  const { from, to } = calendarWindow()
+  const windowDates = allDatesInWindow(from, to)
 
   const load = useCallback(async () => {
     setLoadError(null)
@@ -481,6 +231,14 @@ export default function PracticeSessionPage({ student }: Props) {
     else setLoading(false)
   }, [isLocked, isBlocked, load])
 
+  function selectDate(date: string) {
+    setSelectedDate(date)
+    setConfirmingVacantKey(null)
+    setCancellingBookingId(null)
+    setBookingError(null)
+    setCancelError(null)
+  }
+
   async function handleBook(slot: VacantSlot) {
     const key = `${slot.date}|${slot.start}`
     setBookingVacantKey(key)
@@ -491,8 +249,8 @@ export default function PracticeSessionPage({ student }: Props) {
         const MSGS: Record<string, string> = {
           slot_no_longer_available: 'This slot was just taken — someone booked it first.',
           invalid_slot:             'Invalid slot. Please refresh and try again.',
-          daily_cap_reached:        'You\'ve already booked 2 sessions on this day.',
-          access_locked:            'Practice booking isn\'t unlocked for your account.',
+          daily_cap_reached:        "You've already booked 2 sessions on this day.",
+          access_locked:            "Practice booking isn't unlocked for your account.",
           noshowblock:              'Your practice access is blocked. Contact your instructor.',
           student_not_found:        'Account error. Refresh and try again.',
           no_instructor_found:      'Studio configuration error. Contact your instructor.',
@@ -502,11 +260,10 @@ export default function PracticeSessionPage({ student }: Props) {
         return
       }
       supabase.functions.invoke('send-practice-email', {
-        body: { booking_id: result.booking_id, type: 'confirmed',
+        body: {
+          booking_id: result.booking_id, type: 'confirmed',
           student_name: student.name, student_email: student.email,
-          slot_date:  slot.date,
-          slot_start: slot.start,
-          slot_end:   slot.end,
+          slot_date: slot.date, slot_start: slot.start, slot_end: slot.end,
         },
       }).catch(() => {})
       setConfirmingVacantKey(null)
@@ -536,7 +293,8 @@ export default function PracticeSessionPage({ student }: Props) {
         return
       }
       supabase.functions.invoke('send-practice-email', {
-        body: { booking_id: booking.id, type: 'cancelled',
+        body: {
+          booking_id: booking.id, type: 'cancelled',
           student_name: student.name, student_email: student.email,
           slot_date:  booking.session?.session_date ?? '',
           slot_start: booking.session?.start_time?.slice(0, 5) ?? '',
@@ -560,11 +318,11 @@ export default function PracticeSessionPage({ student }: Props) {
   }
 
   const pad: React.CSSProperties = {
-    padding: isMobile ? '24px 20px 48px' : '48px 56px',
+    padding: isMobile ? '24px 20px 60px' : '48px 56px',
     fontFamily: SANS, minHeight: '100vh',
   }
 
-  // ── Locked ──────────────────────────────────────────────────────────────────
+  // ── Locked ───────────────────────────────────────────────────────────────────
   if (isLocked) {
     return (
       <div style={pad}>
@@ -583,7 +341,7 @@ export default function PracticeSessionPage({ student }: Props) {
     )
   }
 
-  // ── Blocked ─────────────────────────────────────────────────────────────────
+  // ── Blocked ──────────────────────────────────────────────────────────────────
   if (isBlocked) {
     return (
       <div style={pad}>
@@ -627,112 +385,438 @@ export default function PracticeSessionPage({ student }: Props) {
     )
   }
 
-  // ── Unlocked: calendar ───────────────────────────────────────────────────────
-  const calDates = Array.from(calendar.keys())
+  // ── Unlocked: derive day data ─────────────────────────────────────────────────
+  const todayStr    = localDateStr(new Date())
+  const dayEntries  = calendar.get(selectedDate) ?? []
+  const dayBooked   = bookedPerDate.get(selectedDate) ?? 0
+  const dayFull     = dayBooked >= 2
 
+  const dayBlockNotices = dayEntries.filter(
+    (e): e is Extract<CalEntry, { kind: 'course' | 'masterclass' }> =>
+      e.kind === 'course' || e.kind === 'masterclass'
+  )
+  // All bookable chips in chronological order (mine + vacant together)
+  const chipSlots = dayEntries.filter(
+    (e): e is Extract<CalEntry, { kind: 'practice' | 'vacant' }> =>
+      e.kind === 'practice' || e.kind === 'vacant'
+  )
+
+  // Slot being confirm-booked
+  const confirmingSlot: Extract<CalEntry, { kind: 'vacant' }> | null = (() => {
+    if (!confirmingVacantKey) return null
+    const [d, s] = confirmingVacantKey.split('|')
+    const found = dayEntries.find(e => e.kind === 'vacant' && e.date === d && e.start === s)
+    return found?.kind === 'vacant' ? found : null
+  })()
+
+  // Slot being confirm-cancelled
+  const cancellingEntry = cancellingBookingId
+    ? dayEntries.find(e => e.kind === 'practice' && e.myBooking.id === cancellingBookingId)
+    : undefined
+  const cancellingBooking = cancellingEntry?.kind === 'practice' ? cancellingEntry.myBooking : null
+
+  // Upcoming bookings (future, sorted)
+  const now = new Date()
+  const upcomingBookings = myBookings
+    .filter(b => b.session && new Date(`${b.session.session_date}T${b.session.start_time}`) > now)
+    .sort((a, b) => {
+      const at = `${a.session?.session_date}T${a.session?.start_time}`
+      const bt = `${b.session?.session_date}T${b.session?.start_time}`
+      return at.localeCompare(bt)
+    })
+
+  // ── Unlocked: render ──────────────────────────────────────────────────────────
   return (
     <div style={pad}>
+
       {/* Header */}
-      <div style={{ marginBottom: isMobile ? 28 : 40 }}>
+      <div style={{ marginBottom: isMobile ? 28 : 36 }}>
         <WaveformBars />
-        <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.5)', margin: '20px 0 12px' }}>
+        <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.5)', margin: '20px 0 10px' }}>
           Practice
         </div>
-        <h1 style={{ fontFamily: SANS, fontSize: isMobile ? 24 : 36, fontWeight: 700, color: '#E8DEFA', letterSpacing: '-0.02em', lineHeight: 1.15, margin: '0 0 10px' }}>
-          Book a practice slot.
+        <h1 style={{ fontFamily: SANS, fontSize: isMobile ? 22 : 32, fontWeight: 700, color: '#E8DEFA', letterSpacing: '-0.02em', lineHeight: 1.15, margin: '0 0 8px' }}>
+          Book a session.
         </h1>
-        <p style={{ fontSize: 13, color: 'rgba(232,222,250,0.4)', lineHeight: 1.7, margin: 0, fontFamily: MONO, letterSpacing: '0.03em' }}>
-          Max 2 sessions / day · Cancel 24h in advance · {STUDIO}
+        <p style={{ fontSize: 12, color: 'rgba(232,222,250,0.35)', margin: 0, fontFamily: MONO, letterSpacing: '0.03em' }}>
+          Max 2 / day · Cancel 24h before · {STUDIO}
         </p>
       </div>
 
       {/* Error banners */}
-      {bookingError && (
-        <ErrorBanner msg={bookingError} onDismiss={() => setBookingError(null)} />
-      )}
-      {cancelError && (
-        <ErrorBanner msg={cancelError} onDismiss={() => setCancelError(null)} />
-      )}
+      {bookingError && <ErrorBanner msg={bookingError} onDismiss={() => setBookingError(null)} />}
+      {cancelError  && <ErrorBanner msg={cancelError}  onDismiss={() => setCancelError(null)} />}
 
-      {/* Calendar */}
-      {calDates.length === 0 ? (
-        <div style={{ paddingTop: 32 }}>
-          <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.2)' }}>
-            No slots available
+      {/* Upcoming bookings */}
+      {upcomingBookings.length > 0 && (
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ fontFamily: MONO, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.3)', marginBottom: 10 }}>
+            Upcoming
           </div>
-          <p style={{ fontSize: 14, color: 'rgba(232,222,250,0.35)', lineHeight: 1.7, margin: '12px 0 0' }}>
-            The studio is fully booked for the next two weeks. Check back later.
-          </p>
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? 28 : 36, maxWidth: 680 }}>
-          {calDates.map(date => {
-            const entries    = calendar.get(date)!
-            const dayBooked  = bookedPerDate.get(date) ?? 0
-            const hasVacant  = entries.some(e => e.kind === 'vacant')
-            const hasMine    = entries.some(e => e.kind === 'practice')
-
-            return (
-              <div key={date}>
-                {/* Date header */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-                  <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.55)' }}>
-                    {fmtDateHeading(date)}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {upcomingBookings.map(b => (
+              <div
+                key={b.id}
+                onClick={() => selectDate(b.session!.session_date)}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '10px 14px',
+                  background: 'rgba(232,222,250,0.04)',
+                  border: '1px solid rgba(232,222,250,0.1)',
+                  cursor: 'pointer',
+                  gap: 12,
+                }}
+              >
+                <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.08em', color: 'rgba(232,222,250,0.5)' }}>
+                    {fmtDateShort(b.session!.session_date)}
                   </span>
-                  {hasMine && dayBooked >= 2 && (
-                    <span style={{ fontFamily: MONO, fontSize: 8, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.25)' }}>
-                      · 2 sessions booked
-                    </span>
-                  )}
-                  {!hasVacant && !hasMine && (
-                    <span style={{ fontFamily: MONO, fontSize: 8, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.2)' }}>
-                      · Fully booked
-                    </span>
-                  )}
+                  <span style={{ fontFamily: MONO, fontSize: 11, color: '#E8DEFA', letterSpacing: '0.03em' }}>
+                    {fmtCompact(b.session!.start_time)} – {fmtCompact(b.session!.end_time)}
+                  </span>
                 </div>
-
-                {/* Entries */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {entries.map((entry, i) => {
-                    if (entry.kind === 'course') {
-                      return <CourseEntry key={`course-${i}`} entry={entry} />
-                    }
-                    if (entry.kind === 'masterclass') {
-                      return <MasterclassEntry key={`mc-${entry.sessionId}`} entry={entry} />
-                    }
-                    if (entry.kind === 'practice') {
-                      return (
-                        <PracticeEntry
-                          key={`practice-${entry.myBooking.id}`}
-                          entry={entry}
-                          cancellingBookingId={cancellingBookingId}
-                          cancellingId={cancellingId}
-                          onConfirmCancel={id => setCancellingBookingId(id)}
-                          onKeepCancel={() => setCancellingBookingId(null)}
-                          onCancel={handleCancel}
-                        />
-                      )
-                    }
-                    return (
-                      <VacantEntry
-                        key={`vacant-${entry.date}-${entry.start}`}
-                        entry={entry}
-                        dayFull={dayBooked >= 2}
-                        confirmingKey={confirmingVacantKey}
-                        bookingKey={bookingVacantKey}
-                        bookedKey={bookedVacantKey}
-                        onConfirm={key => { setConfirmingVacantKey(key); setBookingError(null) }}
-                        onCancelConfirm={() => setConfirmingVacantKey(null)}
-                        onBook={handleBook}
-                      />
-                    )
-                  })}
-                </div>
+                <span style={{ fontFamily: MONO, fontSize: 7, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.25)', flexShrink: 0 }}>
+                  tap to cancel →
+                </span>
               </div>
-            )
-          })}
+            ))}
+          </div>
         </div>
       )}
+
+      {/* Date strip */}
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ fontFamily: MONO, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.3)', marginBottom: 10 }}>
+          Select a date
+        </div>
+        {/* Two rows: this week + next week */}
+        {[windowDates.slice(0, 7), windowDates.slice(7)].map((week, wi) => (
+          <div
+            key={wi}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: `repeat(${week.length}, 1fr)`,
+              gap: 4,
+              marginBottom: wi === 0 ? 4 : 0,
+            }}
+          >
+            {week.map(date => {
+              const entries    = calendar.get(date) ?? []
+              const hasVacant  = entries.some(e => e.kind === 'vacant')
+              const hasMine    = entries.some(e => e.kind === 'practice')
+              const isSelected = date === selectedDate
+              const isToday    = date === todayStr
+              const d          = new Date(date + 'T00:00:00')
+              const dayName    = d.toLocaleDateString('en-IN', { weekday: 'short' }).toUpperCase()
+              const dayNum     = d.getDate()
+              const active     = hasVacant || hasMine
+
+              return (
+                <button
+                  key={date}
+                  onClick={() => selectDate(date)}
+                  style={{
+                    padding: '9px 4px 8px',
+                    background: isSelected ? '#E8DEFA' : 'transparent',
+                    border: isSelected
+                      ? 'none'
+                      : hasMine
+                        ? '1px solid rgba(232,222,250,0.22)'
+                        : hasVacant
+                          ? '1px solid rgba(232,222,250,0.12)'
+                          : '1px solid rgba(232,222,250,0.06)',
+                    cursor: 'pointer',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                    position: 'relative',
+                    transition: 'background 0.12s',
+                    outline: 'none',
+                    minWidth: 0,
+                  }}
+                >
+                  <span style={{
+                    fontFamily: MONO, fontSize: 7, letterSpacing: '0.1em',
+                    color: isSelected ? '#141414' : active ? 'rgba(232,222,250,0.45)' : 'rgba(232,222,250,0.18)',
+                  }}>
+                    {dayName}
+                  </span>
+                  <span style={{
+                    fontFamily: SANS, fontSize: isMobile ? 13 : 15,
+                    fontWeight: isSelected ? 700 : active ? 600 : 400,
+                    lineHeight: 1,
+                    color: isSelected ? '#0a0a0a' : active ? 'rgba(232,222,250,0.8)' : 'rgba(232,222,250,0.2)',
+                  }}>
+                    {dayNum}
+                  </span>
+                  {/* Today dot */}
+                  {isToday && !isSelected && (
+                    <div style={{
+                      width: 3, height: 3, borderRadius: '50%',
+                      background: active ? 'rgba(232,222,250,0.5)' : 'rgba(232,222,250,0.15)',
+                    }} />
+                  )}
+                  {/* Booking indicator */}
+                  {hasMine && !isSelected && (
+                    <div style={{
+                      position: 'absolute', top: 5, right: 6,
+                      width: 4, height: 4, borderRadius: '50%',
+                      background: '#E8DEFA',
+                    }} />
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        ))}
+      </div>
+
+      {/* Selected day view */}
+      <div style={{ maxWidth: 600 }}>
+
+        {/* Day heading */}
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
+          <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.65)' }}>
+            {fmtDateShort(selectedDate)}
+          </span>
+          {dayFull && chipSlots.some(e => e.kind === 'vacant') && (
+            <span style={{ fontFamily: MONO, fontSize: 8, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.3)' }}>
+              · 2/2 booked
+            </span>
+          )}
+          {chipSlots.length === 0 && dayEntries.length === 0 && (
+            <span style={{ fontFamily: MONO, fontSize: 8, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.2)' }}>
+              · Studio closed
+            </span>
+          )}
+        </div>
+
+        {/* Block notices */}
+        {dayBlockNotices.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
+            {dayBlockNotices.map((b, i) => (
+              <span
+                key={i}
+                style={{
+                  fontFamily: MONO, fontSize: 9, letterSpacing: '0.08em',
+                  color: 'rgba(232,222,250,0.3)',
+                  border: '1px solid rgba(232,222,250,0.08)',
+                  padding: '4px 10px',
+                }}
+              >
+                {b.kind === 'masterclass' ? 'Masterclass' : 'Class'} · {fmt12(b.start)} – {fmt12(b.end)}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Time chips */}
+        {chipSlots.length > 0 ? (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(72px, 1fr))',
+            gap: 6,
+            marginBottom: 16,
+          }}>
+            {chipSlots.map(entry => {
+              if (entry.kind === 'practice') {
+                const { myBooking, session } = entry
+                const isCancelConfirming = cancellingBookingId === myBooking.id
+                const isCancelling       = cancellingId === myBooking.id
+                const within24h          = !canCancel(session.session_date, session.start_time)
+                return (
+                  <button
+                    key={`mine-${myBooking.id}`}
+                    onClick={() => {
+                      if (within24h) return
+                      if (isCancelConfirming) {
+                        setCancellingBookingId(null)
+                      } else {
+                        setCancellingBookingId(myBooking.id)
+                        setConfirmingVacantKey(null)
+                      }
+                    }}
+                    title={within24h ? 'Inside 24h cancellation window' : 'Click to cancel'}
+                    style={{
+                      background: isCancelConfirming ? 'rgba(220,60,60,0.1)' : 'rgba(232,222,250,0.08)',
+                      border: `1px solid ${isCancelConfirming ? 'rgba(220,60,60,0.35)' : '#E8DEFA'}`,
+                      padding: '11px 6px 9px',
+                      fontFamily: MONO, fontSize: 12, letterSpacing: '0.02em',
+                      color: isCancelConfirming ? 'rgba(255,120,100,0.75)' : '#E8DEFA',
+                      cursor: within24h ? 'default' : 'pointer',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+                      outline: 'none',
+                      transition: 'background 0.12s, border-color 0.12s',
+                    }}
+                  >
+                    <span>{fmtCompact(entry.start)}</span>
+                    <span style={{
+                      fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase',
+                      color: isCancelConfirming
+                        ? 'rgba(255,120,100,0.5)'
+                        : within24h
+                          ? 'rgba(232,222,250,0.25)'
+                          : 'rgba(232,222,250,0.4)',
+                    }}>
+                      {isCancelling ? '…' : within24h ? 'yours' : 'yours ×'}
+                    </span>
+                  </button>
+                )
+              }
+
+              // kind === 'vacant'
+              const key          = `${entry.date}|${entry.start}`
+              const isConfirming = confirmingVacantKey === key
+              const isBooking    = bookingVacantKey === key
+              const wasBooked    = bookedVacantKey === key
+              return (
+                <button
+                  key={`vacant-${key}`}
+                  onClick={() => {
+                    if (dayFull || isBooking || wasBooked) return
+                    if (isConfirming) {
+                      setConfirmingVacantKey(null)
+                    } else {
+                      setConfirmingVacantKey(key)
+                      setCancellingBookingId(null)
+                      setBookingError(null)
+                    }
+                  }}
+                  disabled={dayFull || isBooking}
+                  style={{
+                    background: wasBooked
+                      ? 'rgba(232,222,250,0.08)'
+                      : isConfirming
+                        ? 'rgba(232,222,250,0.05)'
+                        : 'transparent',
+                    border: `1px solid ${
+                      wasBooked || isConfirming
+                        ? '#E8DEFA'
+                        : dayFull
+                          ? 'rgba(232,222,250,0.07)'
+                          : 'rgba(232,222,250,0.16)'
+                    }`,
+                    padding: '11px 6px 9px',
+                    fontFamily: MONO, fontSize: 12, letterSpacing: '0.02em',
+                    color: wasBooked || isConfirming
+                      ? '#E8DEFA'
+                      : dayFull
+                        ? 'rgba(232,222,250,0.18)'
+                        : 'rgba(232,222,250,0.65)',
+                    cursor: dayFull || isBooking || wasBooked ? 'default' : 'pointer',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+                    outline: 'none',
+                    transition: 'background 0.12s, border-color 0.12s',
+                  }}
+                >
+                  <span>{isBooking ? '…' : wasBooked ? '✓' : fmtCompact(entry.start)}</span>
+                  {wasBooked && (
+                    <span style={{ fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.4)' }}>
+                      booked
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        ) : dayEntries.length > 0 ? (
+          <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.2)', paddingTop: 4, marginBottom: 16 }}>
+            No available slots this day
+          </div>
+        ) : (
+          <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,222,250,0.15)', paddingTop: 4, marginBottom: 16 }}>
+            Studio closes at 8 PM
+          </div>
+        )}
+
+        {/* Book confirmation panel */}
+        {confirmingSlot && (
+          <div style={{
+            padding: '14px 16px',
+            border: '1px solid rgba(232,222,250,0.2)',
+            background: 'rgba(232,222,250,0.03)',
+            marginBottom: 12,
+          }}>
+            <div style={{ fontSize: 14, color: 'rgba(232,222,250,0.8)', marginBottom: 14, fontFamily: SANS }}>
+              Book{' '}
+              <strong style={{ color: '#E8DEFA' }}>
+                {fmt12(confirmingSlot.start)} – {fmt12(confirmingSlot.end)}
+              </strong>
+              {' '}on {fmtDateShort(selectedDate)}?
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                onClick={() => setConfirmingVacantKey(null)}
+                style={{
+                  background: 'none', border: '1px solid rgba(232,222,250,0.12)',
+                  padding: '7px 14px', fontFamily: MONO, fontSize: 9,
+                  letterSpacing: '0.1em', textTransform: 'uppercase',
+                  color: 'rgba(232,222,250,0.35)', cursor: 'pointer',
+                }}
+              >
+                Nevermind
+              </button>
+              <button
+                onClick={() => handleBook({ date: confirmingSlot.date, start: confirmingSlot.start, end: confirmingSlot.end })}
+                disabled={!!bookingVacantKey}
+                style={{
+                  background: '#E8DEFA', border: 'none', padding: '7px 20px',
+                  fontFamily: MONO, fontSize: 9, letterSpacing: '0.1em',
+                  textTransform: 'uppercase', color: '#0a0a0a', fontWeight: 700,
+                  cursor: bookingVacantKey ? 'wait' : 'pointer',
+                  opacity: bookingVacantKey ? 0.6 : 1,
+                }}
+              >
+                {bookingVacantKey ? '…' : 'Confirm'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Cancel confirmation panel */}
+        {cancellingBookingId && cancellingBooking && (
+          <div style={{
+            padding: '14px 16px',
+            border: '1px solid rgba(220,60,60,0.2)',
+            background: 'rgba(220,60,60,0.04)',
+            marginBottom: 12,
+          }}>
+            <div style={{ fontSize: 14, color: 'rgba(232,222,250,0.8)', marginBottom: 14, fontFamily: SANS }}>
+              Cancel{' '}
+              <strong style={{ color: '#E8DEFA' }}>
+                {fmt12(cancellingBooking.session?.start_time ?? '')} – {fmt12(cancellingBooking.session?.end_time ?? '')}
+              </strong>
+              {' '}on {fmtDateShort(selectedDate)}?
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                onClick={() => setCancellingBookingId(null)}
+                style={{
+                  background: 'none', border: '1px solid rgba(232,222,250,0.12)',
+                  padding: '7px 14px', fontFamily: MONO, fontSize: 9,
+                  letterSpacing: '0.1em', textTransform: 'uppercase',
+                  color: 'rgba(232,222,250,0.35)', cursor: 'pointer',
+                }}
+              >
+                Keep it
+              </button>
+              <button
+                onClick={() => handleCancel(cancellingBooking)}
+                disabled={!!cancellingId}
+                style={{
+                  background: 'rgba(220,60,60,0.15)', border: '1px solid rgba(220,60,60,0.3)',
+                  padding: '7px 20px', fontFamily: MONO, fontSize: 9,
+                  letterSpacing: '0.1em', textTransform: 'uppercase',
+                  color: 'rgba(255,120,100,0.8)',
+                  cursor: cancellingId ? 'wait' : 'pointer',
+                  opacity: cancellingId ? 0.6 : 1,
+                }}
+              >
+                {cancellingId ? '…' : 'Yes, cancel'}
+              </button>
+            </div>
+          </div>
+        )}
+
+      </div>
 
       <WaveformStyle />
     </div>
@@ -743,12 +827,12 @@ function ErrorBanner({ msg, onDismiss }: { msg: string; onDismiss: () => void })
   return (
     <div style={{
       background: 'rgba(220,60,60,0.1)', border: '1px solid rgba(220,60,60,0.22)',
-      padding: '12px 16px', marginBottom: 24, maxWidth: 680,
+      padding: '12px 16px', marginBottom: 24, maxWidth: 640,
       display: 'flex', alignItems: 'flex-start', gap: 10,
     }}>
-      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,120,100,0.6)', paddingTop: 2 }}>Error</span>
+      <span style={{ fontFamily: MONO, fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,120,100,0.6)', paddingTop: 2 }}>Error</span>
       <span style={{ fontSize: 13, color: 'rgba(255,120,100,0.85)', lineHeight: 1.6, flex: 1 }}>{msg}</span>
-      <button onClick={onDismiss} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,120,100,0.4)', fontFamily: "'JetBrains Mono', monospace", fontSize: 10, padding: 0, paddingTop: 1 }}>✕</button>
+      <button onClick={onDismiss} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,120,100,0.4)', fontFamily: MONO, fontSize: 10, padding: 0, paddingTop: 1 }}>✕</button>
     </div>
   )
 }
