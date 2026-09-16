@@ -1,7 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
-const FROM = 'GCI Music Academy <noreply@send.gigcultureindia.com>'
+const FROM = 'GCI Music Academy <noreply@gigcultureindia.com>'
 const STUDIO_ADDRESS = '11th Floor, Capital Tower, Next To CDS Tower, Sector 20, Gurugram'
 
 function fmt24to12(t: string): string {
