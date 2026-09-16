@@ -22,8 +22,8 @@ export default function App() {
       <Hero />
       <Tracks />
       <Instructors />
-      <StudioGallery />
       <TrustLayer />
+      <StudioGallery />
       <Outcomes />
       <Pathway />
       <Graduation />

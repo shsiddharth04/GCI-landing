@@ -6,6 +6,7 @@ import './index.css'
 import App from './App.tsx'
 import AdminApp from './admin/index.tsx'
 import StudioPage from './pages/StudioPage.tsx'
+import ContactPage from './pages/ContactPage.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -13,6 +14,7 @@ createRoot(document.getElementById('root')!).render(
       <Routes>
         <Route path="/admin/*" element={<AdminApp />} />
         <Route path="/studio" element={<StudioPage />} />
+        <Route path="/contact" element={<ContactPage />} />
         <Route path="/*" element={<App />} />
       </Routes>
     </HashRouter>

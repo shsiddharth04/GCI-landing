@@ -4,8 +4,8 @@ const SANS = "'Plus Jakarta Sans', sans-serif"
 const BLOCKS = [
   {
     title: 'GCI ARTIST',
-    name: 'Viraj Shah',
-    line: 'Tomorrowland today, GCI always.',
+    name: 'Virush Music',
+    line: 'From underground sets to international stages — GCI is where the next wave starts.',
     photo: '/viraj.jpg',
     grayscale: false,
   },

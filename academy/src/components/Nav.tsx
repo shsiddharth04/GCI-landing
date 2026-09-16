@@ -79,6 +79,11 @@ export default function Nav() {
             onMouseEnter={e => (e.currentTarget.style.color = 'white')}
             onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}
           >Studio</Link>
+          <Link to="/contact"
+            style={{ transition: 'color 0.2s', textDecoration: 'none', color: 'rgba(255,255,255,0.45)' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'white')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}
+          >Contact</Link>
         </nav>
 
         <div className="hidden md:flex items-center gap-4">
@@ -116,6 +121,9 @@ export default function Nav() {
           <Link to="/studio" onClick={() => setOpen(false)}
             style={{ display: 'block', fontSize: '14px', color: 'rgba(255,255,255,0.55)', textDecoration: 'none' }}
           >Studio</Link>
+          <Link to="/contact" onClick={() => setOpen(false)}
+            style={{ display: 'block', fontSize: '14px', color: 'rgba(255,255,255,0.55)', textDecoration: 'none' }}
+          >Contact</Link>
           <a href="#masterclass" onClick={() => setOpen(false)} style={{
             display: 'block', textAlign: 'center',
             background: '#d4bfff', color: '#050505',
