@@ -15,15 +15,22 @@ const RAZORPAY_ENABLED = import.meta.env.VITE_RAZORPAY_ENABLED === 'true'
 
 // ── Razorpay helpers ─────────────────────────────────────────────────────────
 
+let razorpayScriptPromise: Promise<void> | null = null
+
 function loadRazorpayScript(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (window.Razorpay) { resolve(); return }
+  if (window.Razorpay) return Promise.resolve()
+  if (razorpayScriptPromise) return razorpayScriptPromise
+  razorpayScriptPromise = new Promise((resolve, reject) => {
     const s = document.createElement('script')
     s.src = 'https://checkout.razorpay.com/v1/checkout.js'
     s.onload = () => resolve()
-    s.onerror = () => reject(new Error('Failed to load Razorpay checkout'))
+    s.onerror = () => {
+      razorpayScriptPromise = null
+      reject(new Error('Failed to load Razorpay checkout'))
+    }
     document.head.appendChild(s)
   })
+  return razorpayScriptPromise
 }
 
 async function pollPaymentStatus(
@@ -207,6 +214,12 @@ export default function SessionPicker() {
       .finally(() => setLoading(false))
   }, [])
 
+  useEffect(() => {
+    if (RAZORPAY_ENABLED && stage === 'form') {
+      loadRazorpayScript().catch(() => {})
+    }
+  }, [stage])
+
   function refreshCounts() {
     const from = dates[0]; const to = dates[dates.length - 1]
     fetchMasterclassSlotData(from, to)
@@ -265,12 +278,12 @@ export default function SessionPicker() {
   async function openRazorpayCheckout(bid: string) {
     setSubmitting(true)
     try {
-      const { data, error: fnErr } = await supabase.functions.invoke('create-razorpay-order', {
-        body: { booking_id: bid },
-      })
+      const [orderResult] = await Promise.all([
+        supabase.functions.invoke('create-razorpay-order', { body: { booking_id: bid } }),
+        loadRazorpayScript(),
+      ])
+      const { data, error: fnErr } = orderResult
       if (fnErr || data?.error) throw new Error(data?.error ?? 'Order creation failed')
-
-      await loadRazorpayScript()
 
       let handlerFired = false
 
@@ -709,7 +722,7 @@ export default function SessionPicker() {
                   }}
                 >
                   {submitting
-                    ? RAZORPAY_ENABLED ? 'Opening payment...' : 'Booking…'
+                    ? RAZORPAY_ENABLED ? 'Preparing payment...' : 'Booking…'
                     : `Confirm booking · ₹${fee}`}
                 </button>
               </form>

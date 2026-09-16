@@ -8,6 +8,7 @@ import MasterclassEditor from './pages/MasterclassEditor'
 import CurriculumEditor from './pages/CurriculumEditor'
 import InstructorEditor from './pages/InstructorEditor'
 import Registrations from './pages/Registrations'
+import Payments from './pages/Payments'
 import Schedule from './pages/Schedule'
 import Students from './pages/Students'
 import ResourcesAdmin from './pages/ResourcesAdmin'
@@ -30,6 +31,7 @@ export default function AdminApp() {
         <Route path="curriculum" element={<CurriculumEditor />} />
         <Route path="instructors" element={<InstructorEditor />} />
         <Route path="registrations" element={<Registrations />} />
+        <Route path="payments" element={<Payments />} />
         <Route path="students" element={<Students />} />
         <Route path="resources" element={<ResourcesAdmin />} />
         <Route path="announcements" element={<AnnouncementsAdmin />} />

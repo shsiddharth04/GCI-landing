@@ -219,7 +219,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: 'RESEND_API_KEY not set' }), { status: 500, headers: { 'Content-Type': 'application/json' } })
   }
 
-  const { name, email, date, startTime, endTime, status } = await req.json()
+  const { name, email, date, startTime, endTime, status, pdfBase64, bookingId } = await req.json()
 
   // status: 'confirmed' → request-received (flag off, pre-payment flow)
   //         'paid'      → payment-confirmed (webhook after Razorpay capture)
@@ -238,10 +238,22 @@ serve(async (req) => {
     html = requestReceivedHtml(name, date, startTime, endTime)
   }
 
+  const payload: Record<string, unknown> = { from: FROM, to: [email], subject, html }
+
+  if (status === 'paid') {
+    payload.bcc = ['finance@gigcultureindia.com']
+    if (pdfBase64 && bookingId) {
+      payload.attachments = [{
+        filename: `invoice-${(bookingId as string).slice(0, 8).toUpperCase()}.pdf`,
+        content: pdfBase64,
+      }]
+    }
+  }
+
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: FROM, to: [email], subject, html }),
+    body: JSON.stringify(payload),
   })
 
   const data = await res.json()

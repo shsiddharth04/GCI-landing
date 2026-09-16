@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, BookOpen, Calendar, Users, GraduationCap, ClipboardList, LogOut, CalendarDays, UserCheck, FileText, Bell } from 'lucide-react'
+import { LayoutDashboard, BookOpen, Calendar, Users, GraduationCap, ClipboardList, LogOut, CalendarDays, UserCheck, FileText, Bell, CreditCard } from 'lucide-react'
 
 const navItems = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -9,6 +9,7 @@ const navItems = [
   { to: '/admin/curriculum', label: 'Curriculum', icon: BookOpen },
   { to: '/admin/instructors', label: 'Instructors', icon: Users },
   { to: '/admin/registrations', label: 'Registrations', icon: ClipboardList },
+  { to: '/admin/payments', label: 'Payments', icon: CreditCard },
   { to: '/admin/students', label: 'Students', icon: UserCheck },
   { to: '/admin/resources', label: 'Resources', icon: FileText },
   { to: '/admin/announcements', label: 'Announcements', icon: Bell },
