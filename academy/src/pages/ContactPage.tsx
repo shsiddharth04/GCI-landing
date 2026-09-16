@@ -171,9 +171,9 @@ export default function ContactPage() {
                   style={{
                     fontFamily: SANS, fontWeight: 700,
                     fontSize: 'clamp(16px, 3.2vw, 30px)',
-                    letterSpacing: '-0.02em', lineHeight: 1,
+                    letterSpacing: '-0.02em', lineHeight: 1.15,
                     color: 'white', transition: 'color 0.2s',
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    wordBreak: 'break-word',
                   }}
                 >
                   {c.value}
