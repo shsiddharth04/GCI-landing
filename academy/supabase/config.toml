@@ -29,3 +29,6 @@ enabled = true
 
 [functions.razorpay-webhook]
 verify_jwt = false
+
+[functions.reconcile-payments]
+verify_jwt = false
