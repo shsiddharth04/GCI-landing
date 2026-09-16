@@ -87,6 +87,14 @@ serve(async (req) => {
 
     const order = await rzpRes.json()
 
+    // Stamp the booking to record that Razorpay was invoked. This happens BEFORE
+    // the payment record INSERT so the cron backstop (migration 018) can catch
+    // this slot even if the INSERT below fails.
+    await supabase
+      .from('masterclass_bookings')
+      .update({ payment_attempted_at: new Date().toISOString() })
+      .eq('id', booking_id)
+
     const { error: insertErr } = await supabase
       .from('masterclass_payments')
       .insert({
@@ -98,6 +106,21 @@ serve(async (req) => {
 
     if (insertErr) {
       console.error('Failed to insert payment record:', insertErr)
+      return json({ error: 'db_error' }, 500)
+    }
+
+    // Read back the inserted row before returning the order to the client.
+    // The checkout modal must not open unless the payment record is confirmed
+    // visible in the DB — this closes the phantom-write gap.
+    const { data: verified } = await supabase
+      .from('masterclass_payments')
+      .select('id')
+      .eq('masterclass_booking_id', booking_id)
+      .eq('razorpay_order_id', order.id)
+      .maybeSingle()
+
+    if (!verified) {
+      console.error('Payment record not visible after insert — aborting checkout')
       return json({ error: 'db_error' }, 500)
     }
 
