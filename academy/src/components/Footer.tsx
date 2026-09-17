@@ -49,7 +49,7 @@ export default function Footer() {
               { label: 'Curriculum', href: '#curriculum' },
               { label: 'FAQ', href: '#faq' },
               { label: 'GCI Platform', href: '/' },
-              { label: 'Contact', href: 'mailto:trinityloom@gigcultureindia.com' },
+              { label: 'Contact', href: '/#/contact' },
             ].map(({ label, href }) => (
               <a key={label} href={href} style={{
                 fontSize: '13px', color: 'rgba(255,255,255,0.32)', textDecoration: 'none', transition: 'color 0.2s',
