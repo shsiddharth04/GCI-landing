@@ -199,11 +199,13 @@ export default function ContactPage() {
                   </div>
                   {c.name && (
                     <div style={{
-                      fontFamily: MONO, fontSize: '8px',
-                      color: 'rgba(212,191,255,0.3)', letterSpacing: '0.1em',
-                      marginTop: '5px',
+                      fontFamily: SANS, fontSize: '12px', fontWeight: 500,
+                      color: 'rgba(212,191,255,0.65)', letterSpacing: '0.01em',
+                      marginTop: '6px',
                     }}>
-                      {c.name} &middot; {c.title}
+                      {c.name}
+                      <span style={{ color: 'rgba(212,191,255,0.35)', margin: '0 6px' }}>·</span>
+                      <span style={{ color: 'rgba(255,255,255,0.38)', fontWeight: 400 }}>{c.title}</span>
                     </div>
                   )}
                 </div>
