@@ -228,7 +228,7 @@ export default function StudioPage() {
             .studio-panel {
               position: relative;
               line-height: 0;
-              height: min(calc(100svh - 280px), 700px);
+              height: clamp(240px, 50vh, 600px);
               background: #080808;
             }
             .studio-panel video {
