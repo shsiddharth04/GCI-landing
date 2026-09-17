@@ -67,7 +67,7 @@ function VideoPanel({ src, index }: { src: string; index: number }) {
   }
 
   return (
-    <div ref={containerRef} className="studio-panel">
+    <div ref={containerRef} className="studio-panel" style={{ minHeight: '200px' }}>
 
       {/* Animated eq-bar loader — visible while no frame yet */}
       {panelState === 'loading' && (
@@ -120,7 +120,7 @@ function VideoPanel({ src, index }: { src: string; index: number }) {
         onLoadedData={handleLoadedData}
         onCanPlay={handleCanPlay}
         style={{
-          display: 'block', height: '100%', width: 'auto',
+          display: 'block', width: '100%', height: 'auto',
           opacity: panelState === 'playing' ? 1 : 0,
           transition: 'opacity 0.7s ease',
         }}
@@ -223,27 +223,25 @@ export default function StudioPage() {
               display: flex;
               gap: 3px;
               align-items: flex-start;
-              justify-content: center;
             }
             .studio-panel {
+              flex: 1;
               position: relative;
               line-height: 0;
-              height: clamp(240px, 50vh, 600px);
+              min-width: 0;
               background: #080808;
             }
             .studio-panel video {
               display: block;
-              height: 100%;
-              width: auto;
+              width: 100%;
+              height: auto;
             }
             @keyframes eqbar {
               from { transform: scaleY(0.55); }
               to   { transform: scaleY(1); }
             }
             @media (max-width: 600px) {
-              .studio-diptych { flex-direction: column; align-items: stretch; }
-              .studio-panel { height: auto; min-height: 260px; }
-              .studio-panel video { height: auto; width: 100%; }
+              .studio-diptych { flex-direction: column; }
             }
           `}</style>
 
