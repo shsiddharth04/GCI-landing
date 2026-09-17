@@ -1,10 +1,99 @@
+import { useRef, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'motion/react'
-import type { GalleryItem } from '../admin/settings'
 
-const STUDIO_MEDIA: GalleryItem[] = [
-  { type: 'video', src: '/studio/studio-v1.mov', alt: 'GCI Studio — Pioneer XDJ-RX3' },
-  { type: 'video', src: '/studio/studio-v2.mov', alt: 'GCI Studio — The booth' },
+// NOTE: studio-v1.mov (14MB) and studio-v2.mov (40MB) are raw .mov files.
+// For proper web performance, convert to H.264 .mp4 with fast-start:
+//   ffmpeg -i input.mov -vcodec h264 -crf 23 -movflags faststart output.mp4
+// Target: 2-5MB per file. The lazy loader below defers download until visible.
+
+function VideoPanel({ src, index }: { src: string; index: number }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const [canPlay, setCanPlay] = useState(false)
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          const video = videoRef.current
+          if (video && !video.src) {
+            video.src = src
+            video.load()
+          }
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.05 },
+    )
+    observer.observe(container)
+    return () => observer.disconnect()
+  }, [src])
+
+  return (
+    <div ref={containerRef} className="studio-panel">
+      {/* Animated placeholder while buffering */}
+      {!canPlay && (
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: '#080808',
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center', gap: '14px',
+          pointerEvents: 'none',
+        }}>
+          <div style={{ display: 'flex', gap: '3px', alignItems: 'flex-end' }}>
+            {[0.5, 0.85, 1, 0.85, 0.5].map((h, k) => (
+              <div key={k} style={{
+                width: '3px', height: `${h * 18}px`,
+                background: 'rgba(212,191,255,0.18)', borderRadius: '1px',
+                animation: 'eqbar 1s ease-in-out infinite alternate',
+                animationDelay: `${k * 0.14}s`,
+              }} />
+            ))}
+          </div>
+          <span style={{
+            fontFamily: "'Space Mono', monospace", fontSize: '7px',
+            color: 'rgba(212,191,255,0.18)', letterSpacing: '0.3em', textTransform: 'uppercase',
+          }}>
+            Loading
+          </span>
+        </div>
+      )}
+
+      <video
+        ref={videoRef}
+        muted
+        loop
+        playsInline
+        autoPlay
+        preload="none"
+        onCanPlay={() => setCanPlay(true)}
+        style={{
+          display: 'block', width: '100%', height: 'auto',
+          opacity: canPlay ? 1 : 0,
+          transition: 'opacity 0.6s ease',
+        }}
+      />
+
+      <div aria-hidden style={{
+        position: 'absolute', top: '10px', left: '12px',
+        fontFamily: "'Space Mono', monospace",
+        fontSize: 'clamp(22px, 3vw, 44px)', fontWeight: 700,
+        color: 'rgba(212,191,255,0.2)', lineHeight: 1, letterSpacing: '-0.03em',
+        pointerEvents: 'none',
+      }}>
+        0{index + 1}
+      </div>
+    </div>
+  )
+}
+
+const STUDIO_VIDEOS = [
+  { src: '/studio/studio-v1.mov', alt: 'GCI Studio — Pioneer XDJ-RX3' },
+  { src: '/studio/studio-v2.mov', alt: 'GCI Studio — The booth' },
 ]
 
 export default function StudioPage() {
@@ -75,7 +164,7 @@ export default function StudioPage() {
           </h1>
         </motion.div>
 
-        {/* Diptych — side by side, natural 16:9, no fixed height, no object-fit */}
+        {/* Diptych */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -92,11 +181,18 @@ export default function StudioPage() {
               position: relative;
               line-height: 0;
               min-width: 0;
+              aspect-ratio: 16 / 9;
+              overflow: hidden;
+              background: #080808;
             }
             .studio-panel video {
               display: block;
               width: 100%;
               height: auto;
+            }
+            @keyframes eqbar {
+              from { transform: scaleY(0.55); }
+              to   { transform: scaleY(1); }
             }
             @media (max-width: 560px) {
               .studio-diptych { flex-direction: column; }
@@ -104,17 +200,8 @@ export default function StudioPage() {
           `}</style>
 
           <div className="studio-diptych">
-            {STUDIO_MEDIA.map((item, i) => (
-              <div key={i} className="studio-panel">
-                <video src={item.src} autoPlay muted loop playsInline />
-                <div aria-hidden style={{
-                  position: 'absolute', top: '10px', left: '12px',
-                  fontFamily: "'Space Mono', monospace",
-                  fontSize: 'clamp(22px, 3vw, 44px)', fontWeight: 700,
-                  color: 'rgba(212,191,255,0.2)', lineHeight: 1, letterSpacing: '-0.03em',
-                  pointerEvents: 'none',
-                }}>0{i + 1}</div>
-              </div>
+            {STUDIO_VIDEOS.map((v, i) => (
+              <VideoPanel key={i} src={v.src} index={i} />
             ))}
           </div>
         </motion.div>

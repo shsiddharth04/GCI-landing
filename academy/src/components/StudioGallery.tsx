@@ -25,6 +25,7 @@ function FilmItem({ item, index }: { item: GalleryItem; index: number }) {
           muted
           loop
           playsInline
+          preload="none"
           style={{ display: 'block', height: '100%', width: 'auto', maxWidth: 'none' }}
         />
       ) : (
