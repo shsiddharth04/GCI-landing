@@ -50,7 +50,7 @@ export default function ContactPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#050505', color: 'white' }}>
+    <div style={{ minHeight: '100vh', background: '#050505', color: 'white', display: 'flex', flexDirection: 'column' }}>
 
       {/* Top bar */}
       <div style={{
@@ -86,151 +86,156 @@ export default function ContactPage() {
         </Link>
       </div>
 
-      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '0 24px' }}>
+      {/* Main content */}
+      <div style={{ flex: 1, maxWidth: '900px', margin: '0 auto', padding: '0 24px', width: '100%' }}>
 
-        {/* Two-column layout — heading left, contacts right */}
-        <div
-          className="flex flex-col lg:flex-row lg:gap-16"
-          style={{ paddingTop: '88px', paddingBottom: '40px', alignItems: 'flex-start' }}
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+          style={{ paddingTop: '108px', paddingBottom: '48px' }}
         >
-
-          {/* Left — heading + tagline */}
-          <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: 'easeOut' }}
-            style={{ flexShrink: 0, width: '100%', maxWidth: '260px', paddingBottom: '32px' }}
-          >
-            <p style={{
-              fontFamily: MONO, fontSize: '9px',
-              color: 'rgba(212,191,255,0.3)', letterSpacing: '0.3em',
-              textTransform: 'uppercase', margin: '0 0 14px',
-            }}>
-              // CONTACT
-            </p>
+          <p style={{
+            fontFamily: MONO, fontSize: '9px',
+            color: 'rgba(212,191,255,0.35)', letterSpacing: '0.3em',
+            textTransform: 'uppercase', margin: '0 0 18px',
+          }}>
+            // CONTACT
+          </p>
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
             <h1 style={{
-              fontSize: 'clamp(2.2rem, 5vw, 3.4rem)', fontWeight: 800,
+              fontSize: 'clamp(2.8rem, 6vw, 5rem)', fontWeight: 800,
               lineHeight: 0.92, letterSpacing: '-0.035em',
-              fontFamily: SANS, margin: '0 0 18px',
+              fontFamily: SANS, margin: 0,
             }}>
-              Talk<br /><span style={{ WebkitTextStroke: '1.5px #d4bfff', WebkitTextFillColor: 'transparent' }}>to us.</span>
+              Talk<br />
+              <span style={{ WebkitTextStroke: '1.5px #d4bfff', WebkitTextFillColor: 'transparent' }}>
+                to us.
+              </span>
             </h1>
             <p style={{
               fontFamily: SANS, fontSize: '13px',
-              color: 'rgba(255,255,255,0.35)', lineHeight: 1.65,
-              margin: 0, maxWidth: '240px',
+              color: 'rgba(255,255,255,0.32)', lineHeight: 1.65,
+              margin: 0, maxWidth: '320px', textAlign: 'right',
             }}>
               Questions about the masterclass, the DJ course, or getting listed on the GCI marketplace — reach out directly.
             </p>
-          </motion.div>
+          </div>
+        </motion.div>
 
-          {/* Right — contact rows */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.48, delay: 0.1, ease: 'easeOut' }}
-            style={{ flex: 1, borderTop: '1px solid rgba(212,191,255,0.1)', minWidth: 0 }}
-          >
-            {CONTACTS.map((c, i) => (
-              <motion.a
-                key={c.index}
-                href={c.href}
-                target={c.external ? '_blank' : undefined}
-                rel={c.external ? 'noopener noreferrer' : undefined}
-                initial={{ opacity: 0, x: -6 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.36, delay: 0.18 + i * 0.07, ease: 'easeOut' }}
+        {/* Contact rows */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.12, ease: 'easeOut' }}
+          style={{ borderTop: '1px solid rgba(212,191,255,0.1)' }}
+        >
+          {CONTACTS.map((c, i) => (
+            <motion.a
+              key={c.index}
+              href={c.href}
+              target={c.external ? '_blank' : undefined}
+              rel={c.external ? 'noopener noreferrer' : undefined}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.38, delay: 0.2 + i * 0.07, ease: 'easeOut' }}
+              style={{
+                display: 'flex', alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: 'clamp(20px, 3.5vw, 36px) 0',
+                borderBottom: '1px solid rgba(212,191,255,0.07)',
+                textDecoration: 'none',
+                color: 'white',
+                cursor: 'pointer',
+                gap: '16px',
+              }}
+              onMouseEnter={e => {
+                const val = e.currentTarget.querySelector<HTMLElement>('.cv')
+                if (val) val.style.color = '#d4bfff'
+                const arrow = e.currentTarget.querySelector<HTMLElement>('.ca')
+                if (arrow) { arrow.style.color = '#d4bfff'; arrow.style.transform = 'translate(2px,-2px)' }
+                e.currentTarget.style.background = 'rgba(212,191,255,0.02)'
+              }}
+              onMouseLeave={e => {
+                const val = e.currentTarget.querySelector<HTMLElement>('.cv')
+                if (val) val.style.color = 'white'
+                const arrow = e.currentTarget.querySelector<HTMLElement>('.ca')
+                if (arrow) { arrow.style.color = 'rgba(212,191,255,0.28)'; arrow.style.transform = 'translate(0,0)' }
+                e.currentTarget.style.background = 'transparent'
+              }}
+            >
+              {/* Left: index + label */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(16px, 3vw, 52px)', flex: 1, minWidth: 0 }}>
+                <span style={{
+                  fontFamily: MONO, fontSize: '9px',
+                  color: 'rgba(212,191,255,0.2)', letterSpacing: '0.18em',
+                  flexShrink: 0, userSelect: 'none',
+                }}>
+                  [{c.index}]
+                </span>
+                <span style={{
+                  fontFamily: MONO, fontSize: '9px',
+                  color: 'rgba(212,191,255,0.38)', letterSpacing: '0.22em',
+                  textTransform: 'uppercase', flexShrink: 0,
+                  minWidth: '76px',
+                }}>
+                  {c.label}
+                </span>
+
+                {/* Value + name stacked */}
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div
+                    className="cv"
+                    style={{
+                      fontFamily: SANS, fontWeight: 700,
+                      fontSize: 'clamp(15px, 2.4vw, 24px)',
+                      letterSpacing: '-0.02em', lineHeight: 1.15,
+                      color: 'white', transition: 'color 0.2s',
+                      wordBreak: 'break-word',
+                    }}
+                  >
+                    {c.value}
+                  </div>
+                  {c.name && (
+                    <div style={{
+                      fontFamily: MONO, fontSize: '8px',
+                      color: 'rgba(212,191,255,0.3)', letterSpacing: '0.1em',
+                      marginTop: '5px',
+                    }}>
+                      {c.name} &middot; {c.title}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <span
+                className="ca"
                 style={{
-                  display: 'flex', alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '18px 0',
-                  borderBottom: '1px solid rgba(212,191,255,0.07)',
-                  textDecoration: 'none',
-                  color: 'white',
-                  cursor: 'pointer',
-                  gap: '12px',
-                }}
-                onMouseEnter={e => {
-                  const val = e.currentTarget.querySelector<HTMLElement>('.cv')
-                  if (val) val.style.color = '#d4bfff'
-                  const arrow = e.currentTarget.querySelector<HTMLElement>('.ca')
-                  if (arrow) { arrow.style.color = '#d4bfff'; arrow.style.transform = 'translate(2px, -2px)' }
-                }}
-                onMouseLeave={e => {
-                  const val = e.currentTarget.querySelector<HTMLElement>('.cv')
-                  if (val) val.style.color = 'white'
-                  const arrow = e.currentTarget.querySelector<HTMLElement>('.ca')
-                  if (arrow) { arrow.style.color = 'rgba(212,191,255,0.25)'; arrow.style.transform = 'translate(0,0)' }
+                  fontSize: '16px',
+                  color: 'rgba(212,191,255,0.28)', transition: 'color 0.2s, transform 0.2s',
+                  flexShrink: 0,
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(12px, 2.5vw, 28px)', flex: 1, minWidth: 0 }}>
-                  <span style={{
-                    fontFamily: MONO, fontSize: '8px',
-                    color: 'rgba(212,191,255,0.2)', letterSpacing: '0.16em',
-                    flexShrink: 0, userSelect: 'none',
-                  }}>
-                    [{c.index}]
-                  </span>
-                  <span style={{
-                    fontFamily: MONO, fontSize: '8px',
-                    color: 'rgba(212,191,255,0.35)', letterSpacing: '0.2em',
-                    textTransform: 'uppercase', flexShrink: 0,
-                    minWidth: '60px',
-                  }}>
-                    {c.label}
-                  </span>
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <div
-                      className="cv"
-                      style={{
-                        fontFamily: SANS, fontWeight: 700,
-                        fontSize: 'clamp(13px, 1.8vw, 17px)',
-                        letterSpacing: '-0.015em', lineHeight: 1.2,
-                        color: 'white', transition: 'color 0.2s',
-                        wordBreak: 'break-word',
-                      }}
-                    >
-                      {c.value}
-                    </div>
-                    {c.name && (
-                      <div style={{
-                        fontFamily: MONO, fontSize: '8px',
-                        color: 'rgba(212,191,255,0.28)', letterSpacing: '0.1em',
-                        marginTop: '4px',
-                      }}>
-                        {c.name} &middot; {c.title}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <span
-                  className="ca"
-                  style={{
-                    fontSize: '14px',
-                    color: 'rgba(212,191,255,0.25)', transition: 'color 0.2s, transform 0.2s',
-                    flexShrink: 0,
-                  }}
-                >
-                  ↗
-                </span>
-              </motion.a>
-            ))}
-          </motion.div>
-
-        </div>
+                ↗
+              </span>
+            </motion.a>
+          ))}
+        </motion.div>
 
         {/* Studio info strip */}
         <motion.div
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.42, ease: 'easeOut' }}
+          transition={{ duration: 0.4, delay: 0.48, ease: 'easeOut' }}
           style={{
-            marginBottom: '48px',
+            marginTop: '56px',
+            marginBottom: '56px',
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
             gap: '1px',
-            background: 'rgba(212,191,255,0.06)',
-            border: '1px solid rgba(212,191,255,0.06)',
+            background: 'rgba(212,191,255,0.07)',
+            border: '1px solid rgba(212,191,255,0.07)',
           }}
         >
           {[
@@ -238,21 +243,18 @@ export default function ContactPage() {
             { label: 'Address', value: '11th Floor, Capital Tower\nSector 20, Gurugram' },
             { label: 'Hours', value: 'Mon–Sat\n10 AM – 10 PM' },
           ].map(item => (
-            <div
-              key={item.label}
-              style={{ background: '#050505', padding: '18px 20px' }}
-            >
+            <div key={item.label} style={{ background: '#050505', padding: 'clamp(18px, 2.5vw, 28px)' }}>
               <div style={{
                 fontFamily: MONO, fontSize: '8px',
-                color: 'rgba(212,191,255,0.3)', letterSpacing: '0.2em',
-                textTransform: 'uppercase', marginBottom: '8px',
+                color: 'rgba(212,191,255,0.32)', letterSpacing: '0.22em',
+                textTransform: 'uppercase', marginBottom: '10px',
               }}>
                 {item.label}
               </div>
               <div style={{
-                fontFamily: SANS, fontSize: '13px',
+                fontFamily: SANS, fontSize: 'clamp(13px, 1.6vw, 15px)',
                 fontWeight: 600, color: 'rgba(255,255,255,0.6)',
-                lineHeight: 1.5, whiteSpace: 'pre-line',
+                lineHeight: 1.55, whiteSpace: 'pre-line',
               }}>
                 {item.value}
               </div>
@@ -265,7 +267,7 @@ export default function ContactPage() {
       {/* Footer */}
       <div style={{
         borderTop: '1px solid rgba(212,191,255,0.06)',
-        padding: '20px 24px',
+        padding: '22px 24px',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         <p style={{
