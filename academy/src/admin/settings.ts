@@ -203,7 +203,10 @@ export function loadSettings(): AcademySettings {
       hero: { ...structuredClone(DEFAULT_SETTINGS).hero, ...stored.hero },
       studioGallery: (() => {
         const OLD = ['/studio-1.jpg', '/studio-2.jpg', '/studio-3.jpg', '/studio-4.jpg', '/masterclass.mov']
-        const filtered = (stored.studioGallery ?? []).filter((g: GalleryItem) => !OLD.includes(g.src))
+        const filtered = (stored.studioGallery ?? [])
+          .filter((g: GalleryItem) => !OLD.includes(g.src))
+          // Migrate .mov → .mp4 for all video entries
+          .map((g: GalleryItem) => g.src.endsWith('.mov') ? { ...g, src: g.src.replace(/\.mov$/, '.mp4') } : g)
         return filtered.length > 0 ? filtered : structuredClone(DEFAULT_SETTINGS).studioGallery
       })(),
       // curriculum and instructors from storage override defaults entirely
