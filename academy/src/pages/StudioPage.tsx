@@ -2,12 +2,6 @@ import { useRef, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'motion/react'
 
-// NOTE: studio-v1.mov (14MB) and studio-v2.mov (40MB) are raw .mov files.
-// For proper web performance, convert to H.264 .mp4 with fast-start:
-//   ffmpeg -i input.mov -vcodec h264 -crf 23 -movflags faststart output.mp4
-// Target: 2-5MB per file. The component below defers download and shows a
-// captured frame as a static poster while the full video buffers.
-
 type PanelState = 'loading' | 'poster' | 'playing'
 
 function VideoPanel({ src, index }: { src: string; index: number }) {
@@ -108,7 +102,6 @@ function VideoPanel({ src, index }: { src: string; index: number }) {
         style={{
           position: 'absolute', inset: 0,
           width: '100%', height: '100%',
-          objectFit: 'cover',
           opacity: panelState === 'poster' ? 1 : 0,
           transition: 'opacity 0.7s ease',
           pointerEvents: 'none',
@@ -147,8 +140,8 @@ function VideoPanel({ src, index }: { src: string; index: number }) {
 }
 
 const STUDIO_VIDEOS = [
-  { src: '/studio/studio-v1.mov', alt: 'GCI Studio — Pioneer XDJ-RX3' },
-  { src: '/studio/studio-v2.mov', alt: 'GCI Studio — The booth' },
+  { src: '/studio/studio-v1.mp4', alt: 'GCI Studio — Pioneer XDJ-RX3' },
+  { src: '/studio/studio-v2.mp4', alt: 'GCI Studio — The booth' },
 ]
 
 export default function StudioPage() {
@@ -237,7 +230,6 @@ export default function StudioPage() {
               line-height: 0;
               min-width: 0;
               aspect-ratio: 16 / 9;
-              overflow: hidden;
               background: #080808;
             }
             .studio-panel video {
