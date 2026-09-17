@@ -114,7 +114,7 @@ export const DEFAULT_SETTINGS: AcademySettings = {
     studioAddress: '11th Floor, Capital Tower, Next To CDS Tower, Sector 20, Gurugram',
     mapEmbedUrl: '',
     isActive: true,
-    whatsInside: 'A hands-on session inside GCI Studio, Gurugram. Get behind the Pioneer XDJ-RX3, understand signal flow, and feel what DJing actually requires. Zero commitment. No payment, no prerequisites. Just show up.',
+    whatsInside: 'A hands-on session inside GCI Studio, Gurugram. Get behind the Pioneer XDJ-RX3, understand signal flow, and feel what DJing actually requires. ₹179 session fee. No prerequisites — just show up. Fee is credited toward the course if you enroll.',
     scheduleOpenTime: '10:00',
     scheduleCloseTime: '22:00',
     slotMinutes: 30,

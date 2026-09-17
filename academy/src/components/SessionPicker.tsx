@@ -647,7 +647,7 @@ export default function SessionPicker() {
                       {isClassBlock && blockCohort ? `${blockCohort} · class`
                         : isFull ? 'Full'
                         : left === 1 ? '1 left'
-                        : `${left} free`}
+                        : `${left} left`}
                     </span>
                   </button>
                 )

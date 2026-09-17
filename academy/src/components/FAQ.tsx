@@ -18,8 +18,8 @@ const BASE_FAQS = [
     a: "3 students per batch. Intentionally. There's no back-row anonymity, no waiting your turn while a crowded room gets the instructor's attention. It's direct, hands-on mentorship from day one.",
   },
   {
-    q: 'Is the masterclass genuinely free?',
-    a: "Yes. No payment, no hidden fees. Register, show up, learn. Capacity is capped, so register early.",
+    q: 'What does the masterclass cost?',
+    a: '₹179. That\'s the session fee — no hidden charges. If you enroll in the DJ Course afterward, the ₹179 is credited toward the course fee. Capacity is capped, so book early.',
   },
   {
     q: 'Is there a deposit to enroll in the DJ Course?',
