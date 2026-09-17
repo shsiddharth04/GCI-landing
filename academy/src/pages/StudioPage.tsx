@@ -120,7 +120,7 @@ function VideoPanel({ src, index }: { src: string; index: number }) {
         onLoadedData={handleLoadedData}
         onCanPlay={handleCanPlay}
         style={{
-          display: 'block', width: '100%', height: 'auto',
+          display: 'block', height: '100%', width: 'auto',
           opacity: panelState === 'playing' ? 1 : 0,
           transition: 'opacity 0.7s ease',
         }}
