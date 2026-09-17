@@ -103,7 +103,7 @@ export default function Pathway() {
         <div style={{ maxWidth: '960px', margin: '0 auto' }}>
           <AnimatePresence mode="wait">
 
-            {/* Full-width enrollment form — replaces the entire two-column layout */}
+            {/* Full-width enrollment form */}
             {ctaView === 'enroll' && (
               <motion.div
                 key="enroll-fullwidth"
@@ -116,10 +116,23 @@ export default function Pathway() {
               </motion.div>
             )}
 
-            {/* Two-column layout for idle + callback states */}
-            {ctaView !== 'enroll' && (
+            {/* Full-width callback form */}
+            {ctaView === 'callback' && (
               <motion.div
-                key="course-two-col"
+                key="callback-fullwidth"
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 16 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+              >
+                <CallbackForm onClose={() => setCtaView('idle')} />
+              </motion.div>
+            )}
+
+            {/* Two-column layout — idle state only */}
+            {ctaView === 'idle' && (
+              <motion.div
+                key="course-idle"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -142,85 +155,57 @@ export default function Pathway() {
                     In-studio, Gurugram. The full curriculum across 9 modules: gear, theory, live sets, Rekordbox, and the business of being a DJ. Graduate booking-ready and listed on the GCI marketplace.
                   </p>
 
-                  <AnimatePresence mode="wait">
-                    {ctaView === 'idle' && (
-                      <motion.div
-                        key="idle"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.18 }}
-                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '14px' }}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '14px' }}>
+                    {COURSE_DEPOSIT_ENABLED ? (
+                      <>
+                        <button
+                          onClick={() => setCtaView('enroll')}
+                          style={{
+                            background: '#d4bfff', color: '#050505',
+                            fontWeight: 700, padding: '16px 28px', fontSize: '13px',
+                            border: 'none', cursor: 'pointer',
+                            fontFamily: "'Plus Jakarta Sans', sans-serif",
+                            boxShadow: '0 0 40px rgba(212,191,255,0.45)',
+                            transition: 'all 0.2s',
+                          }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#e0d4ff'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 55px rgba(212,191,255,0.65)' }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#d4bfff'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 40px rgba(212,191,255,0.45)' }}
+                        >
+                          Enroll Now — ₹2,000 deposit →
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setCtaView('callback')}
+                          style={{
+                            background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                            fontFamily: "'Space Mono', monospace", fontSize: '11px',
+                            color: 'rgba(212,191,255,0.45)', letterSpacing: '0.1em',
+                            transition: 'color 0.15s',
+                          }}
+                          onMouseEnter={e => (e.currentTarget.style.color = 'rgba(212,191,255,0.75)')}
+                          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(212,191,255,0.45)')}
+                        >
+                          Not sure? Request a callback →
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => setCtaView('callback')}
+                        style={{
+                          background: '#d4bfff', color: '#050505',
+                          fontWeight: 700, padding: '16px 28px', fontSize: '13px',
+                          border: 'none', cursor: 'pointer',
+                          fontFamily: "'Plus Jakarta Sans', sans-serif",
+                          boxShadow: '0 0 40px rgba(212,191,255,0.45)',
+                          transition: 'all 0.2s',
+                        }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#e0d4ff'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 55px rgba(212,191,255,0.65)' }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#d4bfff'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 40px rgba(212,191,255,0.45)' }}
                       >
-                        {COURSE_DEPOSIT_ENABLED ? (
-                          <>
-                            <button
-                              onClick={() => setCtaView('enroll')}
-                              style={{
-                                background: '#d4bfff', color: '#050505',
-                                fontWeight: 700, padding: '16px 28px', fontSize: '13px',
-                                border: 'none', cursor: 'pointer',
-                                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                                boxShadow: '0 0 40px rgba(212,191,255,0.45)',
-                                transition: 'all 0.2s',
-                              }}
-                              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#e0d4ff'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 55px rgba(212,191,255,0.65)' }}
-                              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#d4bfff'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 40px rgba(212,191,255,0.45)' }}
-                            >
-                              Enroll Now — ₹2,000 deposit →
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setCtaView('callback')}
-                              style={{
-                                background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-                                fontFamily: "'Space Mono', monospace", fontSize: '11px',
-                                color: 'rgba(212,191,255,0.45)', letterSpacing: '0.1em',
-                                transition: 'color 0.15s',
-                              }}
-                              onMouseEnter={e => (e.currentTarget.style.color = 'rgba(212,191,255,0.75)')}
-                              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(212,191,255,0.45)')}
-                            >
-                              Not sure? Request a callback →
-                            </button>
-                          </>
-                        ) : (
-                          <button
-                            onClick={() => setCtaView('callback')}
-                            style={{
-                              background: '#d4bfff', color: '#050505',
-                              fontWeight: 700, padding: '16px 28px', fontSize: '13px',
-                              border: 'none', cursor: 'pointer',
-                              fontFamily: "'Plus Jakarta Sans', sans-serif",
-                              boxShadow: '0 0 40px rgba(212,191,255,0.45)',
-                              transition: 'all 0.2s',
-                            }}
-                            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#e0d4ff'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 55px rgba(212,191,255,0.65)' }}
-                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#d4bfff'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 40px rgba(212,191,255,0.45)' }}
-                          >
-                            Join the DJ Course →
-                          </button>
-                        )}
-                      </motion.div>
+                        Join the DJ Course →
+                      </button>
                     )}
-
-                    {ctaView === 'callback' && (
-                      <motion.div
-                        key="callback"
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 8 }}
-                        transition={{ duration: 0.28, ease: 'easeOut' }}
-                        style={{ background: '#0f0d18', border: '1px solid rgba(212,191,255,0.15)', padding: '24px', position: 'relative' }}
-                      >
-                        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(212,191,255,0.55), transparent)' }} />
-                        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(212,191,255,0.4)', letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: '16px' }}>
-                          Leave your details
-                        </div>
-                        <CallbackForm onClose={() => setCtaView('idle')} />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  </div>
                 </motion.div>
 
                 {/* Right: details card */}
