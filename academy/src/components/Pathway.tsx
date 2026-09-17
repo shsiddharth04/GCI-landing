@@ -5,6 +5,7 @@ import { loadSettings } from '../admin/settings'
 import { fadeUp, viewportOnce } from '../lib/motion'
 import SessionPicker from './SessionPicker'
 import CallbackForm from './CallbackForm'
+import EnrollmentForm, { COURSE_DEPOSIT_ENABLED } from './EnrollmentForm'
 
 function DetailRow({ label, value, originalValue }: { label: string; value: string; originalValue?: string }) {
   return (
@@ -25,7 +26,7 @@ function DetailRow({ label, value, originalValue }: { label: string; value: stri
 
 export default function Pathway() {
   const { course, masterclass } = loadSettings()
-  const [callbackOpen, setCallbackOpen] = useState(false)
+  const [ctaView, setCtaView] = useState<'idle' | 'enroll' | 'callback'>('idle')
 
   const courseFee = course.fee ? `₹${Number(course.fee).toLocaleString('en-IN')}` : ''
   const courseOriginalFee = course.originalFee ? `₹${Number(course.originalFee).toLocaleString('en-IN')}` : ''
@@ -119,46 +120,95 @@ export default function Pathway() {
               </p>
 
               <AnimatePresence mode="wait">
-                {!callbackOpen ? (
-                  <motion.button
-                    key="cta"
+                {ctaView === 'idle' && (
+                  <motion.div
+                    key="idle"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.18 }}
-                    onClick={() => setCallbackOpen(true)}
-                    style={{
-                      background: '#d4bfff', color: '#050505',
-                      fontWeight: 700, padding: '16px 28px', fontSize: '13px',
-                      border: 'none', cursor: 'pointer',
-                      fontFamily: "'Plus Jakarta Sans', sans-serif",
-                      boxShadow: '0 0 40px rgba(212,191,255,0.45)',
-                      transition: 'all 0.2s',
-                    }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#e0d4ff'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 55px rgba(212,191,255,0.65)' }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#d4bfff'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 40px rgba(212,191,255,0.45)' }}
+                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '14px' }}
                   >
-                    Join the DJ Course →
-                  </motion.button>
-                ) : (
+                    {COURSE_DEPOSIT_ENABLED ? (
+                      <>
+                        <button
+                          onClick={() => setCtaView('enroll')}
+                          style={{
+                            background: '#d4bfff', color: '#050505',
+                            fontWeight: 700, padding: '16px 28px', fontSize: '13px',
+                            border: 'none', cursor: 'pointer',
+                            fontFamily: "'Plus Jakarta Sans', sans-serif",
+                            boxShadow: '0 0 40px rgba(212,191,255,0.45)',
+                            transition: 'all 0.2s',
+                          }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#e0d4ff'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 55px rgba(212,191,255,0.65)' }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#d4bfff'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 40px rgba(212,191,255,0.45)' }}
+                        >
+                          Enroll Now — ₹2,000 deposit →
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setCtaView('callback')}
+                          style={{
+                            background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                            fontFamily: "'Space Mono', monospace", fontSize: '11px',
+                            color: 'rgba(212,191,255,0.45)', letterSpacing: '0.1em',
+                            transition: 'color 0.15s',
+                          }}
+                          onMouseEnter={e => (e.currentTarget.style.color = 'rgba(212,191,255,0.75)')}
+                          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(212,191,255,0.45)')}
+                        >
+                          Not sure? Request a callback →
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => setCtaView('callback')}
+                        style={{
+                          background: '#d4bfff', color: '#050505',
+                          fontWeight: 700, padding: '16px 28px', fontSize: '13px',
+                          border: 'none', cursor: 'pointer',
+                          fontFamily: "'Plus Jakarta Sans', sans-serif",
+                          boxShadow: '0 0 40px rgba(212,191,255,0.45)',
+                          transition: 'all 0.2s',
+                        }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#e0d4ff'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 55px rgba(212,191,255,0.65)' }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#d4bfff'; (e.currentTarget as HTMLElement).style.boxShadow = '0 0 40px rgba(212,191,255,0.45)' }}
+                      >
+                        Join the DJ Course →
+                      </button>
+                    )}
+                  </motion.div>
+                )}
+
+                {ctaView === 'enroll' && (
                   <motion.div
-                    key="form"
+                    key="enroll"
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 8 }}
                     transition={{ duration: 0.28, ease: 'easeOut' }}
-                    style={{
-                      background: '#0f0d18',
-                      border: '1px solid rgba(212,191,255,0.15)',
-                      padding: '24px',
-                      position: 'relative',
-                    }}
+                    style={{ background: '#0f0d18', border: '1px solid rgba(212,191,255,0.15)', padding: '24px', position: 'relative' }}
+                  >
+                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(212,191,255,0.55), transparent)' }} />
+                    <EnrollmentForm onBack={() => setCtaView('idle')} />
+                  </motion.div>
+                )}
+
+                {ctaView === 'callback' && (
+                  <motion.div
+                    key="callback"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 8 }}
+                    transition={{ duration: 0.28, ease: 'easeOut' }}
+                    style={{ background: '#0f0d18', border: '1px solid rgba(212,191,255,0.15)', padding: '24px', position: 'relative' }}
                   >
                     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(212,191,255,0.55), transparent)' }} />
                     <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: 'rgba(212,191,255,0.4)', letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: '16px' }}>
                       Leave your details
                     </div>
-                    <CallbackForm onClose={() => setCallbackOpen(false)} />
+                    <CallbackForm onClose={() => setCtaView('idle')} />
                   </motion.div>
                 )}
               </AnimatePresence>
