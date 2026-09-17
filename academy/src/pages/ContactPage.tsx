@@ -7,8 +7,8 @@ const SANS = "'Plus Jakarta Sans', sans-serif"
 const CONTACTS = [
   {
     label: 'Email',
-    value: 'support@gigcultureindia.com',
-    href: 'mailto:support@gigcultureindia.com',
+    value: 'enquiries@gigcultureindia.com',
+    href: 'mailto:enquiries@gigcultureindia.com',
     index: '01',
     external: false,
   },
@@ -20,10 +20,17 @@ const CONTACTS = [
     external: false,
   },
   {
+    label: 'Phone',
+    value: '+91 80775 04664',
+    href: 'tel:+918077504664',
+    index: '03',
+    external: false,
+  },
+  {
     label: 'Instagram',
     value: '@gigcultureindia',
     href: 'https://www.instagram.com/gigcultureindia',
-    index: '03',
+    index: '04',
     external: true,
   },
 ]
