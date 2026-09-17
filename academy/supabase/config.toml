@@ -32,3 +32,9 @@ verify_jwt = false
 
 [functions.reconcile-payments]
 verify_jwt = false
+
+[functions.course-deposit-webhook]
+verify_jwt = false
+
+[functions.reconcile-course-payments]
+verify_jwt = false
