@@ -5,17 +5,21 @@ import { motion } from 'motion/react'
 // NOTE: studio-v1.mov (14MB) and studio-v2.mov (40MB) are raw .mov files.
 // For proper web performance, convert to H.264 .mp4 with fast-start:
 //   ffmpeg -i input.mov -vcodec h264 -crf 23 -movflags faststart output.mp4
-// Target: 2-5MB per file. The lazy loader below defers download until visible.
+// Target: 2-5MB per file. The component below defers download and shows a
+// captured frame as a static poster while the full video buffers.
+
+type PanelState = 'loading' | 'poster' | 'playing'
 
 function VideoPanel({ src, index }: { src: string; index: number }) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const [canPlay, setCanPlay] = useState(false)
+  const videoRef    = useRef<HTMLVideoElement>(null)
+  const canvasRef   = useRef<HTMLCanvasElement>(null)
+  const [panelState, setPanelState] = useState<PanelState>('loading')
 
+  // Trigger load when panel enters viewport
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
-
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -33,13 +37,48 @@ function VideoPanel({ src, index }: { src: string; index: number }) {
     return () => observer.disconnect()
   }, [src])
 
+  function captureFrame() {
+    const video  = videoRef.current
+    const canvas = canvasRef.current
+    if (!video || !canvas || video.videoWidth === 0) return
+    canvas.width  = video.videoWidth
+    canvas.height = video.videoHeight
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    ctx.drawImage(video, 0, 0)
+    setPanelState('poster')
+  }
+
+  function handleLoadedMetadata() {
+    const video = videoRef.current
+    if (!video) return
+    // Seek 0.5 s in for a more interesting first frame
+    video.currentTime = 0.5
+  }
+
+  // Fires after seek — capture the frame and show it as the still
+  function handleSeeked() {
+    if (panelState === 'loading') captureFrame()
+  }
+
+  // Also try to capture on loadeddata in case seeked never fires (some browsers/formats)
+  function handleLoadedData() {
+    if (panelState === 'loading') captureFrame()
+  }
+
+  function handleCanPlay() {
+    const video = videoRef.current
+    if (!video) return
+    video.play().then(() => setPanelState('playing')).catch(() => {})
+  }
+
   return (
     <div ref={containerRef} className="studio-panel">
-      {/* Animated placeholder while buffering */}
-      {!canPlay && (
+
+      {/* Animated eq-bar loader — visible while no frame yet */}
+      {panelState === 'loading' && (
         <div style={{
-          position: 'absolute', inset: 0,
-          background: '#080808',
+          position: 'absolute', inset: 0, background: '#080808',
           display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center', gap: '14px',
           pointerEvents: 'none',
@@ -48,7 +87,7 @@ function VideoPanel({ src, index }: { src: string; index: number }) {
             {[0.5, 0.85, 1, 0.85, 0.5].map((h, k) => (
               <div key={k} style={{
                 width: '3px', height: `${h * 18}px`,
-                background: 'rgba(212,191,255,0.18)', borderRadius: '1px',
+                background: 'rgba(212,191,255,0.2)', borderRadius: '1px',
                 animation: 'eqbar 1s ease-in-out infinite alternate',
                 animationDelay: `${k * 0.14}s`,
               }} />
@@ -56,25 +95,41 @@ function VideoPanel({ src, index }: { src: string; index: number }) {
           </div>
           <span style={{
             fontFamily: "'Space Mono', monospace", fontSize: '7px',
-            color: 'rgba(212,191,255,0.18)', letterSpacing: '0.3em', textTransform: 'uppercase',
+            color: 'rgba(212,191,255,0.2)', letterSpacing: '0.3em', textTransform: 'uppercase',
           }}>
             Loading
           </span>
         </div>
       )}
 
+      {/* Captured still frame — cross-fades with video */}
+      <canvas
+        ref={canvasRef}
+        style={{
+          position: 'absolute', inset: 0,
+          width: '100%', height: '100%',
+          objectFit: 'cover',
+          opacity: panelState === 'poster' ? 1 : 0,
+          transition: 'opacity 0.7s ease',
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* Live video — fades in once playing, fades canvas out simultaneously */}
       <video
         ref={videoRef}
         muted
         loop
         playsInline
-        autoPlay
-        preload="none"
-        onCanPlay={() => setCanPlay(true)}
+        preload="metadata"
+        onLoadedMetadata={handleLoadedMetadata}
+        onSeeked={handleSeeked}
+        onLoadedData={handleLoadedData}
+        onCanPlay={handleCanPlay}
         style={{
           display: 'block', width: '100%', height: 'auto',
-          opacity: canPlay ? 1 : 0,
-          transition: 'opacity 0.6s ease',
+          opacity: panelState === 'playing' ? 1 : 0,
+          transition: 'opacity 0.7s ease',
         }}
       />
 
