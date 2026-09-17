@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 
-type State = 'idle' | 'submitting' | 'success' | 'error'
+type State = 'idle' | 'submitting' | 'success'
 
 function validate(name: string, phone: string): string | null {
   if (!name.trim()) return 'Enter your full name.'
@@ -57,7 +57,6 @@ export default function CallbackForm({ onClose }: Props) {
       .insert({ name: name.trim(), phone: phone.replace(/\s/g, ''), is_masters_union: isMU })
 
     if (dbError) {
-      setState('error')
       setError(dbError.code === '23505'
         ? "We already have your details. We'll be in touch soon."
         : 'Something went wrong. Please try again.')
