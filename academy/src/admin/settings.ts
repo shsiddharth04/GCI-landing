@@ -114,7 +114,7 @@ export const DEFAULT_SETTINGS: AcademySettings = {
     studioAddress: '11th Floor, Capital Tower, Next To CDS Tower, Sector 20, Gurugram',
     mapEmbedUrl: '',
     isActive: true,
-    whatsInside: 'A hands-on session inside GCI Studio, Gurugram. Get behind the Pioneer XDJ-RX3, understand signal flow, and feel what DJing actually requires. ₹179 session fee. No prerequisites — just show up. Fee is credited toward the course if you enroll.',
+    whatsInside: 'A hands-on session inside GCI Studio, Gurugram. Get behind the Pioneer XDJ-RX3, understand signal flow, and feel what DJing actually requires. Zero commitment. No payment, no prerequisites. Just show up.',
     scheduleOpenTime: '10:00',
     scheduleCloseTime: '22:00',
     slotMinutes: 30,
@@ -156,10 +156,10 @@ export const DEFAULT_SETTINGS: AcademySettings = {
     { id: '09', weekLabel: 'MOD 09', order: 8, title: 'GigCulture Artist Onboarding', description: 'Upon completion, you are onboarded onto the GigCultureIndia platform as a listed artist. Your profile enters our genre and vibe-matching engine, connecting you to venues, events and organizers actively looking for artists like you.' },
   ],
   studioGallery: [
-    { type: 'video', src: '/masterclass/mc-v1.mov', alt: 'Masterclass session' },
+    { type: 'video', src: '/masterclass/mc-v1.mp4', alt: 'Masterclass session' },
     { type: 'image', src: '/masterclass/mc-img1.jpg', alt: 'Inside the session' },
-    { type: 'video', src: '/masterclass/mc-v2.mov', alt: 'Learning on the decks' },
-    { type: 'video', src: '/masterclass/mc-v3.mov', alt: 'Hands-on demo' },
+    { type: 'video', src: '/masterclass/mc-v2.mp4', alt: 'Learning on the decks' },
+    { type: 'video', src: '/masterclass/mc-v3.mp4', alt: 'Hands-on demo' },
     { type: 'image', src: '/masterclass/mc-img2.jpg', alt: 'Studio session' },
   ],
   hero: {
