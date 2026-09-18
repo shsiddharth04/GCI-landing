@@ -8,7 +8,7 @@ GCI Music Academy is a vertical under **Gig Culture India (GCI)** — the parent
 
 **This site has exactly two products. Do not invent a third.**
 
-1. **The Masterclass** — free, one-time, in-studio (Gurugram). Top-of-funnel. No payment. Capacity-capped registration.
+1. **The Masterclass** — ₹179, one-time, in-studio (Gurugram). Top-of-funnel. Razorpay checkout. Capacity-capped registration.
 2. **The DJ Course** — paid, in-studio (same Gurugram studio). The actual revenue product. Razorpay checkout.
 
 The masterclass exists to feed the course. Every masterclass registrant should be trackable through to course enrollment. This relationship should be visible in the site's structure (e.g. an explicit "start here → go deeper" pathway), not just two disconnected pages.
@@ -52,7 +52,7 @@ Anywhere real data isn't confirmed yet, use clearly-marked placeholder tokens (e
 - FAQ
 - Sticky "Enroll Now" → Razorpay checkout
 
-**Checkout (course only — masterclass has no payment step)**
+**Checkout (both masterclass at ₹179 and course)**
 - Minimal fields, Razorpay-hosted or embedded Checkout.js
 - Trust badges, refund policy link visible at point of payment
 - Post-payment: confirmation email + batch details + WhatsApp group link
@@ -62,7 +62,7 @@ Anywhere real data isn't confirmed yet, use clearly-marked placeholder tokens (e
 - `masterclass_registrations`: name, phone, email, experience_level, status (`registered` / `waitlisted` / `attended` / `no_show` / `contacted` / `enrolled` / `not_interested`), timestamp — capacity-enforced against the studio seat cap
 - `course_enrollments`: linked to Razorpay payment reference, batch_id, student details
 - Link masterclass → course records by email/phone to measure masterclass-to-course conversion — this is the number that proves the masterclass is worth running
-- Automated trigger for confirmation/reminder/follow-up messaging (email at minimum, WhatsApp if available) — a free event with no automated follow-up leaks leads
+- Automated trigger for confirmation/reminder/follow-up messaging (email at minimum, WhatsApp if available)
 
 ## Brand system
 

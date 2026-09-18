@@ -114,7 +114,7 @@ export const DEFAULT_SETTINGS: AcademySettings = {
     studioAddress: '11th Floor, Capital Tower, Next To CDS Tower, Sector 20, Gurugram',
     mapEmbedUrl: '',
     isActive: true,
-    whatsInside: 'A hands-on session inside GCI Studio, Gurugram. Get behind the Pioneer XDJ-RX3, understand signal flow, and feel what DJing actually requires. Zero commitment. No payment, no prerequisites. Just show up.',
+    whatsInside: 'A hands-on session inside GCI Studio, Gurugram. Get behind the Pioneer XDJ-RX3, understand signal flow, and feel what DJing actually requires. ₹179 to attend. No prior experience needed.',
     scheduleOpenTime: '10:00',
     scheduleCloseTime: '22:00',
     slotMinutes: 30,
@@ -191,6 +191,10 @@ export function loadSettings(): AcademySettings {
       masterclass: (() => {
         const m = { ...structuredClone(DEFAULT_SETTINGS).masterclass, ...stored.masterclass }
         if (m.slotCapacity === 3) m.slotCapacity = 1
+        // Masterclass is ₹179 — strip any old "free/no payment" copy that may be in stored data
+        if (m.whatsInside && (m.whatsInside.includes('No payment') || m.whatsInside.includes('Zero commitment'))) {
+          m.whatsInside = DEFAULT_SETTINGS.masterclass.whatsInside
+        }
         // Drop stale fields from old schema (harmless if absent)
         delete (m as Record<string, unknown>).date
         delete (m as Record<string, unknown>).time
