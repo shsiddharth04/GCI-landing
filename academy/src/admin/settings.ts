@@ -114,7 +114,7 @@ export const DEFAULT_SETTINGS: AcademySettings = {
     studioAddress: '11th Floor, Capital Tower, Next To CDS Tower, Sector 20, Gurugram',
     mapEmbedUrl: '',
     isActive: true,
-    whatsInside: 'A hands-on session inside GCI Studio, Gurugram. Get behind the Pioneer XDJ-RX3, understand signal flow, and feel what DJing actually requires. Zero commitment. No payment, no prerequisites. Just show up.',
+    whatsInside: 'A hands-on session inside GCI Studio, Gurugram. Get behind the Pioneer XDJ-RX3, understand signal flow, and feel what DJing actually requires. ₹179 to attend. No prior experience needed.',
     scheduleOpenTime: '10:00',
     scheduleCloseTime: '22:00',
     slotMinutes: 30,
@@ -156,10 +156,10 @@ export const DEFAULT_SETTINGS: AcademySettings = {
     { id: '09', weekLabel: 'MOD 09', order: 8, title: 'GigCulture Artist Onboarding', description: 'Upon completion, you are onboarded onto the GigCultureIndia platform as a listed artist. Your profile enters our genre and vibe-matching engine, connecting you to venues, events and organizers actively looking for artists like you.' },
   ],
   studioGallery: [
-    { type: 'video', src: '/masterclass/mc-v1.mov', alt: 'Masterclass session' },
+    { type: 'video', src: '/masterclass/mc-v1.mp4', alt: 'Masterclass session' },
     { type: 'image', src: '/masterclass/mc-img1.jpg', alt: 'Inside the session' },
-    { type: 'video', src: '/masterclass/mc-v2.mov', alt: 'Learning on the decks' },
-    { type: 'video', src: '/masterclass/mc-v3.mov', alt: 'Hands-on demo' },
+    { type: 'video', src: '/masterclass/mc-v2.mp4', alt: 'Learning on the decks' },
+    { type: 'video', src: '/masterclass/mc-v3.mp4', alt: 'Hands-on demo' },
     { type: 'image', src: '/masterclass/mc-img2.jpg', alt: 'Studio session' },
   ],
   hero: {
@@ -191,6 +191,10 @@ export function loadSettings(): AcademySettings {
       masterclass: (() => {
         const m = { ...structuredClone(DEFAULT_SETTINGS).masterclass, ...stored.masterclass }
         if (m.slotCapacity === 3) m.slotCapacity = 1
+        // Masterclass is ₹179 — strip any old "free/no payment" copy that may be in stored data
+        if (m.whatsInside && (m.whatsInside.includes('No payment') || m.whatsInside.includes('Zero commitment'))) {
+          m.whatsInside = DEFAULT_SETTINGS.masterclass.whatsInside
+        }
         // Drop stale fields from old schema (harmless if absent)
         delete (m as Record<string, unknown>).date
         delete (m as Record<string, unknown>).time
@@ -203,7 +207,10 @@ export function loadSettings(): AcademySettings {
       hero: { ...structuredClone(DEFAULT_SETTINGS).hero, ...stored.hero },
       studioGallery: (() => {
         const OLD = ['/studio-1.jpg', '/studio-2.jpg', '/studio-3.jpg', '/studio-4.jpg', '/masterclass.mov']
-        const filtered = (stored.studioGallery ?? []).filter((g: GalleryItem) => !OLD.includes(g.src))
+        const filtered = (stored.studioGallery ?? [])
+          .filter((g: GalleryItem) => !OLD.includes(g.src))
+          // Migrate .mov → .mp4 for all video entries
+          .map((g: GalleryItem) => g.src.endsWith('.mov') ? { ...g, src: g.src.replace(/\.mov$/, '.mp4') } : g)
         return filtered.length > 0 ? filtered : structuredClone(DEFAULT_SETTINGS).studioGallery
       })(),
       // curriculum and instructors from storage override defaults entirely

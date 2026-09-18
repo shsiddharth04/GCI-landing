@@ -39,7 +39,8 @@ serve(async (req) => {
       .eq('deposit_status', 'paid')
       .maybeSingle()
 
-    if (existingPaid) return json({ error: 'already_paid' }, 400)
+    // 200 so the SDK delivers the body to `data` (not swallowed as FunctionsHttpError)
+    if (existingPaid) return json({ error: 'already_paid' })
 
     // Idempotency — return existing pending order rather than creating a duplicate
     const { data: existingPending } = await supabase
