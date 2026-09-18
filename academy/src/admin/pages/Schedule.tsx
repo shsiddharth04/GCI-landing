@@ -7,6 +7,7 @@ import {
   fetchCourseClassBlocks, addCourseClassBlock, deleteCourseClassBlock,
 } from '../../lib/db'
 import type { Session, Registration, Instructor, SlotOverride, MasterclassBooking, BlockedWindow, CourseClassBlock } from '../../lib/db'
+import { supabase } from '../../lib/supabase'
 import DatePicker from '../components/DatePicker'
 import TimePicker from '../components/TimePicker'
 import { loadSettings } from '../settings'
@@ -1034,6 +1035,8 @@ function MasterclassSlotsPanel() {
 
 // ── Course blocks panel (C1/C2 FOMO slot blocking) ───────────────────────────
 
+type EmailToast = { type: 'success' | 'warn' | 'error'; message: string }
+
 function CourseBlocksPanel() {
   const today = new Date().toISOString().slice(0, 10)
   const days = Array.from({ length: 14 }, (_, i) => {
@@ -1045,12 +1048,22 @@ function CourseBlocksPanel() {
   const [blocks, setBlocks] = useState<CourseClassBlock[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [emailToast, setEmailToast] = useState<EmailToast | null>(null)
+
+  // delete confirmation state
+  const [pendingDelete, setPendingDelete] = useState<CourseClassBlock | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const [startTime, setStartTime] = useState('')
   const [endTime, setEndTime] = useState('')
   const [cohort, setCohort] = useState<'C0' | 'C1' | 'C2' | 'C3' | 'C4' | 'C5'>('C1')
   const [blockLabel, setBlockLabel] = useState('')
   const [adding, setAdding] = useState(false)
+
+  function showToast(toast: EmailToast) {
+    setEmailToast(toast)
+    setTimeout(() => setEmailToast(null), 5000)
+  }
 
   async function loadBlocks() {
     setLoading(true); setError(null)
@@ -1066,17 +1079,79 @@ function CourseBlocksPanel() {
     if (startTime >= endTime) { setError('End must be after start.'); return }
     setAdding(true); setError(null)
     try {
-      await addCourseClassBlock(selectedDate, startTime, endTime, cohort, blockLabel || undefined)
+      const block = await addCourseClassBlock(selectedDate, startTime, endTime, cohort, blockLabel || undefined)
       await loadBlocks()
       setStartTime(''); setEndTime(''); setBlockLabel('')
+
+      // Fire schedule alert — fire-and-forget (block save already succeeded)
+      supabase.functions.invoke('send-schedule-alert', {
+        body: {
+          block_id: block.id,
+          cohort: block.cohort,
+          block_date: block.block_date,
+          start_time: block.start_time.slice(0, 5),
+          end_time: block.end_time.slice(0, 5),
+          action: 'created',
+        },
+      }).then(({ data, error: fnErr }) => {
+        if (fnErr) {
+          showToast({ type: 'warn', message: `Block saved. Email dispatch failed — check function logs.` })
+          return
+        }
+        const r = data as { sent?: number; skipped?: boolean; reason?: string } | null
+        if (r?.skipped) {
+          showToast({ type: 'warn', message: `Block saved. No active students in ${block.cohort} — no emails sent.` })
+        } else {
+          showToast({ type: 'success', message: `Block saved. Schedule sent to ${r?.sent ?? 0} student${(r?.sent ?? 0) !== 1 ? 's' : ''} in ${block.cohort}.` })
+        }
+      }).catch(() => {
+        showToast({ type: 'warn', message: `Block saved. Email dispatch failed — check function logs.` })
+      })
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to add block.')
     } finally { setAdding(false) }
   }
 
-  async function handleDelete(id: string) {
-    try { await deleteCourseClassBlock(id); setBlocks(prev => prev.filter(b => b.id !== id)) }
-    catch { setError('Failed to delete block.') }
+  async function confirmDelete(notify: boolean) {
+    if (!pendingDelete) return
+    const b = pendingDelete
+    setDeleting(true)
+    try {
+      await deleteCourseClassBlock(b.id)
+      setBlocks(prev => prev.filter(x => x.id !== b.id))
+      setPendingDelete(null)
+
+      if (notify) {
+        supabase.functions.invoke('send-schedule-alert', {
+          body: {
+            cohort: b.cohort,
+            block_date: b.block_date,
+            start_time: b.start_time.slice(0, 5),
+            end_time: b.end_time.slice(0, 5),
+            action: 'deleted',
+          },
+        }).then(({ data, error: fnErr }) => {
+          if (fnErr) {
+            showToast({ type: 'warn', message: `Block deleted. Cancellation email failed — check function logs.` })
+            return
+          }
+          const r = data as { sent?: number; skipped?: boolean } | null
+          if (r?.skipped) {
+            showToast({ type: 'warn', message: `Block deleted. No active students in ${b.cohort} — no cancellation emails sent.` })
+          } else {
+            showToast({ type: 'success', message: `Block deleted. Cancellation sent to ${r?.sent ?? 0} student${(r?.sent ?? 0) !== 1 ? 's' : ''} in ${b.cohort}.` })
+          }
+        }).catch(() => {
+          showToast({ type: 'warn', message: `Block deleted. Cancellation email failed — check function logs.` })
+        })
+      } else {
+        showToast({ type: 'success', message: `Block deleted.` })
+      }
+    } catch {
+      setError('Failed to delete block.')
+    } finally {
+      setDeleting(false)
+    }
   }
 
   const dayBlocks = blocks.filter(b => b.block_date === selectedDate)
@@ -1087,7 +1162,59 @@ function CourseBlocksPanel() {
         Block masterclass slots for course class times. Blocked slots show as <strong>C1–C5 · class</strong> on the booking page — students see the studio is active.
       </p>
 
-      {/* Day selector — next 7 days */}
+      {/* Email dispatch toast */}
+      {emailToast && (
+        <div
+          className="mb-4 px-4 py-3 text-xs font-mono"
+          style={{
+            border: `1px solid ${emailToast.type === 'success' ? '#6ee7b7' : emailToast.type === 'warn' ? '#fcd34d' : '#fca5a5'}`,
+            background: emailToast.type === 'success' ? '#f0fdf4' : emailToast.type === 'warn' ? '#fffbeb' : '#fef2f2',
+            color: emailToast.type === 'success' ? '#065f46' : emailToast.type === 'warn' ? '#92400e' : '#991b1b',
+          }}
+        >
+          {emailToast.message}
+        </div>
+      )}
+
+      {/* Delete confirmation dialog */}
+      {pendingDelete && (
+        <div className="mb-5 px-4 py-4 bg-white" style={{ border: '1px solid #fca5a5' }}>
+          <p className="text-xs text-[#190F30] mb-3">
+            Delete the <span className="font-bold">{pendingDelete.cohort}</span> block on{' '}
+            {fmtDate(pendingDelete.block_date)}{' '}
+            ({fmt12(pendingDelete.start_time.slice(0, 5))} – {fmt12(pendingDelete.end_time.slice(0, 5))})?
+          </p>
+          <p className="text-[10px] text-[#8B73B3] font-mono mb-3">
+            Students in {pendingDelete.cohort} will be notified of the cancellation if you choose "Delete &amp; Notify".
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => confirmDelete(true)}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700 text-white text-[10px] font-bold font-mono tracking-widest uppercase px-4 py-2 disabled:opacity-50 transition-colors"
+            >
+              {deleting ? 'Deleting…' : 'Delete & Notify'}
+            </button>
+            <button
+              onClick={() => confirmDelete(false)}
+              disabled={deleting}
+              className="text-[10px] font-mono text-[#C4B4E4] hover:text-red-500 px-3 py-2 disabled:opacity-50 transition-colors"
+              style={{ border: '1px solid #E3D9F7' }}
+            >
+              Delete only
+            </button>
+            <button
+              onClick={() => setPendingDelete(null)}
+              disabled={deleting}
+              className="text-[10px] font-mono text-[#B5A3D4] hover:text-[#8B73B3] px-3 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Day selector — next 14 days */}
       <div className="flex gap-1.5 mb-5 flex-wrap">
         {days.map(d => {
           const isActive = d === selectedDate
@@ -1130,8 +1257,9 @@ function CourseBlocksPanel() {
               </span>
               {b.label && <span className="text-xs text-[#8B73B3] flex-1 truncate">{b.label}</span>}
               <button
-                onClick={() => handleDelete(b.id)}
+                onClick={() => setPendingDelete(b)}
                 className="ml-auto text-[#C4B4E4] hover:text-red-500 transition-colors"
+                title="Delete block"
               >
                 <Trash2 size={13} />
               </button>
