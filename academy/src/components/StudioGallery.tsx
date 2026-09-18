@@ -1,10 +1,70 @@
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { loadSettings } from '../admin/settings'
 import { fadeUp, fadeIn, viewportOnce } from '../lib/motion'
 import type { GalleryItem } from '../admin/settings'
 import type { MouseEvent } from 'react'
+
+// Lazy-loads src via IntersectionObserver, plays only after canplay fires.
+// Prevents autoPlay+preload="none" jitter (browser playing with 0 buffer).
+function FilmVideo({ src }: { src: string }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const [ready, setReady] = useState(false)
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return
+        observer.disconnect()
+        const video = videoRef.current
+        if (!video || video.src) return
+        video.src = src
+        video.load()
+      },
+      { rootMargin: '300px' },
+    )
+    observer.observe(container)
+    return () => observer.disconnect()
+  }, [src])
+
+  function handleCanPlay() {
+    const video = videoRef.current
+    if (!video) return
+    video.play().catch(() => {})
+    setReady(true)
+  }
+
+  return (
+    <div ref={containerRef} style={{ height: '100%', position: 'relative' }}>
+      {!ready && (
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(90deg,#0d0d0d 25%,#161616 50%,#0d0d0d 75%)',
+          backgroundSize: '200% 100%',
+          animation: 'gallery-shimmer 1.6s ease-in-out infinite',
+        }} />
+      )}
+      <video
+        ref={videoRef}
+        muted
+        loop
+        playsInline
+        preload="none"
+        onCanPlay={handleCanPlay}
+        style={{
+          display: 'block', height: '100%', width: 'auto', maxWidth: 'none',
+          opacity: ready ? 1 : 0, transition: 'opacity 0.5s ease',
+          // GPU layer — prevents software-decode stutter on chromium/webkit
+          transform: 'translateZ(0)', willChange: 'transform',
+        }}
+      />
+    </div>
+  )
+}
 
 function FilmItem({ item, index }: { item: GalleryItem; index: number }) {
   const num = String(index + 1).padStart(2, '0')
@@ -19,15 +79,7 @@ function FilmItem({ item, index }: { item: GalleryItem; index: number }) {
       }}
     >
       {item.type === 'video' ? (
-        <video
-          src={item.src}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="none"
-          style={{ display: 'block', height: '100%', width: 'auto', maxWidth: 'none' }}
-        />
+        <FilmVideo src={item.src} />
       ) : (
         <img
           src={item.src}
@@ -108,6 +160,10 @@ export default function StudioGallery() {
       <style>{`
         .filmstrip-track::-webkit-scrollbar { display: none; }
         .filmstrip-track { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes gallery-shimmer {
+          0%   { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
       `}</style>
 
       {/* Section header */}
@@ -159,14 +215,10 @@ export default function StudioGallery() {
           style={{
             display: 'flex',
             gap: '2px',
-            // vw-based height so items are proportional to screen width on all devices.
-            // At 390px mobile: ~187px tall, landscape videos ~332px wide — fits neatly.
-            // At 1440px desktop: capped at 600px, landscape videos ~1067px — good scroll.
             height: 'clamp(180px, 48vw, 600px)',
             overflowX: 'auto',
             overflowY: 'hidden',
             cursor: 'grab',
-            // Padding-left only; right handled by spacer to avoid Safari scroll-width bug.
             paddingLeft: '24px',
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             WebkitOverflowScrolling: 'touch' as any,
