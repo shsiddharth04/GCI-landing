@@ -76,7 +76,7 @@ export default function TrustLayer() {
             // trust_layer
           </p>
           <h2 className="font-display font-bold text-[clamp(32px,5vw,60px)] text-white leading-[1.05] tracking-[-0.02em]">
-            The underground vouches.<br className="hidden lg:block" /> So does Bollywood.
+            Vouched By The Underground
           </h2>
         </div>
       </div>
