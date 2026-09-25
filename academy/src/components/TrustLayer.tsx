@@ -122,7 +122,7 @@ export default function TrustLayer() {
           </div>
 
           {/* Text */}
-          <div className="lg:col-span-8 flex flex-col justify-between p-8 lg:p-12">
+          <div className="lg:col-span-8 flex flex-col justify-between p-8 lg:p-12 min-h-[220px] lg:min-h-0">
             <p className="font-label text-[9px] tracking-[0.28em] uppercase text-[#C9BFE0]">
               GCI artist
             </p>
@@ -145,7 +145,7 @@ export default function TrustLayer() {
       </div>
 
       {/* Row 2 — Zoheb (mirrored: photo right on desktop, first on mobile) */}
-      <div>
+      <div className="border-b border-[#1f1f1f]">
         <div className="max-w-[1152px] mx-auto grid lg:grid-cols-12">
 
           {/* Photo — first in HTML → first on mobile; placed right on desktop */}
@@ -154,13 +154,14 @@ export default function TrustLayer() {
               <img
                 src="/zoheb.jpg"
                 alt="Zoheb Khan"
+                loading="lazy"
                 className="w-full h-full object-cover grayscale"
               />
             </div>
           </div>
 
           {/* Text — second in HTML → second on mobile; placed left on desktop */}
-          <div className="lg:col-span-7 lg:col-start-1 lg:row-start-1 flex flex-col justify-between p-8 lg:p-12">
+          <div className="lg:col-span-7 lg:col-start-1 lg:row-start-1 flex flex-col justify-between p-8 lg:p-12 min-h-[220px] lg:min-h-0">
             <p className="font-label text-[9px] tracking-[0.28em] uppercase text-[#C9BFE0]">
               Academy advisor
             </p>
