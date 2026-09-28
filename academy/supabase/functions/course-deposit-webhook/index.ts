@@ -289,9 +289,26 @@ serve(async (req) => {
       .maybeSingle()
 
     if (!paymentRec) {
-      console.error('No course payment record found for order:', orderId)
-      return new Response(JSON.stringify({ ok: false, reason: 'order_not_found' }), {
-        status: 404, headers: { 'Content-Type': 'application/json' },
+      // Orphaned order: Razorpay captured the payment but no course_payments row
+      // exists (the INSERT in create-course-deposit-order failed). Return 200 so
+      // Razorpay stops retrying — manual reconciliation required.
+      console.error('ORPHANED ORDER — no course_payments row for captured order:', orderId, '— manual reconciliation required')
+      fetch(`${SUPABASE_URL}/functions/v1/send-masterclass-confirmation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+        body: JSON.stringify({
+          status:     'finance_alert',
+          payment_id: paymentId,
+          order_id:   orderId,
+          amount:     amountPaise,
+          contact:    payment.contact ?? null,
+        }),
+      }).catch(e => console.error('Finance alert email failed:', e))
+      return new Response(JSON.stringify({ ok: true, note: 'order_not_found_acknowledged' }), {
+        status: 200, headers: { 'Content-Type': 'application/json' },
       })
     }
 

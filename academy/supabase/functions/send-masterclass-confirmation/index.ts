@@ -1,6 +1,10 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
+const RESEND_API_KEY            = Deno.env.get('RESEND_API_KEY')
+const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+const FINANCE_EMAIL             = Deno.env.get('FINANCE_EMAIL') ?? 'finance@gigcultureindia.com'
 const FROM = 'GCI Music Academy <noreply@gigcultureindia.com>'
 const STUDIO_ADDRESS = '11th Floor, Capital Tower, Next To CDS Tower, Sector 20, Gurugram'
 
@@ -219,7 +223,59 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: 'RESEND_API_KEY not set' }), { status: 500, headers: { 'Content-Type': 'application/json' } })
   }
 
-  const { name, email, date, startTime, endTime, status, pdfBase64, bookingId } = await req.json()
+  const body = await req.json()
+  const { name, email, date, startTime, endTime, status, pdfBase64, bookingId } = body
+
+  // ── Finance alert (service_role only) ───────────────────────────────────────
+  if (status === 'finance_alert') {
+    const authHeader = req.headers.get('Authorization') ?? ''
+    if (authHeader !== `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`) {
+      return new Response(JSON.stringify({ error: 'forbidden' }), {
+        status: 403, headers: { 'Content-Type': 'application/json' },
+      })
+    }
+    if (!RESEND_API_KEY) {
+      return new Response(JSON.stringify({ error: 'RESEND_API_KEY not set' }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+    }
+    const { payment_id, order_id, amount, contact } = body
+    // Dedup: INSERT into finance_alerts; if conflict, already alerted — skip.
+    const sbAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+    const { error: dedupErr } = await sbAdmin
+      .from('finance_alerts')
+      .insert({ payment_id, order_id })
+    if (dedupErr && dedupErr.code === '23505') {
+      // Already alerted for this payment_id.
+      return new Response(JSON.stringify({ ok: true, note: 'already_alerted' }), {
+        status: 200, headers: { 'Content-Type': 'application/json' },
+      })
+    }
+    const amountRupees = amount ? `₹${(amount / 100).toFixed(2)}` : 'unknown'
+    const alertText = [
+      'FINANCE ALERT — Captured payment with no matching order record.',
+      '',
+      `Payment ID : ${payment_id}`,
+      `Order ID   : ${order_id}`,
+      `Amount     : ${amountRupees}`,
+      `Contact    : ${contact ?? '—'}`,
+      '',
+      'Manual reconciliation required. Log in to Razorpay and Supabase to investigate.',
+    ].join('\n')
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: FROM,
+        to: [FINANCE_EMAIL],
+        subject: `[ACTION REQUIRED] Orphaned Razorpay payment — ${payment_id}`,
+        text: alertText,
+      }),
+    })
+    const data = await res.json()
+    return new Response(JSON.stringify(data), {
+      status: res.ok ? 200 : res.status,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+    })
+  }
 
   // status: 'confirmed' → request-received (flag off, pre-payment flow)
   //         'paid'      → payment-confirmed (webhook after Razorpay capture)

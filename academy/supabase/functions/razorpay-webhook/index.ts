@@ -333,9 +333,27 @@ serve(async (req) => {
       .maybeSingle()
 
     if (!paymentRec) {
-      console.error('No payment record found for order:', orderId)
-      return new Response(JSON.stringify({ ok: false, reason: 'order_not_found' }), {
-        status: 404, headers: { 'Content-Type': 'application/json' },
+      // Razorpay fires every event to every configured webhook.
+      // If this order isn't in masterclass_payments it likely belongs to the
+      // course-deposit webhook — but a captured payment with no DB record is
+      // anomalous regardless. Alert finance@ once (deduped inside send-masterclass-confirmation).
+      console.log('Order not in masterclass_payments:', orderId, '— alerting finance@')
+      fetch(`${SUPABASE_URL}/functions/v1/send-masterclass-confirmation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+        body: JSON.stringify({
+          status:     'finance_alert',
+          payment_id: paymentId,
+          order_id:   orderId,
+          amount:     amountPaise,
+          contact:    payment.contact ?? null,
+        }),
+      }).catch(e => console.error('Finance alert email failed:', e))
+      return new Response(JSON.stringify({ ok: true, note: 'order_not_found_acknowledged' }), {
+        status: 200, headers: { 'Content-Type': 'application/json' },
       })
     }
 
