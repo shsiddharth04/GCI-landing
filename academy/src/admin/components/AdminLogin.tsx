@@ -1,24 +1,28 @@
 import { useState } from 'react'
 import { Lock } from 'lucide-react'
-
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'gci-admin-2026'
+import { supabase } from '../../lib/supabase'
 
 interface Props {
   onAuth: () => void
 }
 
 export default function AdminLogin({ onAuth }: Props) {
+  const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState(false)
+  const [error, setError]       = useState('')
+  const [loading, setLoading]   = useState(false)
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (password === ADMIN_PASSWORD) {
-      sessionStorage.setItem('admin_authed', '1')
-      onAuth()
-    } else {
-      setError(true)
+    setLoading(true)
+    setError('')
+    const { error: authErr } = await supabase.auth.signInWithPassword({ email, password })
+    setLoading(false)
+    if (authErr) {
+      setError('Invalid email or password.')
       setPassword('')
+    } else {
+      onAuth()
     }
   }
 
@@ -37,29 +41,35 @@ export default function AdminLogin({ onAuth }: Props) {
             <Lock size={20} className="text-[#6B40A8]" />
           </div>
           <h1 className="text-lg font-semibold text-center text-[#190F30] mb-1">Admin access</h1>
-          <p className="text-sm text-[#8B73B3] text-center mb-7">Enter your admin password to continue.</p>
+          <p className="text-sm text-[#8B73B3] text-center mb-7">Sign in with your admin credentials.</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
+              type="email"
+              value={email}
+              onChange={(e) => { setEmail(e.target.value); setError('') }}
+              placeholder="Email"
+              autoFocus
+              required
+              className="w-full bg-[#F9F6FF] rounded-xl px-4 py-3 text-sm text-[#190F30] placeholder-[#C4B4E4] outline-none border border-[#D4C6EF] focus:border-[#9C7CE0] transition-colors"
+            />
+            <input
               type="password"
               value={password}
-              onChange={(e) => { setPassword(e.target.value); setError(false) }}
+              onChange={(e) => { setPassword(e.target.value); setError('') }}
               placeholder="Password"
-              autoFocus
+              required
               className={`w-full bg-[#F9F6FF] rounded-xl px-4 py-3 text-sm text-[#190F30] placeholder-[#C4B4E4] outline-none transition-colors ${
-                error
-                  ? 'border border-red-400'
-                  : 'border border-[#D4C6EF] focus:border-[#9C7CE0]'
+                error ? 'border border-red-400' : 'border border-[#D4C6EF] focus:border-[#9C7CE0]'
               }`}
             />
-            {error && (
-              <p className="text-xs text-red-500">Incorrect password. Try again.</p>
-            )}
+            {error && <p className="text-xs text-red-500">{error}</p>}
             <button
               type="submit"
-              className="w-full bg-[#6B40A8] hover:bg-[#5C358A] text-white font-semibold py-3 rounded-xl text-sm transition-colors"
+              disabled={loading}
+              className="w-full bg-[#6B40A8] hover:bg-[#5C358A] disabled:opacity-60 text-white font-semibold py-3 rounded-xl text-sm transition-colors"
             >
-              Sign in
+              {loading ? 'Signing in…' : 'Sign in'}
             </button>
           </form>
         </div>

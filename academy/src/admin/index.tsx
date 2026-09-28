@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
+import { supabase } from '../lib/supabase'
 import AdminLogin from './components/AdminLogin'
 import AdminLayout from './components/AdminLayout'
 import Dashboard from './pages/Dashboard'
@@ -15,11 +16,39 @@ import Students from './pages/Students'
 import ResourcesAdmin from './pages/ResourcesAdmin'
 import AnnouncementsAdmin from './pages/AnnouncementsAdmin'
 
-export default function AdminApp() {
-  const [authed, setAuthed] = useState(sessionStorage.getItem('admin_authed') === '1')
+async function checkIsAdmin(): Promise<boolean> {
+  const { data } = await supabase.rpc('is_admin')
+  return !!data
+}
 
-  if (!authed) {
-    return <AdminLogin onAuth={() => setAuthed(true)} />
+export default function AdminApp() {
+  const [loading,  setLoading]  = useState(true)
+  const [isAdmin,  setIsAdmin]  = useState(false)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      setIsAdmin(session ? await checkIsAdmin() : false)
+      setLoading(false)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        setIsAdmin(session ? await checkIsAdmin() : false)
+      }
+    )
+    return () => subscription.unsubscribe()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#F3EEFF' }}>
+        <div className="text-[#8B73B3] text-sm">Loading…</div>
+      </div>
+    )
+  }
+
+  if (!isAdmin) {
+    return <AdminLogin onAuth={() => { /* onAuthStateChange handles state update */ }} />
   }
 
   return (
