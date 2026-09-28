@@ -37,12 +37,9 @@ async function pollDepositStatus(
   for (let i = 0; i < maxAttempts; i++) {
     await new Promise(r => setTimeout(r, 2000))
     const { data } = await supabase
-      .from('course_enrollments')
-      .select('deposit_status')
-      .eq('id', enrollmentId)
-      .single()
-    if (data?.deposit_status === 'paid') return 'paid'
-    if (data?.deposit_status === 'failed') return 'failed'
+      .rpc('get_course_enrollment_status', { p_enrollment_id: enrollmentId })
+    if (data === 'paid') return 'paid'
+    if (data === 'failed') return 'failed'
   }
   return 'timeout'
 }

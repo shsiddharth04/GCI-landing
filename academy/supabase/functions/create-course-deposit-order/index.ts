@@ -117,17 +117,29 @@ serve(async (req) => {
 
     const order = await rzpRes.json()
 
-    const { error: insertErr } = await supabase
-      .from('course_payments')
-      .insert({
+    // Retry once on transient DB errors — if this still fails after retry,
+    // the Razorpay order exists but has no DB record (an orphan).
+    // The webhook is hardened to handle this gracefully, but log it loudly
+    // so it surfaces for manual reconciliation.
+    let insertErr = (await supabase.from('course_payments').insert({
+      enrollment_id: enrollmentId,
+      razorpay_order_id: order.id,
+      status: 'pending',
+      amount: COURSE_DEPOSIT_AMOUNT_PAISE,
+    })).error
+
+    if (insertErr) {
+      await new Promise(r => setTimeout(r, 300))
+      insertErr = (await supabase.from('course_payments').insert({
         enrollment_id: enrollmentId,
         razorpay_order_id: order.id,
         status: 'pending',
         amount: COURSE_DEPOSIT_AMOUNT_PAISE,
-      })
+      })).error
+    }
 
     if (insertErr) {
-      console.error('Failed to insert payment record:', insertErr)
+      console.error('ORPHANED RAZORPAY ORDER — course_payments INSERT failed after retry. Order:', order.id, 'Enrollment:', enrollmentId, 'Error:', insertErr.message)
       return json({ error: 'db_error' }, 500)
     }
 
