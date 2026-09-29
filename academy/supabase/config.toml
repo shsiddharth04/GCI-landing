@@ -38,3 +38,9 @@ verify_jwt = false
 
 [functions.reconcile-course-payments]
 verify_jwt = false
+
+[functions.record-cash-payment]
+verify_jwt = true
+
+[functions.trigger-payment-confirmation]
+verify_jwt = true

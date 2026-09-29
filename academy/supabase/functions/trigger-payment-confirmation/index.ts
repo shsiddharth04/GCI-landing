@@ -2,17 +2,18 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { PDFDocument, rgb, StandardFonts } from 'https://esm.sh/pdf-lib@1.17.1'
 
-// One-time resend tool — manually re-triggers the invoice + confirmation email
-// pipeline for a specific paid payment. Use when the webhook's fire-and-forget
-// email step failed (e.g., after a Resend API key fix).
+// Re-triggers the invoice + confirmation email pipeline for a paid payment.
+// Accepts admin JWT (email in admin_users table) OR service-role Authorization.
+// Lookup: razorpay_payment_id  OR  booking_id (latest paid row).
 //
-// Requires service_role Authorization header.
-// Usage: curl -X POST .../functions/v1/trigger-payment-confirmation \
-//   -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
-//   -H "Content-Type: application/json" \
-//   -d '{"razorpay_payment_id":"pay_XXX"}'
+// Usage:
+//   curl -X POST .../functions/v1/trigger-payment-confirmation \
+//     -H "Authorization: Bearer $ADMIN_JWT_OR_SERVICE_ROLE_KEY" \
+//     -H "Content-Type: application/json" \
+//     -d '{"razorpay_payment_id":"pay_XXX"}'
+//   -d '{"booking_id":"<uuid>"}'
 
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
+const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
 function fmt12(t: string): string {
@@ -33,38 +34,40 @@ function fmtInvoiceDate(d: Date): string {
 }
 
 async function generateInvoicePdf(opts: {
-  bookingId: string
-  studentName: string
-  studentEmail: string
-  slotDate: string
-  slotStart: string
-  slotEnd: string
-  razorpayOrderId: string
-  razorpayPaymentId: string
-  amountPaise: number
-  invoiceDate: Date
+  bookingId:        string
+  invoiceNumber:    string
+  studentName:      string
+  studentEmail:     string
+  slotDate:         string
+  slotStart:        string
+  slotEnd:          string
+  paymentMethod:    'razorpay' | 'cash'
+  razorpayOrderId:  string | null
+  razorpayPaymentId: string | null
+  amountPaise:      number
+  invoiceDate:      Date
 }): Promise<Uint8Array> {
   const doc = await PDFDocument.create()
   const page = doc.addPage([595, 842])
 
   const fontBold = await doc.embedFont(StandardFonts.HelveticaBold)
-  const font = await doc.embedFont(StandardFonts.Helvetica)
+  const font     = await doc.embedFont(StandardFonts.Helvetica)
 
-  const black = rgb(0.04, 0.04, 0.04)
-  const gray = rgb(0.45, 0.45, 0.45)
-  const lightGray = rgb(0.88, 0.88, 0.88)
-  const rowBg = rgb(0.96, 0.96, 0.96)
-  const paidGreen = rgb(0.08, 0.52, 0.22)
-  const paidGreenBg = rgb(0.91, 0.98, 0.93)
+  const black          = rgb(0.04, 0.04, 0.04)
+  const gray           = rgb(0.45, 0.45, 0.45)
+  const lightGray      = rgb(0.88, 0.88, 0.88)
+  const rowBg          = rgb(0.96, 0.96, 0.96)
+  const paidGreen      = rgb(0.08, 0.52, 0.22)
+  const paidGreenBg    = rgb(0.91, 0.98, 0.93)
   const paidGreenBorder = rgb(0.1, 0.65, 0.28)
 
   const margin = 60
-  const right = 595 - margin
+  const right  = 595 - margin
   const contentWidth = right - margin
   let y = 842 - margin
 
   const amountStr = `INR ${(opts.amountPaise / 100).toFixed(2)}`
-  const invNum = `INV-${opts.bookingId.slice(0, 8).toUpperCase()}`
+  const invNum = opts.invoiceNumber || `INV-${opts.bookingId.slice(0, 8).toUpperCase()}`
 
   page.drawText('GCI MUSIC ACADEMY', { x: margin, y, size: 17, font: fontBold, color: black })
   const invoiceLabelW = fontBold.widthOfTextAtSize('INVOICE', 22)
@@ -105,7 +108,7 @@ async function generateInvoicePdf(opts: {
   page.drawText(amountStr, { x: right - 10 - amtW, y, size: 11, font: fontBold, color: black })
   y -= 16
 
-  const slotDetail = `${fmtSlotDate(opts.slotDate)}  -  ${fmt12(opts.slotStart)} to ${fmt12(opts.slotEnd)}`
+  const slotDetail = `${fmtSlotDate(opts.slotDate)}  ·  ${fmt12(opts.slotStart)} to ${fmt12(opts.slotEnd)}`
   page.drawText(slotDetail, { x: margin + 10, y, size: 9, font, color: gray })
   y -= 30
 
@@ -123,18 +126,26 @@ async function generateInvoicePdf(opts: {
 
   page.drawText('PAYMENT REFERENCE', { x: margin, y, size: 8, font: fontBold, color: gray })
   y -= 18
-  page.drawText('Order ID', { x: margin, y, size: 9, font: fontBold, color: gray })
-  page.drawText(opts.razorpayOrderId, { x: margin + 72, y, size: 9, font, color: black })
-  y -= 15
-  page.drawText('Payment ID', { x: margin, y, size: 9, font: fontBold, color: gray })
-  page.drawText(opts.razorpayPaymentId, { x: margin + 72, y, size: 9, font, color: black })
+
+  if (opts.paymentMethod === 'cash') {
+    page.drawText('Payment Method', { x: margin, y, size: 9, font: fontBold, color: gray })
+    page.drawText('Cash', { x: margin + 100, y, size: 9, font, color: black })
+    y -= 15
+    page.drawText('Received At', { x: margin, y, size: 9, font: fontBold, color: gray })
+    page.drawText('GCI Studio, Gurugram', { x: margin + 100, y, size: 9, font, color: black })
+  } else {
+    page.drawText('Order ID', { x: margin, y, size: 9, font: fontBold, color: gray })
+    page.drawText(opts.razorpayOrderId ?? '—', { x: margin + 72, y, size: 9, font, color: black })
+    y -= 15
+    page.drawText('Payment ID', { x: margin, y, size: 9, font: fontBold, color: gray })
+    page.drawText(opts.razorpayPaymentId ?? '—', { x: margin + 72, y, size: 9, font, color: black })
+  }
 
   const paidSize = 32
   const paidText = 'PAID'
-  const paidW = fontBold.widthOfTextAtSize(paidText, paidSize)
-  const paidH = paidSize
-  const padX = 14
-  const padY = 10
+  const paidW    = fontBold.widthOfTextAtSize(paidText, paidSize)
+  const paidH    = paidSize
+  const padX = 14, padY = 10
   const stampX = right - paidW - padX * 2
   const stampY = y - paidH - padY
 
@@ -157,19 +168,78 @@ async function generateInvoicePdf(opts: {
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok')
 
+  // ── Auth: service-role key OR admin JWT checked against admin_users ────────
+  const token = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '')
+
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
-  const { razorpay_payment_id } = await req.json()
-  if (!razorpay_payment_id) {
-    return new Response(JSON.stringify({ error: 'razorpay_payment_id required' }), { status: 400 })
+  if (!token) {
+    return new Response(JSON.stringify({ error: 'forbidden' }), {
+      status: 403, headers: { 'Content-Type': 'application/json' },
+    })
   }
 
-  // Fetch the payment record
-  const { data: payment, error: payErr } = await supabase
-    .from('masterclass_payments')
-    .select('id, razorpay_order_id, razorpay_payment_id, status, amount, masterclass_booking_id, created_at')
-    .eq('razorpay_payment_id', razorpay_payment_id)
-    .maybeSingle()
+  if (token !== SUPABASE_SERVICE_ROLE_KEY) {
+    const { data: { user } } = await createClient(SUPABASE_URL, token).auth.getUser()
+    if (!user?.email) {
+      return new Response(JSON.stringify({ error: 'forbidden' }), {
+        status: 403, headers: { 'Content-Type': 'application/json' },
+      })
+    }
+    const { data: adminRow } = await supabase
+      .from('admin_users')
+      .select('email')
+      .eq('email', user.email.toLowerCase())
+      .maybeSingle()
+    if (!adminRow) {
+      return new Response(JSON.stringify({ error: 'forbidden' }), {
+        status: 403, headers: { 'Content-Type': 'application/json' },
+      })
+    }
+  }
+
+  const body = await req.json()
+  const { razorpay_payment_id, booking_id } = body
+
+  if (!razorpay_payment_id && !booking_id) {
+    return new Response(JSON.stringify({ error: 'razorpay_payment_id or booking_id required' }), { status: 400 })
+  }
+
+  // ── Fetch payment record ───────────────────────────────────────────────────
+  let payment: {
+    id: string
+    razorpay_order_id: string | null
+    razorpay_payment_id: string | null
+    payment_method: string
+    status: string
+    amount: number
+    masterclass_booking_id: string
+    invoice_number: string | null
+    created_at: string
+  } | null = null
+
+  let payErr: { message: string } | null = null
+
+  if (razorpay_payment_id) {
+    const { data, error } = await supabase
+      .from('masterclass_payments')
+      .select('id, razorpay_order_id, razorpay_payment_id, payment_method, status, amount, masterclass_booking_id, invoice_number, created_at')
+      .eq('razorpay_payment_id', razorpay_payment_id)
+      .maybeSingle()
+    payment = data
+    payErr = error
+  } else {
+    const { data, error } = await supabase
+      .from('masterclass_payments')
+      .select('id, razorpay_order_id, razorpay_payment_id, payment_method, status, amount, masterclass_booking_id, invoice_number, created_at')
+      .eq('masterclass_booking_id', booking_id)
+      .eq('status', 'paid')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    payment = data
+    payErr = error
+  }
 
   if (payErr || !payment) {
     return new Response(JSON.stringify({ error: 'payment_not_found', detail: payErr?.message }), { status: 404 })
@@ -178,7 +248,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: 'payment_not_paid', status: payment.status }), { status: 400 })
   }
 
-  // Fetch the booking record
+  // ── Fetch booking ──────────────────────────────────────────────────────────
   const { data: booking, error: bookErr } = await supabase
     .from('masterclass_bookings')
     .select('name, email, slot_date, slot_start_time, slot_end_time')
@@ -189,21 +259,25 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: 'booking_not_found', detail: bookErr?.message }), { status: 404 })
   }
 
-  // Regenerate PDF invoice (identical to the webhook pipeline)
+  const paymentMethod = (payment.payment_method ?? 'razorpay') as 'razorpay' | 'cash'
+
+  // ── Regenerate PDF ─────────────────────────────────────────────────────────
   const pdfBytes = await generateInvoicePdf({
-    bookingId: payment.masterclass_booking_id,
-    studentName: booking.name,
-    studentEmail: booking.email,
-    slotDate: booking.slot_date,
-    slotStart: (booking.slot_start_time as string).slice(0, 5),
-    slotEnd: (booking.slot_end_time as string).slice(0, 5),
-    razorpayOrderId: payment.razorpay_order_id,
-    razorpayPaymentId: payment.razorpay_payment_id,
-    amountPaise: payment.amount,
-    invoiceDate: new Date(payment.created_at),
+    bookingId:         payment.masterclass_booking_id,
+    invoiceNumber:     payment.invoice_number ?? `INV-${payment.masterclass_booking_id.slice(0, 8).toUpperCase()}`,
+    studentName:       booking.name,
+    studentEmail:      booking.email,
+    slotDate:          booking.slot_date,
+    slotStart:         (booking.slot_start_time as string).slice(0, 5),
+    slotEnd:           (booking.slot_end_time as string).slice(0, 5),
+    paymentMethod,
+    razorpayOrderId:   payment.razorpay_order_id ?? null,
+    razorpayPaymentId: payment.razorpay_payment_id ?? null,
+    amountPaise:       payment.amount,
+    invoiceDate:       new Date(payment.created_at),
   })
 
-  // Upload to storage (upsert — safe to re-run)
+  // ── Upload to storage ──────────────────────────────────────────────────────
   await supabase.storage
     .from('invoices')
     .upload(`invoice-${payment.masterclass_booking_id}.pdf`, pdfBytes, {
@@ -211,14 +285,11 @@ serve(async (req) => {
       upsert: true,
     })
 
-  // Encode PDF as base64
+  // ── Send email ─────────────────────────────────────────────────────────────
   let binary = ''
-  for (let i = 0; i < pdfBytes.length; i++) {
-    binary += String.fromCharCode(pdfBytes[i])
-  }
+  for (let i = 0; i < pdfBytes.length; i++) binary += String.fromCharCode(pdfBytes[i])
   const pdfBase64 = btoa(binary)
 
-  // Send confirmation email
   const emailRes = await fetch(`${SUPABASE_URL}/functions/v1/send-masterclass-confirmation`, {
     method: 'POST',
     headers: {
@@ -226,12 +297,12 @@ serve(async (req) => {
       Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
     },
     body: JSON.stringify({
-      name: booking.name,
-      email: booking.email,
-      date: booking.slot_date,
+      name:      booking.name,
+      email:     booking.email,
+      date:      booking.slot_date,
       startTime: (booking.slot_start_time as string).slice(0, 5),
-      endTime: (booking.slot_end_time as string).slice(0, 5),
-      status: 'paid',
+      endTime:   (booking.slot_end_time as string).slice(0, 5),
+      status:    'paid',
       pdfBase64,
       bookingId: payment.masterclass_booking_id,
     }),
@@ -244,10 +315,11 @@ serve(async (req) => {
     email_status: emailRes.status,
     resend_response: emailData,
     booking: {
-      id: payment.masterclass_booking_id,
-      name: booking.name,
-      email: booking.email,
-      slot_date: booking.slot_date,
+      id:         payment.masterclass_booking_id,
+      name:       booking.name,
+      email:      booking.email,
+      slot_date:  booking.slot_date,
+      payment_method: paymentMethod,
     },
   }), {
     status: emailRes.ok ? 200 : emailRes.status,
