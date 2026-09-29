@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import AdminLogin from './components/AdminLogin'
+import AdminSetPassword from './components/AdminSetPassword'
 import AdminLayout from './components/AdminLayout'
 import Dashboard from './pages/Dashboard'
 import CourseEditor from './pages/CourseEditor'
@@ -31,11 +32,13 @@ export default function AdminApp() {
   const [loading,      setLoading]      = useState(true)
   const [isAdmin,      setIsAdmin]      = useState(false)
   const [isSuperadmin, setIsSuperadmin] = useState(false)
+  const [isRecovery,   setIsRecovery]   = useState(false)
 
   async function refreshAuth(session: { access_token: string } | null) {
     if (!session) {
       setIsAdmin(false)
       setIsSuperadmin(false)
+      setIsRecovery(false)
       return
     }
     const [admin, superadmin] = await Promise.all([checkIsAdmin(), checkIsSuperadmin()])
@@ -50,7 +53,15 @@ export default function AdminApp() {
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          setIsRecovery(true)
+          setLoading(false)
+          return
+        }
+        if (event === 'USER_UPDATED') {
+          setIsRecovery(false)
+        }
         await refreshAuth(session)
       }
     )
@@ -63,6 +74,10 @@ export default function AdminApp() {
         <div className="text-[#8B73B3] text-sm">Loading…</div>
       </div>
     )
+  }
+
+  if (isRecovery) {
+    return <AdminSetPassword />
   }
 
   if (!isAdmin) {
