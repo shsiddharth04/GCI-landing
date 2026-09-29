@@ -67,6 +67,13 @@ export default function PortalRoot() {
   useEffect(() => {
     async function loadStudent() {
       try {
+        // Guard: if no session exists, go to login without showing an access error.
+        // Without this check, an unauthenticated query would return multiple rows
+        // (due to the anon policy) and maybeSingle() throws, triggering a false
+        // "no access" error. This also prevents a USER_UPDATED race condition.
+        const { data: { session: currentSession } } = await supabase.auth.getSession()
+        if (!currentSession) { setView('login'); return }
+
         const s = await fetchMyEnrollment()
         if (!s || s.status !== 'active') {
           setAccessError(true)
@@ -101,6 +108,7 @@ export default function PortalRoot() {
       }
 
       if (event === 'USER_UPDATED') {
+        if (!session) { setView('login'); return }
         await loadStudent()
         return
       }
