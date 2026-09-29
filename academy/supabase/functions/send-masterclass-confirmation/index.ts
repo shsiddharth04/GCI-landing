@@ -226,6 +226,17 @@ serve(async (req) => {
   const body = await req.json()
   const { name, email, date, startTime, endTime, status, pdfBase64, bookingId } = body
 
+  // ── Paid path: service_role only ─────────────────────────────────────────────
+  // Prevents any JWT holder from triggering invoice emails to arbitrary addresses.
+  if (status === 'paid') {
+    const authHeader = req.headers.get('Authorization') ?? ''
+    if (authHeader !== `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`) {
+      return new Response(JSON.stringify({ error: 'forbidden' }), {
+        status: 403, headers: { 'Content-Type': 'application/json' },
+      })
+    }
+  }
+
   // ── Finance alert (service_role only) ───────────────────────────────────────
   if (status === 'finance_alert') {
     const authHeader = req.headers.get('Authorization') ?? ''

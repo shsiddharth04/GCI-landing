@@ -39,13 +39,9 @@ async function pollPaymentStatus(
 ): Promise<'paid' | 'failed' | 'timeout'> {
   for (let i = 0; i < maxAttempts; i++) {
     await new Promise(r => setTimeout(r, 2000))
-    const { data } = await supabase
-      .from('masterclass_bookings')
-      .select('payment_status')
-      .eq('id', bookingId)
-      .single()
-    if (data?.payment_status === 'paid') return 'paid'
-    if (data?.payment_status === 'failed') return 'failed'
+    const { data } = await supabase.rpc('get_booking_payment_status', { p_booking_id: bookingId })
+    if (data === 'paid') return 'paid'
+    if (data === 'failed') return 'failed'
   }
   return 'timeout'
 }

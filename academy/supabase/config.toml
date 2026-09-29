@@ -44,3 +44,6 @@ verify_jwt = true
 
 [functions.trigger-payment-confirmation]
 verify_jwt = true
+
+[functions.admin-invite-admin]
+verify_jwt = true

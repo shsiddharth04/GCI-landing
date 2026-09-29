@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, BookOpen, Calendar, Users, GraduationCap, ClipboardList, LogOut, CalendarDays, UserCheck, FileText, Bell, CreditCard, BookMarked } from 'lucide-react'
+import { LayoutDashboard, BookOpen, Calendar, Users, GraduationCap, ClipboardList, LogOut, CalendarDays, UserCheck, FileText, Bell, CreditCard, BookMarked, ShieldCheck } from 'lucide-react'
+import { supabase } from '../../lib/supabase'
 
 const navItems = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -16,13 +17,18 @@ const navItems = [
   { to: '/admin/announcements', label: 'Announcements', icon: Bell },
 ]
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({
+  children,
+  isSuperadmin = false,
+}: {
+  children: React.ReactNode
+  isSuperadmin?: boolean
+}) {
   const navigate = useNavigate()
 
-  function handleLogout() {
-    sessionStorage.removeItem('admin_authed')
+  async function handleLogout() {
+    await supabase.auth.signOut()
     navigate('/admin')
-    window.location.reload()
   }
 
   return (
@@ -54,6 +60,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               {label}
             </NavLink>
           ))}
+
+          {isSuperadmin && (
+            <>
+              <div className="my-1.5 border-t border-white/8" />
+              <NavLink
+                to="/admin/team"
+                className={({ isActive }) =>
+                  `flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                    isActive
+                      ? 'bg-[#E8DEFA]/12 text-[#E8DEFA] font-medium'
+                      : 'text-white/45 hover:text-white/80 hover:bg-white/5'
+                  }`
+                }
+              >
+                <ShieldCheck size={15} />
+                Team
+              </NavLink>
+            </>
+          )}
         </nav>
 
         <div className="p-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>

@@ -15,25 +15,43 @@ import Schedule from './pages/Schedule'
 import Students from './pages/Students'
 import ResourcesAdmin from './pages/ResourcesAdmin'
 import AnnouncementsAdmin from './pages/AnnouncementsAdmin'
+import Team from './pages/Team'
 
 async function checkIsAdmin(): Promise<boolean> {
   const { data } = await supabase.rpc('is_admin')
   return !!data
 }
 
+async function checkIsSuperadmin(): Promise<boolean> {
+  const { data } = await supabase.rpc('is_superadmin')
+  return !!data
+}
+
 export default function AdminApp() {
-  const [loading,  setLoading]  = useState(true)
-  const [isAdmin,  setIsAdmin]  = useState(false)
+  const [loading,      setLoading]      = useState(true)
+  const [isAdmin,      setIsAdmin]      = useState(false)
+  const [isSuperadmin, setIsSuperadmin] = useState(false)
+
+  async function refreshAuth(session: { access_token: string } | null) {
+    if (!session) {
+      setIsAdmin(false)
+      setIsSuperadmin(false)
+      return
+    }
+    const [admin, superadmin] = await Promise.all([checkIsAdmin(), checkIsSuperadmin()])
+    setIsAdmin(admin)
+    setIsSuperadmin(superadmin)
+  }
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setIsAdmin(session ? await checkIsAdmin() : false)
+      await refreshAuth(session)
       setLoading(false)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
-        setIsAdmin(session ? await checkIsAdmin() : false)
+        await refreshAuth(session)
       }
     )
     return () => subscription.unsubscribe()
@@ -52,7 +70,7 @@ export default function AdminApp() {
   }
 
   return (
-    <AdminLayout>
+    <AdminLayout isSuperadmin={isSuperadmin}>
       <Routes>
         <Route index element={<Dashboard />} />
         <Route path="schedule" element={<Schedule />} />
@@ -66,6 +84,7 @@ export default function AdminApp() {
         <Route path="students" element={<Students />} />
         <Route path="resources" element={<ResourcesAdmin />} />
         <Route path="announcements" element={<AnnouncementsAdmin />} />
+        {isSuperadmin && <Route path="team" element={<Team />} />}
       </Routes>
     </AdminLayout>
   )
