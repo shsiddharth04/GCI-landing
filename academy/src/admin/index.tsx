@@ -47,7 +47,19 @@ export default function AdminApp() {
   }
 
   useEffect(() => {
+    // Detect invite/recovery flow initiated from the email link.
+    // The inline script in index.html captures the Supabase auth type before
+    // Supabase clears the URL hash, and main.tsx redirects here. We read it once
+    // and clear it so it doesn't persist across future visits.
+    const authType = sessionStorage.getItem('_auth_type')
+    if (authType) sessionStorage.removeItem('_auth_type')
+
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session && (authType === 'invite' || authType === 'recovery')) {
+        setIsRecovery(true)
+        setLoading(false)
+        return
+      }
       await refreshAuth(session)
       setLoading(false)
     })

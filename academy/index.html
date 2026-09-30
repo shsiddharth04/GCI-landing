@@ -5,6 +5,13 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GCI Academy</title>
+    <script>
+      // Capture Supabase auth type from hash before Supabase clears it on module load.
+      try {
+        var _t = new URLSearchParams(location.hash.replace(/^#/, '')).get('type');
+        if (_t === 'invite' || _t === 'recovery') sessionStorage.setItem('_auth_type', _t);
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
