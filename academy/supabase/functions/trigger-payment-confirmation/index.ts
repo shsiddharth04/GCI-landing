@@ -14,6 +14,7 @@ import { PDFDocument, rgb, StandardFonts } from 'https://esm.sh/pdf-lib@1.17.1'
 //   -d '{"booking_id":"<uuid>"}'
 
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!
+const SUPABASE_ANON_KEY         = Deno.env.get('SUPABASE_ANON_KEY')!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
 function fmt12(t: string): string {
@@ -180,7 +181,9 @@ serve(async (req) => {
   }
 
   if (token !== SUPABASE_SERVICE_ROLE_KEY) {
-    const { data: { user } } = await createClient(SUPABASE_URL, token).auth.getUser()
+    const { data: { user } } = await createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    }).auth.getUser()
     if (!user?.email) {
       return new Response(JSON.stringify({ error: 'forbidden' }), {
         status: 403, headers: { 'Content-Type': 'application/json' },
