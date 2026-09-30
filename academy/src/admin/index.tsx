@@ -34,7 +34,7 @@ export default function AdminApp() {
   const [isSuperadmin, setIsSuperadmin] = useState(false)
   const [isRecovery,   setIsRecovery]   = useState(false)
 
-  async function refreshAuth(session: { access_token: string } | null) {
+  async function refreshAuth(session: { access_token: string } | null, signOutIfNotAdmin = false) {
     if (!session) {
       setIsAdmin(false)
       setIsSuperadmin(false)
@@ -44,6 +44,11 @@ export default function AdminApp() {
     const [admin, superadmin] = await Promise.all([checkIsAdmin(), checkIsSuperadmin()])
     setIsAdmin(admin)
     setIsSuperadmin(superadmin)
+    // Someone authenticated successfully but isn't in admin_users — sign them out
+    // immediately so their session doesn't linger in the admin portal.
+    if (!admin && signOutIfNotAdmin) {
+      await supabase.auth.signOut()
+    }
   }
 
   useEffect(() => {
@@ -74,7 +79,10 @@ export default function AdminApp() {
         if (event === 'USER_UPDATED') {
           setIsRecovery(false)
         }
-        await refreshAuth(session)
+        // On a fresh sign-in, kick out anyone who isn't in admin_users.
+        // This prevents student portal credentials from creating a lingering
+        // session in the admin portal even though they'd be shown the login form.
+        await refreshAuth(session, event === 'SIGNED_IN')
       }
     )
     return () => subscription.unsubscribe()

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import { UserPlus, Trash2, ShieldCheck } from 'lucide-react'
+import { UserPlus, Trash2, ShieldCheck, UserX } from 'lucide-react'
 
 interface AdminUser {
   email: string
@@ -16,7 +16,9 @@ export default function Team() {
   const [inviting, setInviting]       = useState(false)
   const [inviteMsg, setInviteMsg]     = useState<{ ok: boolean; text: string } | null>(null)
 
-  const [removing, setRemoving] = useState<string | null>(null)
+  const [removing, setRemoving]         = useState<string | null>(null)
+  const [deleting, setDeleting]         = useState<string | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
 
   async function load() {
     setLoading(true)
@@ -69,23 +71,42 @@ export default function Team() {
     setInviting(false)
   }
 
-  async function handleRemove(email: string) {
-    setRemoving(email)
+  async function callFn(action: string, email: string) {
     const { data: { session } } = await supabase.auth.getSession()
     const token = session?.access_token
-    if (!token) { setRemoving(null); return }
-
+    if (!token) return null
     const res = await fetch(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-invite-admin`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ action: 'remove', email }),
+        body: JSON.stringify({ action, email }),
       }
     )
+    return res.ok ? await res.json() : null
+  }
 
-    if (res.ok) await load()
+  async function handleRemove(email: string) {
+    setRemoving(email)
+    await callFn('remove', email)
+    await load()
     setRemoving(null)
+  }
+
+  async function handleDeleteUser(email: string) {
+    setDeleting(email)
+    setConfirmDelete(null)
+    const result = await callFn('delete_user', email)
+    if (result?.reason === 'is_student') {
+      setInviteMsg({
+        ok: false,
+        text: `${email} is also an enrolled student — admin access removed, but their login account was kept so they can still access the student portal.`,
+      })
+    } else if (result?.auth_deleted) {
+      setInviteMsg({ ok: true, text: `${email} has been fully deleted.` })
+    }
+    await load()
+    setDeleting(null)
   }
 
   return (
@@ -130,17 +151,30 @@ export default function Team() {
                     </td>
                     <td className="px-5 py-3.5 text-right">
                       {canRemove && (
-                        <button
-                          onClick={() => handleRemove(a.email)}
-                          disabled={removing === a.email}
-                          className="text-red-400 hover:text-red-600 disabled:opacity-40 transition-colors"
-                          title="Remove admin access"
-                        >
-                          {removing === a.email
-                            ? <span className="text-xs text-[#0E0918]/30">Removing…</span>
-                            : <Trash2 size={14} />
-                          }
-                        </button>
+                        <div className="flex items-center justify-end gap-3">
+                          <button
+                            onClick={() => handleRemove(a.email)}
+                            disabled={removing === a.email || deleting === a.email}
+                            className="text-[#0E0918]/30 hover:text-orange-500 disabled:opacity-40 transition-colors"
+                            title="Remove admin access (keeps login account)"
+                          >
+                            {removing === a.email
+                              ? <span className="text-xs text-[#0E0918]/30">Removing…</span>
+                              : <Trash2 size={14} />
+                            }
+                          </button>
+                          <button
+                            onClick={() => setConfirmDelete(a.email)}
+                            disabled={removing === a.email || deleting === a.email}
+                            className="text-[#0E0918]/30 hover:text-red-600 disabled:opacity-40 transition-colors"
+                            title="Delete user account entirely"
+                          >
+                            {deleting === a.email
+                              ? <span className="text-xs text-[#0E0918]/30">Deleting…</span>
+                              : <UserX size={14} />
+                            }
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>
@@ -150,6 +184,35 @@ export default function Team() {
           </table>
         )}
       </div>
+
+      {/* Delete confirmation */}
+      {confirmDelete && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl border border-[#E8DEFA]/60 p-6 max-w-sm w-full mx-4 shadow-xl">
+            <h3 className="text-sm font-semibold text-[#0E0918] mb-2">Delete user account?</h3>
+            <p className="text-xs text-[#0E0918]/50 mb-1">
+              This removes <span className="font-mono text-[#0E0918]">{confirmDelete}</span> from admin_users and deletes their Supabase login account.
+            </p>
+            <p className="text-xs text-[#0E0918]/40 mb-5">
+              If they're also an enrolled student, only admin access is removed — their login account is kept for the student portal.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmDelete(null)}
+                className="flex-1 text-sm text-[#0E0918]/60 border border-[#E8DEFA] rounded-lg px-3 py-2 hover:bg-[#F9F6FF] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteUser(confirmDelete)}
+                className="flex-1 text-sm bg-red-600 text-white rounded-lg px-3 py-2 hover:bg-red-700 transition-colors font-medium"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Invite form */}
       <div className="bg-white rounded-xl border border-[#E8DEFA]/60 p-5">

@@ -21,7 +21,6 @@ function json(body: unknown, status = 200) {
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
 
-  // ── Auth: must be a superadmin ────────────────────────────────────────────
   const authHeader = req.headers.get('Authorization') ?? ''
   if (!authHeader) return json({ error: 'unauthorized' }, 401)
 
@@ -39,36 +38,59 @@ serve(async (req) => {
 
   if (!adminRow?.is_superadmin) return json({ error: 'forbidden' }, 403)
 
-  // ── Parse body ────────────────────────────────────────────────────────────
   let body: { email?: string; action?: string }
   try { body = await req.json() } catch { return json({ error: 'invalid_json' }, 400) }
 
   const action = body.action ?? 'invite'
 
+  // ── Remove admin access (keeps auth account) ──────────────────────────────
   if (action === 'remove') {
     const target = body.email?.trim().toLowerCase()
     if (!target || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(target)) {
       return json({ error: 'invalid_email' }, 400)
     }
-    // Prevent superadmin from removing themselves
-    if (target === user.email.toLowerCase()) {
-      return json({ error: 'cannot_remove_self' }, 400)
-    }
-    // Cannot remove another superadmin
+    if (target === user.email.toLowerCase()) return json({ error: 'cannot_remove_self' }, 400)
     const { data: targetRow } = await supabase
-      .from('admin_users')
-      .select('is_superadmin')
-      .eq('email', target)
-      .maybeSingle()
-    if (targetRow?.is_superadmin) {
-      return json({ error: 'cannot_remove_superadmin' }, 400)
-    }
-    const { error: delErr } = await supabase
-      .from('admin_users')
-      .delete()
-      .eq('email', target)
+      .from('admin_users').select('is_superadmin').eq('email', target).maybeSingle()
+    if (targetRow?.is_superadmin) return json({ error: 'cannot_remove_superadmin' }, 400)
+    const { error: delErr } = await supabase.from('admin_users').delete().eq('email', target)
     if (delErr) return json({ error: 'remove_failed', detail: delErr.message }, 500)
     return json({ ok: true, removed: target })
+  }
+
+  // ── Delete user (removes admin access + deletes auth account) ─────────────
+  if (action === 'delete_user') {
+    const target = body.email?.trim().toLowerCase()
+    if (!target || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(target)) {
+      return json({ error: 'invalid_email' }, 400)
+    }
+    if (target === user.email.toLowerCase()) return json({ error: 'cannot_remove_self' }, 400)
+    const { data: targetRow } = await supabase
+      .from('admin_users').select('is_superadmin').eq('email', target).maybeSingle()
+    if (targetRow?.is_superadmin) return json({ error: 'cannot_remove_superadmin' }, 400)
+
+    // Check if this person is also an enrolled student — deleting their auth
+    // account would break their student portal access.
+    const { data: studentRow } = await supabase
+      .from('enrolled_students').select('id').eq('email', target).maybeSingle()
+
+    // Always remove admin access
+    await supabase.from('admin_users').delete().eq('email', target)
+
+    if (studentRow) {
+      // Cannot delete auth account — they still need it for student portal
+      return json({ ok: true, admin_removed: true, auth_deleted: false, reason: 'is_student' })
+    }
+
+    // Find and delete the Supabase auth account
+    const { data: { users } } = await supabase.auth.admin.listUsers({ perPage: 1000 })
+    const authUser = users?.find(u => u.email?.toLowerCase() === target)
+    if (authUser) {
+      const { error: authDelErr } = await supabase.auth.admin.deleteUser(authUser.id)
+      if (authDelErr) return json({ error: 'auth_delete_failed', detail: authDelErr.message }, 500)
+    }
+
+    return json({ ok: true, admin_removed: true, auth_deleted: !!authUser })
   }
 
   // ── Invite ────────────────────────────────────────────────────────────────
@@ -77,29 +99,18 @@ serve(async (req) => {
     return json({ error: 'invalid_email' }, 400)
   }
 
-  // Check if already an admin
   const { data: existing } = await supabase
-    .from('admin_users')
-    .select('email')
-    .eq('email', email)
-    .maybeSingle()
-
+    .from('admin_users').select('email').eq('email', email).maybeSingle()
   if (existing) return json({ error: 'already_admin' }, 409)
 
-  // Pre-register in admin_users so the row exists before the invited user logs in
   const { error: upsertErr } = await supabase
-    .from('admin_users')
-    .insert({ email, is_superadmin: false })
-
+    .from('admin_users').insert({ email, is_superadmin: false })
   if (upsertErr) return json({ error: 'db_error', detail: upsertErr.message }, 500)
 
-  // Send Supabase Auth invite (magic-link style; user sets password on first login)
   const { error: inviteErr } = await supabase.auth.admin.inviteUserByEmail(email, {
     redirectTo: INVITE_REDIRECT,
   })
-
   if (inviteErr) {
-    // Roll back the admin_users insert if the invite failed
     await supabase.from('admin_users').delete().eq('email', email)
     return json({ error: 'invite_failed', detail: inviteErr.message }, 500)
   }
