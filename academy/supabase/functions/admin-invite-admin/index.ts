@@ -2,6 +2,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const SUPABASE_URL              = Deno.env.get('SUPABASE_URL')!
+const SUPABASE_ANON_KEY         = Deno.env.get('SUPABASE_ANON_KEY')!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
 const INVITE_REDIRECT = 'https://academy.gigcultureindia.com/#/admin'
@@ -21,10 +22,12 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
 
   // ── Auth: must be a superadmin ────────────────────────────────────────────
-  const token = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '')
-  if (!token) return json({ error: 'unauthorized' }, 401)
+  const authHeader = req.headers.get('Authorization') ?? ''
+  if (!authHeader) return json({ error: 'unauthorized' }, 401)
 
-  const { data: { user }, error: userErr } = await createClient(SUPABASE_URL, token).auth.getUser()
+  const { data: { user }, error: userErr } = await createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    global: { headers: { Authorization: authHeader } },
+  }).auth.getUser()
   if (userErr || !user?.email) return json({ error: 'forbidden' }, 403)
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)

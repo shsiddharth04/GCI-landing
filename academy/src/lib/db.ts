@@ -583,9 +583,12 @@ export async function deleteAnnouncement(id: string): Promise<void> {
 // ── Portal (authenticated): student's own data ────────────────────────────────
 
 export async function fetchMyEnrollment(): Promise<EnrolledStudent | null> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
   const { data, error } = await supabase
     .from('enrolled_students')
     .select('*')
+    .eq('user_id', user.id)
     .maybeSingle()
   if (error) throw error
   return data as EnrolledStudent | null
