@@ -56,7 +56,10 @@ export default function Team() {
     const body = await res.json()
 
     if (res.ok) {
-      setInviteMsg({ ok: true, text: `Invite sent to ${email}. They'll receive a setup link.` })
+      const text = body.existing_user
+        ? `Admin access granted to ${email}. They already have an account — they can sign in immediately with their existing password.`
+        : `Invite sent to ${email}. They'll receive a setup link.`
+      setInviteMsg({ ok: true, text })
       setInviteEmail('')
       await load()
     } else {

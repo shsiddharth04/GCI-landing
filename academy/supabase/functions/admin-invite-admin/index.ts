@@ -103,9 +103,20 @@ serve(async (req) => {
     .from('admin_users').select('email').eq('email', email).maybeSingle()
   if (existing) return json({ error: 'already_admin' }, 409)
 
+  // Check if this email already has a Supabase auth account (e.g. a student).
+  // If so, skip the invite email entirely — sending it would let them set a new
+  // password which would also change their student portal password (same account).
+  // Just grant admin_users access; they log in with their existing credentials.
+  const { data: { users: authUsers } } = await supabase.auth.admin.listUsers({ perPage: 1000 })
+  const hasExistingAccount = authUsers?.some(u => u.email?.toLowerCase() === email)
+
   const { error: upsertErr } = await supabase
     .from('admin_users').insert({ email, is_superadmin: false })
   if (upsertErr) return json({ error: 'db_error', detail: upsertErr.message }, 500)
+
+  if (hasExistingAccount) {
+    return json({ ok: true, existing_user: true, email })
+  }
 
   const { error: inviteErr } = await supabase.auth.admin.inviteUserByEmail(email, {
     redirectTo: INVITE_REDIRECT,
