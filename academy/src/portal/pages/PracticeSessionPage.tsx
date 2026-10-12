@@ -254,6 +254,7 @@ export default function PracticeSessionPage({ student }: Props) {
           noshowblock:              'Your practice access is blocked. Contact your instructor.',
           student_not_found:        'Account error. Refresh and try again.',
           no_instructor_found:      'Studio configuration error. Contact your instructor.',
+          inside_booking_window:    'Slots must be booked at least 24 hours in advance.',
         }
         setBookingError(MSGS[result.error] ?? `Booking failed (${result.error}).`)
         setConfirmingVacantKey(null)

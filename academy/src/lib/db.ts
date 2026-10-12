@@ -678,17 +678,13 @@ export function computePracticeVacancies(
     ...daySessions.map(s => ({ s: practiceToMins(s.start_time), e: practiceToMins(s.end_time) })),
     ...dayCourseBlocks.map(b => ({ s: practiceToMins(b.start_time), e: practiceToMins(b.end_time) })),
   ]
-  const now = new Date()
-  const localDate = (d: Date) =>
-    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-  const isToday = date === localDate(now)
-  const nowMins = now.getHours() * 60 + now.getMinutes()
+  const cutoff = new Date(Date.now() + 24 * 60 * 60 * 1000)
   const open  = practiceToMins(PRACTICE_STUDIO_OPEN)
   const close = practiceToMins(PRACTICE_STUDIO_CLOSE)
   const vacant: VacantSlot[] = []
   for (let cur = open; cur + PRACTICE_SLOT_MINUTES <= close; cur += PRACTICE_SLOT_MINUTES) {
     const end = cur + PRACTICE_SLOT_MINUTES
-    if (isToday && cur < nowMins) continue
+    if (new Date(`${date}T${practiceFromMins(cur)}:00`) < cutoff) continue
     if (blocked.some(b => b.s < end && b.e > cur)) continue
     vacant.push({ date, start: practiceFromMins(cur), end: practiceFromMins(end) })
   }
